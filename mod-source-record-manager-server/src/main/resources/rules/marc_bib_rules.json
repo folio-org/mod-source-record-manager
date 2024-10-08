@@ -69,6 +69,60 @@
           ]
         }
       ]
+    },
+    {
+      "target": "dates.dateTypeId",
+      "description": "Date type ID",
+      "subfield": [],
+      "createSingleObject": true,
+      "rules": [
+        {
+          "description": "",
+          "conditions": [
+            {
+              "type": "set_date_type_id"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "dates.date1",
+      "description": "Date 1",
+      "subfield": [],
+      "createSingleObject": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": {
+                "from": 7,
+                "to": 11
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "dates.date2",
+      "description": "Date 2",
+      "subfield": [],
+      "createSingleObject": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": {
+                "from": 11,
+                "to": 15
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "010": [

@@ -48,6 +48,8 @@ import org.folio.IdentifierType;
 import org.folio.Identifiertypes;
 import org.folio.IllPolicy;
 import org.folio.Illpolicies;
+import org.folio.InstanceDateType;
+import org.folio.InstanceDateTypes;
 import org.folio.InstanceFormat;
 import org.folio.InstanceNoteType;
 import org.folio.InstanceRelationshipType;
@@ -134,6 +136,7 @@ public class MappingParametersProvider {
   private static final String AUTHORITY_SOURCE_FILES_RESPONSE_PARAM = "authoritySourceFiles";
   private static final String SUBJECTS_SOURCES_RESPONSE_PARAM = "subjectSources";
   private static final String SUBJECTS_TYPES_RESPONSE_PARAM = "subjectTypes";
+  private static final String INSTANCE_DATE_TYPES_RESPONSE_PARAM = "instanceDateTypes";
 
   private static final String CONFIGS_VALUE_RESPONSE = "configs";
   private static final String VALUE_RESPONSE = "value";
@@ -193,6 +196,7 @@ public class MappingParametersProvider {
     Future<List<AuthoritySourceFile>> authoritySourceFilesFuture = getAuthoritySourceFiles(okapiParams);
     Future<List<SubjectSource>> subjectSourcesFuture = getSubjectSources(okapiParams);
     Future<List<SubjectType>> subjectTypesFuture = getSubjectTypes(okapiParams);
+    Future<List<InstanceDateType>> instanceDateTypesFuture = getInstanceDateTypes(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantConfigurationZoneFuture = getTenantConfigurationZone(okapiParams);
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
@@ -202,7 +206,7 @@ public class MappingParametersProvider {
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationZoneFuture,
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, instanceDateTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationZoneFuture,
         linkingRulesFuture))
       .map(ar ->
         mappingParams
@@ -236,6 +240,7 @@ public class MappingParametersProvider {
           .withAuthoritySourceFiles(authoritySourceFilesFuture.result())
           .withSubjectSources(subjectSourcesFuture.result())
           .withSubjectTypes(subjectTypesFuture.result())
+          .withInstanceDateTypes(instanceDateTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfigurationZone(tenantConfigurationZoneFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
@@ -484,6 +489,19 @@ public class MappingParametersProvider {
     String subjectTypesUrl = "/subject-types?limit=" + settingsLimit;
     return loadData(params, subjectTypesUrl, SUBJECTS_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(SubjectTypes.class).getSubjectTypes());
+  }
+
+  /**
+   * Requests for Instance Date Types from application Settings (mod-inventory-storage)
+   * *
+   *
+   * @param params Okapi connection parameters
+   * @return List Instance date types
+   */
+  private Future<List<InstanceDateType>> getInstanceDateTypes(OkapiConnectionParams params) {
+    String instanceDateTypesUrl = "/instance-date-types?limit=" + settingsLimit;
+    return loadData(params, instanceDateTypesUrl, INSTANCE_DATE_TYPES_RESPONSE_PARAM,
+      response -> response.mapTo(InstanceDateTypes.class).getInstanceDateTypes());
   }
 
   /**
