@@ -799,8 +799,7 @@ If ending punctuation of the last mapped subfield of the field is a period or co
 ##### **NOTE**: Regarding ending punctuation - if the mapped text ends with (".", ",", ";") then it will be(the last symbol) removed for the matching with Contributor Type.
 
 ####  Map single JsonObject
-If there is a need to map not arrays or string but JsonObject with simple fields inside (strings), there can be used "createSingleObject" rule:
-which process a record field:
+If there is a need to map not arrays or string but JsonObject with simple fields inside (strings), there can be used "createSingleObject" rule, which will create a single JsonObject with specified fields:
 
 ```json
 Building Dates JsonObject:
