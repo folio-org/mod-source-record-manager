@@ -40,6 +40,11 @@ resourceTypes:
         pageable
       ]
       queryParameters:
+        excludeJobProfileNames:
+          description: Filter by Job profiles name
+          type: string
+          example: Bulk operations data import job profile - *
+          required: false
         statusAny:
           description: JobExecution statuses to filter by
           type: string[]

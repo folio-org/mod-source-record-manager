@@ -62,8 +62,8 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
-                                               List<String> uiStatusAny, String hrId, String fileName, List<String> fileNameNotAny,
+  public void getMetadataProviderJobExecutions(String excludeJobProfileNames, List<String> statusAny, List<String> profileIdNotAny,
+                                               String statusNot, List<String> uiStatusAny, String hrId, String fileName, List<String> fileNameNotAny,
                                                List<String> profileIdAny, List<String> subordinationTypeNotAny, String userId, Date completedAfter,
                                                Date completedBefore, List<String> sortBy, String totalRecords, int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
@@ -72,7 +72,7 @@ public class MetadataProviderImpl implements MetadataProvider {
         LOGGER.debug("getMetadataProviderJobExecutions:: sortBy {}", sortBy);
         List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
         JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, fileNameNotAny, profileIdAny,
-                                      subordinationTypeNotAny, userId, completedAfter, completedBefore);
+                                      subordinationTypeNotAny, userId, completedAfter, completedBefore, excludeJobProfileNames);
         jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -223,7 +223,8 @@ public class MetadataProviderImpl implements MetadataProvider {
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
                                                      List<String> fileNameNotAny, List<String> profileIdAny, List<String> subordinationTypeNotAny,
-                                                     String userId, Date completedAfter, Date completedBefore) {
+                                                     String userId, Date completedAfter, Date completedBefore,
+                                                     String excludeJobProfileNames) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
       .toList();
@@ -239,6 +240,7 @@ public class MetadataProviderImpl implements MetadataProvider {
     return new JobExecutionFilter()
       .withStatusAny(statuses)
       .withProfileIdNotAny(profileIdNotAny)
+      .withExcludeJobProfileName(excludeJobProfileNames)
       .withStatusNot(statusNot == null ? null : JobExecution.Status.fromValue(statusNot))
       .withUiStatusAny(uiStatuses)
       .withHrIdPattern(hrIdPattern)
