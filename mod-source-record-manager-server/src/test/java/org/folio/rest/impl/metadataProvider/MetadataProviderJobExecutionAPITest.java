@@ -563,6 +563,21 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnFilteredCollectionByExcludeJobProfileNameWithWildcardOnGet() {
+    constructAndPostInitJobExecutionRqDto(5);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("excludeJobProfileNames", "importBib*")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(0))
+      .body("totalRecords", is(0));
+  }
+
+  @Test
   public void shouldReturnFilteredCollectionByFileNameOnGet() {
     constructAndPostInitJobExecutionRqDto(5);
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
