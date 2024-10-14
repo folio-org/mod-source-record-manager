@@ -17,6 +17,7 @@
 * [MODINV-1069](https://folio-org.atlassian.net/browse/MODINV-1069) Fix DataImportConsumerVerticleTest in mod-inventory and Fix NPE in HoldingsItemMatcher, fix job log entries
 * [MODSOURMAN-1212](https://folio-org.atlassian.net/browse/MODSOURMAN-1212) Update MARC bib-instance default mapping for subject source and subject type
 * [MODDATAIMP-1085](https://folio-org.atlassian.net/browse/MODDATAIMP-1085) Provide module permissions for subject types and sources
+* [MODDICORE-415](https://folio-org.atlassian.net/browse/MODDICORE-415) Adjust mapping of Subject source specified in subfield 2
 * [MODSOURMAN-1222](https://folio-org.atlassian.net/browse/MODSOURMAN-1222) Fix inconsistencies in permission namings
 
 ## 2023-03-22 v3.8.0
