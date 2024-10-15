@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
@@ -16,6 +17,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.IS_DELETED_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
@@ -24,6 +26,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 public class JobExecutionFilter {
   public static final String LIKE = "LIKE";
   public static final String ILIKE = "ILIKE";
+  private static final String NOT = "NOT";
   private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
   private List<JobExecution.Status> statusAny;
   private List<String> profileIdNotAny;
@@ -37,6 +40,7 @@ public class JobExecutionFilter {
   private String userId;
   private Date completedAfter;
   private Date completedBefore;
+  private String excludeJobProfileName;
 
   public JobExecutionFilter withStatusAny(List<JobExecution.Status> statusAny) {
     this.statusAny = statusAny;
@@ -65,6 +69,11 @@ public class JobExecutionFilter {
 
   public JobExecutionFilter withFileNamePattern(String fileNamePattern) {
     this.fileNamePattern = fileNamePattern;
+    return this;
+  }
+
+  public JobExecutionFilter withExcludeJobProfileName(String excludeJobProfileName) {
+    this.excludeJobProfileName = excludeJobProfileName;
     return this;
   }
 
@@ -121,15 +130,18 @@ public class JobExecutionFilter {
       addCondition(conditionBuilder, buildInCondition(UI_STATUS_FIELD, uiStatuses));
     }
     if (isNotEmpty(hrIdPattern) && isNotEmpty(fileNamePattern)) {
-      conditionBuilder.append(String.format(" AND (%s OR %s)", buildCaseSensitiveLikeCondition(HRID_FIELD, hrIdPattern),
-        buildCaseInsensitiveLikeCondition(FILE_NAME_FIELD, fileNamePattern)));
+      conditionBuilder.append(String.format(" AND (%s OR %s)", buildCaseSensitiveLikeCondition(HRID_FIELD, hrIdPattern, false),
+        buildCaseInsensitiveLikeCondition(FILE_NAME_FIELD, fileNamePattern, false)));
     } else {
       if (isNotEmpty(hrIdPattern)) {
-        addCondition(conditionBuilder, buildCaseSensitiveLikeCondition(HRID_FIELD, hrIdPattern));
+        addCondition(conditionBuilder, buildCaseSensitiveLikeCondition(HRID_FIELD, hrIdPattern, false));
       }
       if (isNotEmpty(fileNamePattern)) {
-        addCondition(conditionBuilder, buildCaseInsensitiveLikeCondition(FILE_NAME_FIELD, fileNamePattern));
+        addCondition(conditionBuilder, buildCaseInsensitiveLikeCondition(FILE_NAME_FIELD, fileNamePattern, false));
       }
+    }
+    if (isNotEmpty(excludeJobProfileName)) {
+      addCondition(conditionBuilder, buildCaseInsensitiveLikeCondition(JOB_PROFILE_NAME_FIELD, excludeJobProfileName, true));
     }
     if (isNotEmpty(fileNameNotAny)) {
       addCondition(conditionBuilder, buildNotInCondition(FILE_NAME_FIELD, fileNameNotAny));
@@ -195,18 +207,19 @@ public class JobExecutionFilter {
     return String.format("%s <= '%s'", columnName, value);
   }
 
-  private String buildCaseSensitiveLikeCondition(String columnName, String pattern) {
-    return buildLikeCondition(columnName, pattern, true);
+  private String buildCaseSensitiveLikeCondition(String columnName, String pattern, boolean denial) {
+    return buildLikeCondition(columnName, pattern, true, denial);
   }
 
-  private String buildCaseInsensitiveLikeCondition(String columnName, String pattern) {
-    return buildLikeCondition(columnName, pattern, false);
+  private String buildCaseInsensitiveLikeCondition(String columnName, String pattern, boolean denial) {
+    return buildLikeCondition(columnName, pattern, false, denial);
   }
 
-  private String buildLikeCondition(String columnName, String pattern, boolean isCaseSensitive) {
+  private String buildLikeCondition(String columnName, String pattern, boolean isCaseSensitive, boolean denial) {
     String preparedLikePattern = pattern.replace("*", "%");
     String likeOperator = isCaseSensitive ? LIKE : ILIKE;
-    return String.format("%s::text %s '%s'", columnName, likeOperator, preparedLikePattern);
+    String denyOperator = denial ? NOT : EMPTY;
+    return String.format("%s::text %s %s '%s'", columnName, denyOperator, likeOperator, preparedLikePattern);
   }
 
 }
