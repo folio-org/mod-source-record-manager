@@ -810,7 +810,6 @@ Building Dates JsonObject:
 "createSingleObject": true,
 "rules": [
 {
-"description": "",
 "conditions": [
 {
 "type": "set_date_type_id"
