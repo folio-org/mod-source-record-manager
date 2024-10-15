@@ -548,6 +548,49 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnFilteredCollectionByExcludeJobProfileNameOnGet() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    List<String> profilesNames = List.of("air", "Apple", "driver", "Zero");
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      childJobsToUpdate.get(i).withJobProfileInfo(new JobProfileInfo()
+        .withId(UUID.randomUUID().toString())
+        .withName(profilesNames.get(i))
+        .withDataType(MARC));
+      putJobExecution(childJobsToUpdate.get(i));
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("excludeJobProfileName", "air")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(3))
+      .body("totalRecords", is(3));
+  }
+
+  @Test
+  public void shouldReturnFilteredCollectionByExcludeJobProfileNameWithWildcardOnGet() {
+    constructAndPostInitJobExecutionRqDto(5);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("excludeJobProfileName", "importBib*")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(0))
+      .body("totalRecords", is(0));
+  }
+
+  @Test
   public void shouldReturnFilteredCollectionByFileNameOnGet() {
     constructAndPostInitJobExecutionRqDto(5);
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
