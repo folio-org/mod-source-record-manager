@@ -549,17 +549,30 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnFilteredCollectionByExcludeJobProfileNameOnGet() {
-    constructAndPostInitJobExecutionRqDto(5);
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    List<String> profilesNames = List.of("air", "Apple", "driver", "Zero");
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      childJobsToUpdate.get(i).withJobProfileInfo(new JobProfileInfo()
+        .withId(UUID.randomUUID().toString())
+        .withName(profilesNames.get(i))
+        .withDataType(MARC));
+      putJobExecution(childJobsToUpdate.get(i));
+    }
 
     RestAssured.given()
       .spec(spec)
       .when()
-      .queryParam("excludeJobProfileNames", "importBib2.bib")
+      .queryParam("excludeJobProfileNames", "air")
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutions.size()", is(4))
-      .body("totalRecords", is(4));
+      .body("jobExecutions.size()", is(3))
+      .body("totalRecords", is(3));
   }
 
   @Test
