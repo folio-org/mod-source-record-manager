@@ -17,6 +17,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.IS_DELETED_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
@@ -140,7 +141,7 @@ public class JobExecutionFilter {
       }
     }
     if (isNotEmpty(excludeJobProfileNames)) {
-      addCondition(conditionBuilder, buildCaseInsensitiveLikeCondition(FILE_NAME_FIELD, excludeJobProfileNames, true));
+      addCondition(conditionBuilder, buildCaseInsensitiveLikeCondition(JOB_PROFILE_NAME_FIELD, excludeJobProfileNames, true));
     }
     if (isNotEmpty(fileNameNotAny)) {
       addCondition(conditionBuilder, buildNotInCondition(FILE_NAME_FIELD, fileNameNotAny));
