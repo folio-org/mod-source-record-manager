@@ -2,6 +2,7 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
@@ -57,7 +58,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
         UUID.fromString(jobExecutionId),
-        params,
+        JsonObject.mapFrom(params),
         LocalDateTime.now()
       );
       pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);

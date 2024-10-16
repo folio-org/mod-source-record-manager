@@ -379,7 +379,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       nonNull(jobExecution.getJobProfileInfo()) && nonNull(jobExecution.getJobProfileInfo().getDataType())
         ? jobExecution.getJobProfileInfo().getDataType().toString() : null,
       jobExecution.getJobProfileSnapshotWrapper() == null
-        ? null : jobExecution.getJobProfileSnapshotWrapper(),
+        ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()),
       jobExecution.getJobProfileInfo() != null && jobExecution.getJobProfileInfo().getHidden(),
       jobExecution.getJobPartNumber(),
       jobExecution.getTotalJobParts(),

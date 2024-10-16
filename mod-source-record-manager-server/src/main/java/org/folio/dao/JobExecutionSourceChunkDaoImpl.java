@@ -70,7 +70,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
         StringUtils.defaultIfEmpty(jobExecutionChunk.getId(), /* generate UUID for the empty last chunk */ UUID.randomUUID().toString()),
-        jobExecutionChunk,
+        JsonObject.mapFrom(jobExecutionChunk),
         jobExecutionChunk.getJobExecutionId());
       pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     } catch (Exception e) {

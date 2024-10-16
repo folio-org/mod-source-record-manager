@@ -73,6 +73,7 @@ public class IncomingRecordDaoImpl implements IncomingRecordDao {
   }
 
   private Tuple prepareInsertQueryParameters(IncomingRecord incomingRecord) {
-    return Tuple.of(UUID.fromString(incomingRecord.getId()), UUID.fromString(incomingRecord.getJobExecutionId()), incomingRecord);
+    return Tuple.of(UUID.fromString(incomingRecord.getId()), UUID.fromString(incomingRecord.getJobExecutionId()),
+      JsonObject.mapFrom(incomingRecord));
   }
 }
