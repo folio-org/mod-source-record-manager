@@ -313,6 +313,7 @@
             "inventory-storage.statistical-codes.collection.get",
             "inventory-storage.subject-sources.collection.get",
             "inventory-storage.subject-types.collection.get",
+            "inventory-storage.instance-date-types.collection.get",
             "mapping-metadata.item.get",
             "mapping-metadata.type.item.get",
             "orders.po-lines.collection.get",
@@ -331,7 +332,7 @@
             "finance.funds.item.get",
             "finance.fiscal-years.item.get",
             "finance.ledgers.collection.get",
-            "finance.transactions.batch",
+            "finance.transactions.batch.execute",
             "finance.transactions.collection.get",
             "finance-storage.budgets.collection.get",
             "finance-storage.budget-expense-classes.collection.get",
@@ -613,7 +614,8 @@
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.statistical-codes.collection.get",
             "inventory-storage.subject-sources.collection.get",
-            "inventory-storage.subject-types.collection.get"
+            "inventory-storage.subject-types.collection.get",
+            "inventory-storage.instance-date-types.collection.get"
           ]
         }
       ]

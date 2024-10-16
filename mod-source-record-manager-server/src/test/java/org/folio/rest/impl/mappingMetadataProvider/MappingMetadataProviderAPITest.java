@@ -92,23 +92,23 @@ public class MappingMetadataProviderAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnDefaultMappingMetadataByRecordTypeOnGet(TestContext context) throws IOException {
+  public void shouldReturnDefaultMappingMetadataByRecordTypeOnGet() throws IOException {
     WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
       .willReturn(WireMock.ok().withBody(Json.encode(emptyList()))));
 
     JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(MARC_BIB_RULES_PATH));
     JsonObject expectedParams = new JsonObject(TestUtil.readFileFromPath(MARC_PARAMS_PATH));
     JsonObject actual = new JsonObject(RestAssured.given()
-          .spec(spec)
-          .when()
-          .get(SERVICE_PATH + "type/marc-bib")
-          .then()
-          .statusCode(HttpStatus.SC_OK)
-          .extract().body().asString());
+      .spec(spec)
+      .when()
+      .get(SERVICE_PATH + "type/marc-bib")
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().body().asString());
 
-      Assert.assertNotNull(actual);
-      Assert.assertEquals(expectedRules, new JsonObject(actual.getString("mappingRules")));
-      Assert.assertEquals(expectedParams, new JsonObject(actual.getString("mappingParams")));
+    Assert.assertNotNull(actual);
+    Assert.assertEquals(expectedRules, new JsonObject(actual.getString("mappingRules")));
+    Assert.assertEquals(expectedParams, new JsonObject(actual.getString("mappingParams")));
   }
 
   private Future<String> saveMappingRules(String jobExecutionId) {
