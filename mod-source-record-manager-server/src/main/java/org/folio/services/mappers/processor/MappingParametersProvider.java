@@ -563,6 +563,14 @@ public class MappingParametersProvider {
     Promise<List<T>> promise = Promise.promise();
     RestUtil.doRequest(params, requestUrl, HttpMethod.GET, null).onComplete(responseAr -> {
       try {
+        if ((responseAr.result()).getCode() == 403) {
+          LOGGER.error("loadData:: requestURL: {}", requestUrl);
+          LOGGER.error("loadData:: body: {}", (responseAr.result()).getBody());
+          LOGGER.error("loadData:: bodyAsString: {}", (responseAr.result()).getResponse().bodyAsString());
+          LOGGER.error("loadData:: response: {}", (responseAr.result()).getResponse());
+          LOGGER.error("loadData:: tenant: {}", params.getTenantId());
+          LOGGER.error("loadData:: headers: {}", params.getHeaders());
+        }
         if (RestUtil.validateAsyncResult(responseAr, promise)) {
           JsonObject response = responseAr.result().getJson();
           if (response != null && response.containsKey(dataCollectionField)) {
