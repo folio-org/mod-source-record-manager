@@ -567,9 +567,7 @@ public class MappingParametersProvider {
           LOGGER.error("loadData:: requestURL: {}", requestUrl);
           LOGGER.error("loadData:: body: {}", (responseAr.result()).getBody());
           LOGGER.error("loadData:: bodyAsString: {}", (responseAr.result()).getResponse().bodyAsString());
-          LOGGER.error("loadData:: response: {}", (responseAr.result()).getResponse());
           LOGGER.error("loadData:: tenant: {}", params.getTenantId());
-          LOGGER.error("loadData:: headers: {}", params.getHeaders());
         }
         if (RestUtil.validateAsyncResult(responseAr, promise)) {
           JsonObject response = responseAr.result().getJson();
