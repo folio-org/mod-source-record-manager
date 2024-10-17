@@ -570,6 +570,9 @@ public class MappingParametersProvider {
           } else {
             promise.complete(Collections.emptyList());
           }
+        } else {
+          LOGGER.warn("loadData:: loading data by {} was not successful, status: {}, body: {}",
+            requestUrl, responseAr.result().getCode(), responseAr.result().getBody());
         }
       } catch (Exception e) {
         LOGGER.warn("loadData:: Failed to load {}", dataCollectionField, e);
