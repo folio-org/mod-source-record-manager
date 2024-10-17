@@ -563,12 +563,6 @@ public class MappingParametersProvider {
     Promise<List<T>> promise = Promise.promise();
     RestUtil.doRequest(params, requestUrl, HttpMethod.GET, null).onComplete(responseAr -> {
       try {
-        if ((responseAr.result()).getCode() == 403) {
-          LOGGER.error("loadData:: requestURL: {}", requestUrl);
-          LOGGER.error("loadData:: body: {}", (responseAr.result()).getBody());
-          LOGGER.error("loadData:: bodyAsString: {}", (responseAr.result()).getResponse().bodyAsString());
-          LOGGER.error("loadData:: tenant: {}", params.getTenantId());
-        }
         if (RestUtil.validateAsyncResult(responseAr, promise)) {
           JsonObject response = responseAr.result().getJson();
           if (response != null && response.containsKey(dataCollectionField)) {
@@ -576,6 +570,9 @@ public class MappingParametersProvider {
           } else {
             promise.complete(Collections.emptyList());
           }
+        } else {
+          LOGGER.warn("loadData:: loading data by {} was not successful, status: {}, body: {}",
+            requestUrl, responseAr.result().getCode(), responseAr.result().getBody());
         }
       } catch (Exception e) {
         LOGGER.warn("loadData:: Failed to load {}", dataCollectionField, e);
