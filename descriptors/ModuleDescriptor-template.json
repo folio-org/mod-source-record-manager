@@ -355,6 +355,9 @@
             "instance-authority-links.instances.collection.put",
             "instance-authority.linking-rules.collection.get",
             "user-tenants.collection.get",
+            "source-storage.records.matching.collection.post",
+            "source-storage.records.formatted.item.get",
+            "source-storage.records.generation.item.put",
             "source-storage.records.post",
             "source-storage.records.put"
           ],
