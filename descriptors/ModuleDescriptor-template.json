@@ -315,7 +315,6 @@
             "inventory-storage.subject-types.collection.get",
             "inventory-storage.instance-date-types.collection.get",
             "mapping-metadata.item.get",
-            "mapping-metadata.type.item.get",
             "orders.po-lines.collection.get",
             "source-storage.records.collection.get",
             "source-storage.records.item.get",
@@ -411,7 +410,7 @@
           ],
           "modulePermissions": [
             "configuration.entries.collection.get",
-            "converter-storage.field-protection-settings.get",
+            "converter-storage.field-protection-settings.collection.get",
             "converter-storage.jobprofilesnapshots.get",
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.authorities.collection.get",
@@ -470,7 +469,6 @@
             "inventory-storage.subject-types.collection.get",
             "mapping-metadata.item.get",
             "mapping-metadata.type.item.get",
-            "source-storage.snapshots.get",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
             "users.collection.get",
@@ -591,7 +589,7 @@
           ],
           "modulePermissions": [
             "configuration.entries.collection.get",
-            "converter-storage.field-protection-settings.get",
+            "converter-storage.field-protection-settings.collection.get",
             "instance-authority.linking-rules.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.authority-note-types.collection.get",
