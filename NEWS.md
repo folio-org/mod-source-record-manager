@@ -22,6 +22,8 @@
 * [MODSOURMAN-1228](https://folio-org.atlassian.net/browse/MODSOURMAN-1212) Update default mapping for Date type, Date 1, and Date 2 fields
 * [MODSOURMAN-1241](https://folio-org.atlassian.net/browse/MODSOURMAN-1241) Add missing module permissions for PUT /change-manager/parsedRecords/{id}
 * [MODSOURMAN-1222](https://folio-org.atlassian.net/browse/MODSOURMAN-1222) Fix inconsistencies in permission namings
+* [MODSOURMAN-1244](https://folio-org.atlassian.net/browse/MODSOURMAN-1244) Update MARC bib-instance default mapping to include additional subject types
+
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
 * [MODSOURMAN-1139](https://folio-org.atlassian.net/browse/MODSOURMAN-1139) Fix Kafka test failures in ChangeManagerAPITest
