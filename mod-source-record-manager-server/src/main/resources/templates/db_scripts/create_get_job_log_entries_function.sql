@@ -406,7 +406,7 @@ FROM (
        FROM journal_records
        WHERE journal_records.job_execution_id = ''%1$s'' and entity_type = ''INVOICE'' and title != ''INVOICE''
        GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
-                entity_hrid, title, error, id
+                entity_hrid, title, error, tenant_id, id
        HAVING count(journal_records.source_id) FILTER (WHERE (%3$L IN (''ALL'', ''INVOICE'')) AND (NOT %2$L or journal_records.error <> '''')) > 0
      ) AS records_actions
 
