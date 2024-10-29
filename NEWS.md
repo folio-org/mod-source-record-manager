@@ -1,4 +1,4 @@
-## 2024-xx-xx v3.9.0-SNAPSHOT
+## 2024-10-29 v3.9.0
 * [MODSOURMAN-1232](https://folio-org.atlassian.net/browse/MODSOURMAN-1232) Add the option to exclude job profile names to GET "/metadata-provider/jobExecutions" endpoint
 * [MODSOURMAN-1195](https://folio-org.atlassian.net/browse/MODSOURMAN-1195) Save job execution progress in batches
 * [MODSOURMAN-1166](https://folio-org.atlassian.net/browse/MODSOURMAN-1166) Sorting by Autority, Order and Error columns is not working on Log details page
@@ -19,7 +19,7 @@
 * [MODSOURMAN-1212](https://folio-org.atlassian.net/browse/MODSOURMAN-1212) Update MARC bib-instance default mapping for subject source and subject type
 * [MODDATAIMP-1085](https://folio-org.atlassian.net/browse/MODDATAIMP-1085) Provide module permissions for subject types and sources
 * [MODDICORE-415](https://folio-org.atlassian.net/browse/MODDICORE-415) Adjust mapping of Subject source specified in subfield 2
-* [MODSOURMAN-1228](https://folio-org.atlassian.net/browse/MODSOURMAN-1212) Update default mapping for Date type, Date 1, and Date 2 fields
+* [MODSOURMAN-1228](https://folio-org.atlassian.net/browse/MODSOURMAN-1228) Update default mapping for Date type, Date 1, and Date 2 fields
 * [MODSOURMAN-1239](https://folio-org.atlassian.net/browse/MODSOURMAN-1239) mod-source-record-manager Ramsons 2024 R2 - RMB v35.3.x update
 * [MODSOURMAN-1241](https://folio-org.atlassian.net/browse/MODSOURMAN-1241) Add missing module permissions for PUT /change-manager/parsedRecords/{id}
 * [MODSOURMAN-1222](https://folio-org.atlassian.net/browse/MODSOURMAN-1222) Fix inconsistencies in permission namings
