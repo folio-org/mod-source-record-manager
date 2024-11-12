@@ -24,6 +24,7 @@
 * [MODSOURMAN-1241](https://folio-org.atlassian.net/browse/MODSOURMAN-1241) Add missing module permissions for PUT /change-manager/parsedRecords/{id}
 * [MODSOURMAN-1222](https://folio-org.atlassian.net/browse/MODSOURMAN-1222) Fix inconsistencies in permission namings
 * [MODSOURMAN-1244](https://folio-org.atlassian.net/browse/MODSOURMAN-1244) Update MARC bib-instance default mapping to include additional subject types
+* [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Data import completion notifications
 
 
 ## 2023-03-22 v3.8.0

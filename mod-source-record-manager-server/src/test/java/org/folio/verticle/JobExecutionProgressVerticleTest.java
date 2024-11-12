@@ -9,6 +9,7 @@ import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.KafkaConfig;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
@@ -63,6 +64,7 @@ public class JobExecutionProgressVerticleTest {
   private MessageProducer<BatchableJobExecutionProgress> batchJobProgressProducer;
   private String jobExecutionId;
   private String tenantId;
+  private KafkaConfig kafkaConfig;
 
   @Before
   public void setUp(TestContext context) {
