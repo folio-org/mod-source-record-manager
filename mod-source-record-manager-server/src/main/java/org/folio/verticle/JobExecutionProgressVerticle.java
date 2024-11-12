@@ -1,10 +1,6 @@
 package org.folio.verticle;
 
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Scheduler;
-import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.flowables.GroupedFlowable;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -22,7 +18,12 @@ import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionProgress;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionService;
 import org.folio.services.Status;
 import org.folio.services.progress.BatchableJobExecutionProgress;
@@ -40,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_EXECUTION_COMPLETED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_COMPLETED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.services.progress.JobExecutionProgressUtil.BATCH_JOB_PROGRESS_ADDRESS;
@@ -67,12 +68,14 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
 
   @Autowired
   @Qualifier("newKafkaConfig")
-  private KafkaConfig kafkaConfig;
+  private final KafkaConfig kafkaConfig;
 
   public JobExecutionProgressVerticle(@Autowired JobExecutionProgressDao jobExecutionProgressDao,
-                                      @Autowired JobExecutionService jobExecutionService) {
+                                      @Autowired JobExecutionService jobExecutionService,
+                                      KafkaConfig kafkaConfig) {
     this.jobExecutionProgressDao = jobExecutionProgressDao;
     this.jobExecutionService = jobExecutionService;
+    this.kafkaConfig = kafkaConfig;
   }
 
 
@@ -105,7 +108,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
       .flatMapCompletable(flowable ->
         groupByTenantIdAndJobExecutionId(flowable)
           .map(groupedMessages -> reduceManyJobExecutionProgressObjectsIntoSingleJobExecutionProgress(groupedMessages.toList(), groupedMessages.getKey().jobExecutionId()))
-          .flatMapCompletable(progressMaybe -> saveJobExecutionProgress(progressMaybe))
+          .flatMapCompletable(this::saveJobExecutionProgress)
       )
       .subscribeOn(scheduler)
       .observeOn(scheduler)
@@ -272,9 +275,9 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
     kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
     var key = String.valueOf(indexer.incrementAndGet() % MAX_DISTRIBUTION);
-    sendEventToKafka(params.getTenantId(), Json.encode(jobExecution), DI_JOB_EXECUTION_COMPLETED.value(), kafkaHeaders, kafkaConfig, key)
-      .onSuccess(event -> LOGGER.info("sendEventToBulkOps:: DI_JOB_EXECUTION_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
-      .onFailure(event -> LOGGER.warn("sendEventToBulkOps:: Error publishing DI_JOB_EXECUTION_COMPLETED event, jobExecutionId = {}", jobExecution.getId(), event));
+    sendEventToKafka(params.getTenantId(), Json.encode(jobExecution), DI_JOB_COMPLETED.value(), kafkaHeaders, kafkaConfig, key)
+      .onSuccess(event -> LOGGER.info("sendEventToBulkOps:: DI_JOB_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
+      .onFailure(event -> LOGGER.warn("sendEventToBulkOps:: Error publishing DI_JOB_COMPLETED event, jobExecutionId = {}", jobExecution.getId(), event));
   }
 
   private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {
