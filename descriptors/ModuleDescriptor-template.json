@@ -3,6 +3,18 @@
   "name": "Source Record Manager Module",
   "requires": [
     {
+      "id": "instance-date-types",
+      "version": "1.0"
+    },
+    {
+      "id": "subject-sources",
+      "version": "1.0"
+    },
+    {
+      "id": "subject-types",
+      "version": "1.0"
+    },
+    {
       "id": "source-storage-snapshots",
       "version": "2.1"
     },
