@@ -1,6 +1,10 @@
 package org.folio.verticle;
 
-import io.reactivex.rxjava3.core.*;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.flowables.GroupedFlowable;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -66,13 +70,12 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
   private static final AtomicInteger indexer = new AtomicInteger();
   private Scheduler scheduler;
 
-  @Autowired
-  @Qualifier("newKafkaConfig")
   private final KafkaConfig kafkaConfig;
 
-  public JobExecutionProgressVerticle(@Autowired JobExecutionProgressDao jobExecutionProgressDao,
-                                      @Autowired JobExecutionService jobExecutionService,
-                                      KafkaConfig kafkaConfig) {
+  @Autowired
+  public JobExecutionProgressVerticle(JobExecutionProgressDao jobExecutionProgressDao,
+                                      JobExecutionService jobExecutionService,
+                                      @Qualifier("newKafkaConfig") KafkaConfig kafkaConfig) {
     this.jobExecutionProgressDao = jobExecutionProgressDao;
     this.jobExecutionService = jobExecutionService;
     this.kafkaConfig = kafkaConfig;

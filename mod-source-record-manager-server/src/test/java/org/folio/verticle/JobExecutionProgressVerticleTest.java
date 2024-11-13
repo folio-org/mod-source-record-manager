@@ -14,7 +14,13 @@ import net.mguenther.kafka.junit.SendKeyValues;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionProgress;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionService;
 import org.folio.services.progress.BatchableJobExecutionProgress;
 import org.folio.services.progress.BatchableJobExecutionProgressCodec;
@@ -63,6 +69,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
   private String jobExecutionId;
   private String tenantId;
 
+  @Override
   @Before
   public void setUp(TestContext context) {
     MockitoAnnotations.openMocks(this);
