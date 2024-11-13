@@ -241,7 +241,8 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .map(consumerRecord -> {
         try {
           Map<String, String> map = kafkaHeadersToMap(consumerRecord.headers());
-          OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(map, vertx.getDelegate());
+          OkapiConnectionParams okapiConnectionParams = OkapiConnectionParams.createSystemUserConnectionParams(
+            map, vertx.getDelegate());
           String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
           JournalEvent event = DatabindCodec.mapper().readValue(consumerRecord.value(), JournalEvent.class);
 

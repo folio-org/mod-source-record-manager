@@ -839,6 +839,17 @@
       "visible": false
     }
   ],
+  "metadata": {
+    "user": {
+      "type": "system",
+      "permissions": [
+        "inventory-storage.all",
+        "source-records-manager.all",
+        "source-storage.all",
+        "converter-storage.all"
+      ]
+    }
+  },
   "launchDescriptor": {
     "dockerImage": "${artifactId}:${version}",
     "dockerPull": false,

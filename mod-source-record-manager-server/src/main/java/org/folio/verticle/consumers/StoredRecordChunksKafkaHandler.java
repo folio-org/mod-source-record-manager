@@ -97,7 +97,8 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
     List<KafkaHeader> kafkaHeaders = record.headers();
-    OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+    OkapiConnectionParams okapiConnectionParams = OkapiConnectionParams.createSystemUserConnectionParams(
+      KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String chunkId = okapiConnectionParams.getHeaders().get("chunkId");
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
     String jobExecutionId = okapiConnectionParams.getHeaders().get("jobExecutionId");
