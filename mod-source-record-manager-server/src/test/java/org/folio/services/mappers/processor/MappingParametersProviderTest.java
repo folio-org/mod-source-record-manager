@@ -1,5 +1,6 @@
 package org.folio.services.mappers.processor;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
@@ -77,6 +78,10 @@ public class MappingParametersProviderTest {
       + URLEncoder.encode(
       "(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
   protected static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
+  public static final String SYSTEM_USER_ENABLED = "SYSTEM_USER_ENABLED";
+  private static final String TENANT = "diku";
+  private static final String TOKEN = "token";
+  private String url;
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -95,11 +100,12 @@ public class MappingParametersProviderTest {
   public void setUp() throws Exception {
     Vertx vertx = rule.vertx();
     mappingParametersProvider = new MappingParametersProvider(vertx);
+    url = "http://localhost:" + snapshotMockServer.port();
 
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
-    headers.put(OKAPI_TENANT_HEADER, "diku");
-    headers.put(OKAPI_TOKEN_HEADER, "token");
+    headers.put(OKAPI_URL_HEADER, url);
+    headers.put(OKAPI_TENANT_HEADER, TENANT);
+    headers.put(OKAPI_TOKEN_HEADER, TOKEN);
     okapiConnectionParams = new OkapiConnectionParams(headers, vertx);
 
     WireMock.stubFor(
@@ -242,8 +248,54 @@ public class MappingParametersProviderTest {
           MappingParameters result = ar.result();
           context.assertNotNull(result);
           context.assertTrue(result.isInitialized());
-          context.assertTrue(result.getLinkingRules().size() > 0);
+          context.assertTrue(!result.getLinkingRules().isEmpty());
+          verify(1, getRequestedFor(urlEqualTo(LINKING_RULES_URL))
+            .withHeader(OKAPI_URL_HEADER, equalTo(url))
+            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
+            .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
+
+          verify(1, getRequestedFor(urlEqualTo(TENANT_CONFIGURATION_ZONE_SETTINGS_URL))
+            .withHeader(OKAPI_URL_HEADER, equalTo(url))
+            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
+            .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
+
+          verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL))
+            .withHeader(OKAPI_URL_HEADER, equalTo(url))
+            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
+            .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
           async.complete();
+        });
+  }
+
+  @Test
+  public void shouldDoRequestsWithoutTokensIfSystemUserEnabled(TestContext context) {
+    Async async = context.async();
+    System.setProperty(SYSTEM_USER_ENABLED, "false");
+
+    mappingParametersProvider
+      .get("1", okapiConnectionParams)
+      .onComplete(
+        ar -> {
+          MappingParameters result = ar.result();
+          context.assertNotNull(result);
+          context.assertTrue(result.isInitialized());
+          context.assertTrue(!result.getLinkingRules().isEmpty());
+          verify(1, getRequestedFor(urlEqualTo(LINKING_RULES_URL))
+            .withHeader(OKAPI_URL_HEADER, equalTo(url))
+            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
+            .withoutHeader(OKAPI_TOKEN_HEADER));
+
+          verify(1, getRequestedFor(urlEqualTo(TENANT_CONFIGURATION_ZONE_SETTINGS_URL))
+            .withHeader(OKAPI_URL_HEADER, equalTo(url))
+            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
+            .withoutHeader(OKAPI_TOKEN_HEADER));
+
+          verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL))
+            .withHeader(OKAPI_URL_HEADER, equalTo(url))
+            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
+            .withoutHeader(OKAPI_TOKEN_HEADER));
+          async.complete();
+          System.clearProperty(SYSTEM_USER_ENABLED);
         });
   }
 
