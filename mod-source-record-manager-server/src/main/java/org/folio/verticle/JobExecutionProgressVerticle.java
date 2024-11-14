@@ -256,7 +256,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
                             parentExecution.withStatus(JobExecution.Status.COMMITTED)
                               .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
                               .withCompletedDate(new Date());
-                            sendEventToBulkOps(parentExecution, params);
+                            sendDiJobCompletedEvent(parentExecution, params);
                             return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
                           }
                           return Future.succeededFuture(parentExecution);
@@ -273,7 +273,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
     return Future.succeededFuture(false);
   }
 
-  private void sendEventToBulkOps(JobExecution jobExecution, OkapiConnectionParams params) {
+  private void sendDiJobCompletedEvent(JobExecution jobExecution, OkapiConnectionParams params) {
     var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
     kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
