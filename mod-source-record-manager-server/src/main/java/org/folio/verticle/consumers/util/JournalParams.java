@@ -3,7 +3,6 @@ package org.folio.verticle.consumers.util;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -115,14 +114,6 @@ public class JournalParams {
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
           JournalRecord.EntityType.MARC_HOLDINGS,
-          JournalRecord.ActionStatus.COMPLETED));
-      }
-    },
-    DI_MARC_FOR_UPDATE_RECEIVED {
-      @Override
-      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(UPDATE,
-          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
