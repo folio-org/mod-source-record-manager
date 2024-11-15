@@ -84,6 +84,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDIN
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.services.RecordsPublishingServiceImpl.RECORD_ID_HEADER;
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
@@ -158,6 +159,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED.value(),
       DI_SRS_MARC_HOLDINGS_RECORD_NOT_MATCHED.value(),
       DI_SRS_MARC_HOLDINGS_RECORD_MATCHED.value(),
+      DI_MARC_FOR_UPDATE_RECEIVED.value(),
       DI_INVENTORY_INSTANCE_CREATED.value(),
       DI_INVENTORY_INSTANCE_UPDATED.value(),
       DI_INVENTORY_INSTANCE_NOT_MATCHED.value(),
