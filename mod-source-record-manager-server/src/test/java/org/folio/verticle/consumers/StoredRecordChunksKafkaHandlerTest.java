@@ -7,6 +7,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
+import org.apache.commons.lang.StringUtils;
 import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
@@ -39,6 +40,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
+import static org.folio.services.mappers.processor.MappingParametersProviderTest.SYSTEM_USER_ENABLED;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -58,6 +62,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   private static final String EDIFACT_RECORD_PATH = "src/test/resources/org/folio/rest/edifactRecord.json";
   private static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
   private static final String TENANT_ID = "diku";
+  private static final String TOKEN = "token";
 
   private static JsonObject mappingRules;
 
@@ -134,6 +139,42 @@ public class StoredRecordChunksKafkaHandlerTest {
   @Test
   public void shouldWriteSavedEdifactRecordsInfoToImportJournal() throws IOException {
     writeSavedRecordsInfoToImportJournal(EDIFACT_RECORD_PATH, EntityType.EDIFACT);
+  }
+
+  @Test
+  public void writeSavedRecordsInfoToImportJournalWhenSystemUserEnabled()
+    throws IOException {
+    // given
+    System.setProperty(SYSTEM_USER_ENABLED, "false");
+    Record record = Json.decodeValue(TestUtil.readFileFromPath(MARC_BIB_RECORD_PATH), Record.class);
+
+    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
+      .withRecords(List.of(record))
+      .withTotalRecords(1);
+
+    Event event = new Event()
+      .withId(UUID.randomUUID().toString())
+      .withEventPayload(Json.encode(savedRecordsBatch));
+
+    when(kafkaRecord.value()).thenReturn(Json.encode(event).getBytes(StandardCharsets.UTF_8));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID),
+      KafkaHeader.header(OKAPI_HEADER_TOKEN.toLowerCase(), TOKEN),
+      KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.MARC_BIBLIOGRAPHIC))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
+
+    when(recordsPublishingService
+      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any()))
+      .thenReturn(Future.succeededFuture(true));
+
+    // when
+    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
+    System.clearProperty(SYSTEM_USER_ENABLED);
+
+    // then
+    assertTrue(future.succeeded());
+    verify(messageProducer, times(1)).write(any());
+    verify(recordsPublishingService).sendEventsWithRecords(anyList(), anyString(), argThat(params -> StringUtils.isEmpty(params.getToken())), anyString(), any());
   }
 
   @Test
@@ -248,8 +289,9 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withEventPayload(Json.encode(savedRecordsBatch));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event).getBytes(StandardCharsets.UTF_8));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
-    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID),
+      KafkaHeader.header(OKAPI_HEADER_TOKEN.toLowerCase(), TOKEN),
+      KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(recordsPublishingService
       .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any()))
@@ -261,6 +303,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     // then
     assertTrue(future.succeeded());
     verify(messageProducer, times(1)).write(any());
+    verify(recordsPublishingService).sendEventsWithRecords(anyList(), anyString(), argThat(params -> StringUtils.isNotEmpty(params.getToken())), anyString(), any());
   }
 
   @Test

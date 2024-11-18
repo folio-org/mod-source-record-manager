@@ -51,7 +51,8 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     try {
       Promise<String> result = Promise.promise();
       List<KafkaHeader> kafkaHeaders = record.headers();
-      OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+      OkapiConnectionParams okapiConnectionParams = OkapiConnectionParams.createSystemUserConnectionParams(
+        KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
       String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
       JournalEvent event = DatabindCodec.mapper().readValue(record.value(), JournalEvent.class);
       LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
