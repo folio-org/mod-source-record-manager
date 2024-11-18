@@ -40,6 +40,9 @@ public class SRMKafkaTopicService {
   @Value("${di_edifact_parsed.partitions}")
   private Integer diEdifactRecordParsedNumPartitions;
 
+  @Value("${di_job_completed.partitions}")
+  private Integer diJobCompletedNumPartitions;
+
   public KafkaTopic[] createTopicObjects() {
     return new SRMKafkaTopic[] {
       new SRMKafkaTopic("DI_COMPLETED", diCompletedNumPartitions),
@@ -51,7 +54,8 @@ public class SRMKafkaTopicService {
       new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED", diMarcForDeleteReceivedNumPartitions),
       new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED", diMarcOrderParsedNumPartitions),
       new SRMKafkaTopic("DI_INCOMING_MARC_BIB_RECORD_PARSED", diMarcBibRecordParsedNumPartitions),
-      new SRMKafkaTopic("DI_INCOMING_EDIFACT_RECORD_PARSED", diEdifactRecordParsedNumPartitions)
+      new SRMKafkaTopic("DI_INCOMING_EDIFACT_RECORD_PARSED", diEdifactRecordParsedNumPartitions),
+      new SRMKafkaTopic("DI_JOB_COMPLETED", diJobCompletedNumPartitions),
     };
   }
 }

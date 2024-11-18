@@ -146,6 +146,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   }
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {
+    LOGGER.debug("saveCreatedRecordsInfoToDataImportLog :: count: {}", storedRecords.size());
     MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, storedRecords.get(0).getRecordType());
 
     mappingRuleCache.get(cacheKey).onComplete(rulesAr -> {

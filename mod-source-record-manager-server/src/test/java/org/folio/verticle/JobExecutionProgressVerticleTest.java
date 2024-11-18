@@ -3,12 +3,18 @@ package org.folio.verticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageProducer;
+import io.vertx.core.json.Json;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import net.mguenther.kafka.junit.KeyValue;
+import net.mguenther.kafka.junit.ObserveKeyValues;
+import net.mguenther.kafka.junit.SendKeyValues;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
@@ -32,20 +38,19 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonList;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_COMPLETED;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.progress.JobExecutionProgressUtil.getBatchJobProgressProducer;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @RunWith(VertxUnitRunner.class)
-public class JobExecutionProgressVerticleTest {
+public class JobExecutionProgressVerticleTest extends AbstractRestTest {
 
   private final int AWAIT_TIME = 3;
 
@@ -64,13 +69,14 @@ public class JobExecutionProgressVerticleTest {
   private String jobExecutionId;
   private String tenantId;
 
+  @Override
   @Before
   public void setUp(TestContext context) {
     MockitoAnnotations.openMocks(this);
     vertx = rule.vertx();
     vertx.eventBus().registerCodec(new BatchableJobExecutionProgressCodec());
     JobExecutionProgressVerticle jobExecutionProgressVerticle =
-      new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService);
+      new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService, kafkaConfig);
     vertx.deployVerticle(jobExecutionProgressVerticle,
       context.asyncAssertSuccess());
     batchJobProgressProducer = getBatchJobProgressProducer(vertx);
@@ -87,7 +93,7 @@ public class JobExecutionProgressVerticleTest {
   }
 
   @Test
-  public void testSingleProgressUpdate(TestContext context) {
+  public void testSingleProgressUpdate(TestContext context) throws InterruptedException {
     Async async = context.async();
 
     // Arrange
@@ -139,6 +145,10 @@ public class JobExecutionProgressVerticleTest {
           )
         )
       );
+    var topic = formatToKafkaTopicName(DI_JOB_COMPLETED.value());
+    var request = prepareWithSpecifiedEventPayload(Json.encode(parentJobExecution), topic);
+
+    kafkaCluster.send(request);
 
     // Act
     batchJobProgressProducer.write(batchableJobExecutionProgress)
@@ -150,6 +160,9 @@ public class JobExecutionProgressVerticleTest {
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> verify(jobExecutionProgressDao)
                 .updateCompletionCounts(any(), eq(2), eq(1), eq(tenantId)));
+            kafkaCluster.observeValues(ObserveKeyValues.on(topic, 1)
+              .observeFor(30, TimeUnit.SECONDS)
+              .build());
           } catch (Exception e) {
             context.fail(e);
           }
@@ -158,6 +171,17 @@ public class JobExecutionProgressVerticleTest {
           context.fail(ar.cause());
         }
       });
+  }
+
+  private SendKeyValues<String, String> prepareWithSpecifiedEventPayload(String eventPayload, String topic) {
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(eventPayload);
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
+
+    return SendKeyValues.to(topic, singletonList(kafkaRecord))
+      .useDefaults();
   }
 
   @Test
