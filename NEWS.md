@@ -1,3 +1,12 @@
+## 2024-11-20 v3.9.3-SNAPSHOT
+* [MODSOURMAN-1240](https://folio-org.atlassian.net/browse/MODSOURMAN-1240) The title of record is not displayed on the JSON data after importing file for creating order
+
+## 2024-11-20 v3.9.2
+* [MODSOURMAN-1252](https://folio-org.atlassian.net/browse/MODSOURMAN-1252) Log details gives 404 error when try to open any completed job
+
+## 2024-11-18 v3.9.1
+* [MODSOURMAN-1248](https://folio-org.atlassian.net/browse/MODSOURMAN-1248) Missing interface dependencies in module descriptor
+
 ## 2024-10-29 v3.9.0
 * [MODSOURMAN-1232](https://folio-org.atlassian.net/browse/MODSOURMAN-1232) Add the option to exclude job profile names to GET "/metadata-provider/jobExecutions" endpoint
 * [MODSOURMAN-1195](https://folio-org.atlassian.net/browse/MODSOURMAN-1195) Save job execution progress in batches
@@ -24,7 +33,6 @@
 * [MODSOURMAN-1241](https://folio-org.atlassian.net/browse/MODSOURMAN-1241) Add missing module permissions for PUT /change-manager/parsedRecords/{id}
 * [MODSOURMAN-1222](https://folio-org.atlassian.net/browse/MODSOURMAN-1222) Fix inconsistencies in permission namings
 * [MODSOURMAN-1244](https://folio-org.atlassian.net/browse/MODSOURMAN-1244) Update MARC bib-instance default mapping to include additional subject types
-* [MODSOURMAN-1240](https://folio-org.atlassian.net/browse/MODSOURMAN-1240) The title of record is not displayed on the JSON data after importing file for creating order
 
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
