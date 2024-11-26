@@ -1,4 +1,4 @@
-## 2024-11-20 v3.9.3-SNAPSHOT
+## 2024-11-26 v3.9.3
 * [MODSOURMAN-1240](https://folio-org.atlassian.net/browse/MODSOURMAN-1240) The title of record is not displayed on the JSON data after importing file for creating order
 
 ## 2024-11-20 v3.9.2
