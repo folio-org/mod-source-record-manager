@@ -57,7 +57,8 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
     List<KafkaHeader> kafkaHeaders = record.headers();
-    OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+    OkapiConnectionParams okapiParams = OkapiConnectionParams.createSystemUserConnectionParams(
+      KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String chunkId = okapiParams.getHeaders().get("chunkId");
     String chunkNumber = okapiParams.getHeaders().get("chunkNumber");
     String jobExecutionId = okapiParams.getHeaders().get("jobExecutionId");

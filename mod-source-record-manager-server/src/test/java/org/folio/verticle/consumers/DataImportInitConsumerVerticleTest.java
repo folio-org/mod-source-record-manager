@@ -9,6 +9,7 @@ import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
@@ -39,7 +40,13 @@ import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INITIALIZATION_STARTED;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.services.mappers.processor.MappingParametersProviderTest.SYSTEM_USER_ENABLED;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(VertxUnitRunner.class)
 public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
@@ -98,6 +105,27 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
+
+      verify(jobExecutionService, never()).updateJobExecutionStatus(any(), any(), argThat(params -> StringUtils.isEmpty(params.getToken())));
+      verify(jobExecutionService, times(2)).updateJobExecutionStatus(any(), any(), argThat(params -> StringUtils.isNotEmpty(params.getToken())));
+      assertProgressAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
+    });
+  }
+
+  @Test
+  public void shouldChangeStatusFromFileUploadedToParsingInProgressWhenSystemUserEnabled(TestContext context) {
+    // progress not yet initialized, current status is FILE_UPLOADED,
+    // so init handler should initialize progress and change status to PARSING_IN_PROGRESS
+    System.setProperty(SYSTEM_USER_ENABLED, "false");
+    Async async = context.async();
+    Future<String> future = prepareJobWithStatus(StatusDto.Status.FILE_UPLOADED);
+
+    future.onComplete(ar -> {
+      System.clearProperty(SYSTEM_USER_ENABLED);
+      context.assertTrue(ar.succeeded());
+
+      verify(jobExecutionService).updateJobExecutionStatus(any(), any(), argThat(params -> StringUtils.isEmpty(params.getToken())));
+      verify(jobExecutionService, times(1)).updateJobExecutionStatus(any(), any(), argThat(params -> StringUtils.isNotEmpty(params.getToken())));
 
       assertProgressAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
     });
