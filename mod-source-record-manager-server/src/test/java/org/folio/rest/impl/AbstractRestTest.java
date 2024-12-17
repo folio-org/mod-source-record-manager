@@ -57,6 +57,7 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.MappingProfile;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
+import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
@@ -79,7 +80,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  */
 public abstract class AbstractRestTest {
 
-  public static final String POSTGRES_IMAGE = "postgres:12-alpine";
+  public static final String POSTGRES_IMAGE = "postgres:16-alpine";
   private static PostgreSQLContainer<?> postgresSQLContainer;
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_execution";
@@ -126,6 +127,8 @@ public abstract class AbstractRestTest {
   protected static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=1000";
   protected static final String SUBJECT_SOURCES_URL = "/subject-sources?limit=1000";
   protected static final String SUBJECT_TYPES_URL = "/subject-types?limit=1000";
+  protected static final String INSTANCE_DATE_TYPES_URL = "/instance-date-types?limit=1000";
+
 
   protected static final String TENANT_CONFIGURATION_ZONE_SETTINGS_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
 
@@ -142,10 +145,11 @@ public abstract class AbstractRestTest {
   private static final String KAFKA_HOST = "KAFKA_HOST";
   private static final String KAFKA_PORT = "KAFKA_PORT";
   private static final String KAFKA_ENV = "ENV";
-  private static final String KAFKA_ENV_VALUE = "test-env";
+  protected static final String KAFKA_ENV_VALUE = "test-env";
   public static final String OKAPI_URL_ENV = "OKAPI_URL";
   private static final int PORT = NetworkUtils.nextFreePort();
   protected static final String OKAPI_URL = "http://localhost:" + PORT;
+  protected static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
 
   private final JsonObject userResponse = new JsonObject()
     .put("users",
@@ -340,6 +344,7 @@ public abstract class AbstractRestTest {
   );
 
   public static EmbeddedKafkaCluster kafkaCluster;
+  protected static KafkaConfig kafkaConfig;
 
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
@@ -354,6 +359,11 @@ public abstract class AbstractRestTest {
     System.setProperty(KAFKA_ENV, KAFKA_ENV_VALUE);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
+    kafkaConfig = KafkaConfig.builder()
+      .kafkaHost(hostAndPort[0])
+      .kafkaPort(hostAndPort[1])
+      .envId(KAFKA_ENV_VALUE)
+      .build();
     deployVerticle(context);
   }
 
@@ -504,6 +514,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(AUTHORITY_SOURCE_FILES_URL).willReturn(okJson(new JsonObject().put("authoritySourceFiles", new JsonArray()).toString())));
     WireMock.stubFor(get(SUBJECT_SOURCES_URL).willReturn(okJson(new JsonObject().put("subjectSources", new JsonArray()).toString())));
     WireMock.stubFor(get(SUBJECT_TYPES_URL).willReturn(okJson(new JsonObject().put("subjectTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_DATE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceDateTypes", new JsonArray()).toString())));
 
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
     WireMock.stubFor(get(TENANT_CONFIGURATION_ZONE_SETTINGS_URL).willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));

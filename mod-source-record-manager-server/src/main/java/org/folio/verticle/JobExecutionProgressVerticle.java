@@ -3,11 +3,13 @@ package org.folio.verticle;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.flowables.GroupedFlowable;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
+import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.core.RxHelper;
 import io.vertx.rxjava3.core.eventbus.EventBus;
@@ -18,6 +20,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
@@ -28,6 +32,7 @@ import org.folio.services.JobExecutionService;
 import org.folio.services.Status;
 import org.folio.services.progress.BatchableJobExecutionProgress;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -36,12 +41,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_COMPLETED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.services.progress.JobExecutionProgressUtil.BATCH_JOB_PROGRESS_ADDRESS;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 
@@ -53,15 +61,24 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 public class JobExecutionProgressVerticle extends AbstractVerticle {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int MAX_NUM_EVENTS = 100;
+  private static final int MAX_DISTRIBUTION = 100;
+  private static final String USER_ID_HEADER = "userId";
+  private static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
 
   private final JobExecutionProgressDao jobExecutionProgressDao;
   private final JobExecutionService jobExecutionService;
+  private static final AtomicInteger indexer = new AtomicInteger();
   private Scheduler scheduler;
 
-  public JobExecutionProgressVerticle(@Autowired JobExecutionProgressDao jobExecutionProgressDao,
-                                      @Autowired JobExecutionService jobExecutionService) {
+  private final KafkaConfig kafkaConfig;
+
+  @Autowired
+  public JobExecutionProgressVerticle(JobExecutionProgressDao jobExecutionProgressDao,
+                                      JobExecutionService jobExecutionService,
+                                      @Qualifier("newKafkaConfig") KafkaConfig kafkaConfig) {
     this.jobExecutionProgressDao = jobExecutionProgressDao;
     this.jobExecutionService = jobExecutionService;
+    this.kafkaConfig = kafkaConfig;
   }
 
 
@@ -94,7 +111,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
       .flatMapCompletable(flowable ->
         groupByTenantIdAndJobExecutionId(flowable)
           .map(groupedMessages -> reduceManyJobExecutionProgressObjectsIntoSingleJobExecutionProgress(groupedMessages.toList(), groupedMessages.getKey().jobExecutionId()))
-          .flatMapCompletable(progressMaybe -> saveJobExecutionProgress(progressMaybe))
+          .flatMapCompletable(this::saveJobExecutionProgress)
       )
       .subscribeOn(scheduler)
       .observeOn(scheduler)
@@ -239,6 +256,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
                             parentExecution.withStatus(JobExecution.Status.COMMITTED)
                               .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
                               .withCompletedDate(new Date());
+                            sendDiJobCompletedEvent(parentExecution, params);
                             return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
                           }
                           return Future.succeededFuture(parentExecution);
@@ -253,6 +271,16 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
           .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));
     }
     return Future.succeededFuture(false);
+  }
+
+  private void sendDiJobCompletedEvent(JobExecution jobExecution, OkapiConnectionParams params) {
+    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+    kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
+    kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
+    var key = String.valueOf(indexer.incrementAndGet() % MAX_DISTRIBUTION);
+    sendEventToKafka(params.getTenantId(), Json.encode(jobExecution), DI_JOB_COMPLETED.value(), kafkaHeaders, kafkaConfig, key)
+      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
+      .onFailure(event -> LOGGER.warn("sendDiJobCompletedEvent:: Error publishing DI_JOB_COMPLETED event, jobExecutionId = {}", jobExecution.getId(), event));
   }
 
   private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {

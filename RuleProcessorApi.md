@@ -798,6 +798,65 @@ If ending punctuation of the last mapped subfield of the field is a period or co
 ```
 ##### **NOTE**: Regarding ending punctuation - if the mapped text ends with (".", ",", ";") then it will be(the last symbol) removed for the matching with Contributor Type.
 
+####  Map single JsonObject
+If there is a need to map not arrays or string but json object with simple fields inside (strings), there can be used "createSingleObject" rule, which will create a single json object with specified fields:
+
+```json
+Building Dates json object:
+{
+"target": "dates.dateTypeId",
+"description": "Date type ID",
+"subfield": [],
+"createSingleObject": true,
+"rules": [
+{
+"conditions": [
+{
+"type": "set_date_type_id"
+}
+]
+}
+]
+},
+{
+"target": "dates.date1",
+"description": "Date 1",
+"subfield": [],
+"createSingleObject": true,
+"rules": [
+{
+"conditions": [
+{
+"type": "char_select",
+"parameter": {
+"from": 7,
+"to": 11
+}
+}
+]
+}
+]
+},
+{
+"target": "dates.date2",
+"description": "Date 2",
+"subfield": [],
+"createSingleObject": true,
+"rules": [
+{
+"conditions": [
+{
+"type": "char_select",
+"parameter": {
+"from": 11,
+"to": 15
+}
+}
+]
+}
+]
+}
+```
 #
 ### REST API
 When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.
