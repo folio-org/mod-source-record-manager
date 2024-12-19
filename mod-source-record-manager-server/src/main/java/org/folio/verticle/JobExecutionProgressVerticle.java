@@ -209,7 +209,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
    * @return a future containing a boolean indicating the success of the update
    */
   private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, OkapiConnectionParams params) {
-    if (progress.getTotal().equals(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())) {
+    if (progress.getTotal() <= progress.getCurrentlySucceeded() + progress.getCurrentlyFailed()) {
       return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
         .compose(jobExecutionOptional -> jobExecutionOptional
           .map(jobExecution -> {
