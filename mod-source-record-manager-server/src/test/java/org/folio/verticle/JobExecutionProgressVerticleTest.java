@@ -300,4 +300,64 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .onFailure(th -> context.fail(th.getCause()));
   }
 
+  @Test
+  public void testCommittedDuringExtraProgressUpdate(TestContext context) throws InterruptedException {
+    Async async = context.async();
+
+    // Arrange
+    // create job execution
+    JobExecution jobExecution = new JobExecution()
+      .withId(jobExecutionId)
+      .withHrId(1000)
+      .withParentJobId(jobExecutionId)
+      .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
+      .withStatus(JobExecution.Status.NEW)
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+    // create job execution progress
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
+      .withCurrentlyFailed(0)
+      .withCurrentlySucceeded(2)
+      .withTotal(1);
+    BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
+      createOkapiConnectionParams(tenantId),
+      jobExecutionProgress);
+    // return appropriate objects for mocks
+    when(jobExecutionService.getJobExecutionById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(jobExecution)));
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecutionId), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(jobExecutionProgress));
+    when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
+      .thenReturn(Future.succeededFuture(jobExecution));
+
+
+    // Act
+    batchJobProgressProducer.write(batchableJobExecutionProgress)
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          // Assert
+          try {
+            await()
+              .atMost(AWAIT_TIME, TimeUnit.SECONDS)
+              .untilAsserted(() -> {
+                verify(jobExecutionProgressDao)
+                  .updateCompletionCounts(eq(jobExecutionId), eq(2), eq(0), eq(tenantId));
+
+                ArgumentCaptor<JobExecution> argumentCaptor = ArgumentCaptor.forClass(JobExecution.class);
+                verify(jobExecutionService).updateJobExecutionWithSnapshotStatus(argumentCaptor.capture(), any());
+                JobExecution.Status status = argumentCaptor.getValue().getStatus();
+                context.assertEquals(JobExecution.Status.COMMITTED, status);
+              });
+          } catch (Exception e) {
+            context.fail(e);
+          }
+          async.complete();
+        } else {
+          context.fail(ar.cause());
+        }
+      });
+  }
+
 }
