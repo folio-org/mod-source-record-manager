@@ -301,7 +301,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testCommittedDuringExtraProgressUpdate(TestContext context) throws InterruptedException {
+  public void testCommittedDuringExtraProgressUpdate(TestContext context) {
     Async async = context.async();
 
     // Arrange

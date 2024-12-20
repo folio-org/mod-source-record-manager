@@ -330,7 +330,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
             });
         })
         .onSuccess(notUsed -> async.complete())
-        .onFailure(th -> context.fail(th));
+        .onFailure(context::fail);
     });
   }
 
@@ -383,7 +383,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
           return Future.succeededFuture();
         })
         .onSuccess(notUsed -> async.complete())
-        .onFailure(th -> context.fail(th));
+        .onFailure(context::fail);
     });
   }
 
