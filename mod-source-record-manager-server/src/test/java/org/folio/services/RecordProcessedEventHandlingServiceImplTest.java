@@ -330,7 +330,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
             });
         })
         .onSuccess(notUsed -> async.complete())
-        .onFailure(th -> context.fail(th));
+        .onFailure(context::fail);
     });
   }
 
@@ -383,7 +383,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
           return Future.succeededFuture();
         })
         .onSuccess(notUsed -> async.complete())
-        .onFailure(th -> context.fail(th));
+        .onFailure(context::fail);
     });
   }
 
@@ -448,6 +448,71 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       JobExecution jobExecution = ar.result().get();
       context.assertEquals(ERROR, jobExecution.getStatus());
       context.assertEquals(JobExecution.UiStatus.ERROR, jobExecution.getUiStatus());
+      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
+      context.assertNotNull(jobExecution.getStartedDate());
+      context.assertNotNull(jobExecution.getCompletedDate());
+      verify(2, putRequestedFor(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true)));
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldMarkJobExecutionAsCommittedWhenExtraEventReceived(TestContext context) {
+    // given
+    Async async = context.async();
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD)))
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(true)
+        .withCounter(1)
+        .withTotal(1)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW));
+
+    HashMap<String, String> payloadContext = new HashMap<>();
+    DataImportEventPayload datImpEventPayload1 = new DataImportEventPayload()
+      .withEventType(DataImportEventTypes.DI_COMPLETED.value())
+      .withContext(payloadContext);
+
+
+    DataImportEventPayload datImpEventPayload2 = new DataImportEventPayload()
+      .withEventType(DataImportEventTypes.DI_COMPLETED.value())
+      .withContext(payloadContext);
+
+    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .map(jobExecution -> {
+        datImpEventPayload1.withJobExecutionId(jobExecution.getId());
+        return datImpEventPayload2.withJobExecutionId(jobExecution.getId());
+      })
+      .compose(ar -> chunkProcessingService.processChunk(rawRecordsDto, datImpEventPayload1.getJobExecutionId(), false, params));
+
+    // when
+    Future<Optional<JobExecution>> jobFuture = future
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpEventPayload1), params))
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpEventPayload2), params))
+      .compose(notUsed -> {
+        Promise<Optional<JobExecution>> promise = Promise.promise();
+        vertx.setTimer(2000,
+          id -> {
+            jobExecutionService.getJobExecutionById(datImpEventPayload2.getJobExecutionId(), TENANT_ID)
+              .onComplete(ar -> {
+                if (ar.succeeded()) {
+                  promise.complete(ar.result());
+                } else {
+                  promise.fail(ar.cause());
+                }
+              });
+          });
+        return promise.future();
+      });
+
+    // then
+    jobFuture.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      context.assertTrue(ar.result().isPresent());
+      JobExecution jobExecution = ar.result().get();
+      context.assertEquals(COMMITTED, jobExecution.getStatus());
+      context.assertEquals(RUNNING_COMPLETE, jobExecution.getUiStatus());
       context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
       context.assertNotNull(jobExecution.getStartedDate());
       context.assertNotNull(jobExecution.getCompletedDate());
