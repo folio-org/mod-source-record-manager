@@ -42,7 +42,8 @@ public class DataImportInitKafkaHandler implements AsyncRecordHandler<String, St
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
     try {
       List<KafkaHeader> kafkaHeaders = record.headers();
-      OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+      OkapiConnectionParams okapiParams = OkapiConnectionParams.createSystemUserConnectionParams(
+        KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
       Event event = Json.decodeValue(record.value(), Event.class);
       DataImportInitConfig initConfig = Json.decodeValue(event.getEventPayload(), DataImportInitConfig.class);
 
