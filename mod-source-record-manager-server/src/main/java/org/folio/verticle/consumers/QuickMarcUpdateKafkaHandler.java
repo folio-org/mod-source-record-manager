@@ -48,7 +48,8 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
     var eventType = event.getEventType();
 
     var kafkaHeaders = record.headers();
-    var okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(kafkaHeaders), vertx);
+    var okapiConnectionParams = OkapiConnectionParams.createSystemUserConnectionParams(
+      kafkaHeadersToMap(kafkaHeaders), vertx);
     var tenantId = okapiConnectionParams.getTenantId();
 
     return getEventPayload(event)

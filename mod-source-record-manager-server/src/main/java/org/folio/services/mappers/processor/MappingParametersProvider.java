@@ -513,7 +513,7 @@ public class MappingParametersProvider {
    */
   private Future<String> getTenantConfigurationZone(OkapiConnectionParams params) {
     Promise<String> promise = Promise.promise();
-    RestUtil.doRequest(params, TENANT_CONFIGURATION_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
+    RestUtil.doRequestWithSystemUser(params, TENANT_CONFIGURATION_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (ifConfigResponseIsValid(response)) {
@@ -536,7 +536,7 @@ public class MappingParametersProvider {
    */
   private Future<List<LinkingRuleDto>> getLinkingRules(OkapiConnectionParams params) {
     Promise<List<LinkingRuleDto>> promise = Promise.promise();
-    RestUtil.doRequest(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    RestUtil.doRequestWithSystemUser(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         var result = ar.result();
         String response = result.getBody();
@@ -561,7 +561,7 @@ public class MappingParametersProvider {
   private <T> Future<List<T>> loadData(OkapiConnectionParams params, String requestUrl, String dataCollectionField,
                                        Function<JsonObject, List<T>> dataExtractor) {
     Promise<List<T>> promise = Promise.promise();
-    RestUtil.doRequest(params, requestUrl, HttpMethod.GET, null).onComplete(responseAr -> {
+    RestUtil.doRequestWithSystemUser(params, requestUrl, HttpMethod.GET, null).onComplete(responseAr -> {
       try {
         if (RestUtil.validateAsyncResult(responseAr, promise)) {
           JsonObject response = responseAr.result().getJson();
