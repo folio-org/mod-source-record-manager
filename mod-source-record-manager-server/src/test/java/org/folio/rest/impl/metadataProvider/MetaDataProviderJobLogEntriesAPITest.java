@@ -18,6 +18,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.in;
@@ -36,6 +37,7 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,6 +96,8 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + instanceCreationJobExecution.getId() + "/records/" + instanceCreationSourceRecordId)
         .then()
         .statusCode(HttpStatus.SC_OK)
+        .log()
+        .all()
         .body("jobExecutionId", is(instanceCreationJobExecution.getId()))
         .body("incomingRecordId", is(instanceCreationSourceRecordId))
         .body("sourceRecordOrder", is("0"))
@@ -128,6 +132,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId()+ "/records/" + sourceRecordId)
         .then().log().all()
+        .log().all()
         .statusCode(HttpStatus.SC_OK)
         .body("jobExecutionId", is(createdJobExecution.getId()))
         .body("incomingRecordId", is(sourceRecordId))
@@ -386,6 +391,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
         .then()
+        .log().all()
         .statusCode(HttpStatus.SC_OK)
         .body("jobExecutionId", is(createdJobExecution.getId()))
         .body("incomingRecordId", is(sourceRecordId))
@@ -482,6 +488,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
         .then()
         .statusCode(HttpStatus.SC_OK)
+        .log().all()
         .body("jobExecutionId", is(createdJobExecution.getId()))
         .body("incomingRecordId", is(sourceRecordId))
         .body("sourceRecordTitle", is(recordTitle))
@@ -1049,12 +1056,13 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      RestAssured.given()
+      RecordProcessingLogDto recordProcessingLogSummary = RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
         .then()
         .statusCode(HttpStatus.SC_OK)
+        .log().all()
         .body("jobExecutionId", is(createdJobExecution.getId()))
         .body("incomingRecordId", is(incomingRecordId))
         .body("sourceRecordId", is(marcHoldingsId))
@@ -1065,7 +1073,12 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedHoldingsInfo[0].hrid", is(holdingHrid))
         .body("relatedHoldingsInfo[0].permanentLocationId", is(holdingPermanentLocationId))
         .body("relatedHoldingsInfo[0].error", emptyOrNullString())
-        .body("error", emptyOrNullString());
+        .body("error", emptyOrNullString())
+        .extract().response().body().as(RecordProcessingLogDto.class);
+
+      assertThat(recordProcessingLogSummary.getJobExecutionId(), is(createdJobExecution.getId()));
+      assertThat(recordProcessingLogSummary.getIncomingRecordId(), is(incomingRecordId));
+      assertThat(recordProcessingLogSummary.getSourceRecordId(), is(marcHoldingsId));
       async.complete();
     }));
   }
@@ -1218,6 +1231,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
         .then()
         .statusCode(HttpStatus.SC_OK)
+        .log().all()
         .body("jobExecutionId", is(createdJobExecution.getId()))
         .body("incomingRecordId", is(incomingRecordId))
         .body("sourceRecordTitle", is(recordTitle))
@@ -1312,6 +1326,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
         .then()
+        .log().all()
         .statusCode(HttpStatus.SC_OK)
         .body("jobExecutionId", is(createdJobExecution.getId()))
         .body("incomingRecordId", is(incomingRecordId))
