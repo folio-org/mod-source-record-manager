@@ -158,7 +158,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-utils</artifactId>
-      <version>1.14.0-SNAPSHOT</version>
+      <version>1.13.1</version>
       <type>jar</type>
       <exclusions>
         <exclusion>
@@ -237,7 +237,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
-      <version>4.3.0</version>
+      <version>4.3.2</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
