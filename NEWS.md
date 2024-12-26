@@ -1,3 +1,6 @@
+## 2024-12-26 v3.9.4
+* [MODSOURMAN-1247](https://folio-org.atlassian.net/browse/MODSOURMAN-1247) Implement RTR support for Eureka-based environments
+
 ## 2024-11-26 v3.9.3
 * [MODSOURMAN-1240](https://folio-org.atlassian.net/browse/MODSOURMAN-1240) The title of record is not displayed on the JSON data after importing file for creating order
 
