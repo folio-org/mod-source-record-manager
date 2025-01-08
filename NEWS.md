@@ -1,3 +1,6 @@
+## 2025-01-08 v3.9.5
+* [MODSOURMAN-1261](https://folio-org.atlassian.net/browse/MODSOURMAN-1261) Complete jobExecution when extra processing events received
+
 ## 2024-12-26 v3.9.4
 * [MODSOURMAN-1247](https://folio-org.atlassian.net/browse/MODSOURMAN-1247) Implement RTR support for Eureka-based environments
 
