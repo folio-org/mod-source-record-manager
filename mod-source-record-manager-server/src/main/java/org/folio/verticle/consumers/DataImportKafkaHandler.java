@@ -53,7 +53,8 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, byte[]
     try {
       Promise<String> result = Promise.promise();
       List<KafkaHeader> kafkaHeaders = record.headers();
-      OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+      OkapiConnectionParams okapiConnectionParams = OkapiConnectionParams.createSystemUserConnectionParams(
+        KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
       String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
       Event event = DatabindCodec.mapper().readValue(record.value(), Event.class);
       String jobExecutionId = extractJobExecutionId(kafkaHeaders);

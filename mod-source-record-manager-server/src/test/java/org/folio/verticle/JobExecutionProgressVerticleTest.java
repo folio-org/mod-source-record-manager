@@ -173,6 +173,87 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       });
   }
 
+  @Test
+  public void testSingleProgressUpdateSplitFileDisabled(TestContext context) throws InterruptedException {
+    Async async = context.async();
+
+    // Arrange
+    // create job execution with CHILD subordination Type (simulating non split-files env)
+    JobExecution childJobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withHrId(1000)
+      .withParentJobId(jobExecutionId)
+      .withSubordinationType(JobExecution.SubordinationType.CHILD)
+      .withStatus(JobExecution.Status.NEW)
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+
+    JobExecution parentJobExecution = new JobExecution()
+      .withId(jobExecutionId)
+      .withHrId(1000)
+      .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
+      .withStatus(JobExecution.Status.NEW)
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+    // create job execution progress
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
+      .withCurrentlyFailed(1)
+      .withCurrentlySucceeded(2)
+      .withTotal(3);
+    BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
+      createOkapiConnectionParams(tenantId),
+      jobExecutionProgress);
+    // return appropriate objects for mocks
+    when(jobExecutionService.getJobExecutionById(eq(childJobExecution.getId()), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(childJobExecution)));
+    when(jobExecutionService.getJobExecutionById(eq(parentJobExecution.getId()), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecutionId), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(jobExecutionProgress));
+    when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
+      .thenReturn(Future.succeededFuture(childJobExecution));
+    when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
+          .withJobExecutions(Collections.singletonList(
+            new JobExecutionDto()
+              .withId(childJobExecution.getId())
+              .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
+              .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE))
+          )
+        )
+      );
+    var topic = formatToKafkaTopicName(DI_JOB_COMPLETED.value());
+    var request = prepareWithSpecifiedEventPayload(Json.encode(parentJobExecution), topic);
+
+    kafkaCluster.send(request);
+
+    // Act
+    batchJobProgressProducer.write(batchableJobExecutionProgress)
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          // Assert
+          try {
+            await()
+              .atMost(AWAIT_TIME, TimeUnit.SECONDS)
+              .untilAsserted(() -> verify(jobExecutionProgressDao)
+                .updateCompletionCounts(any(), eq(2), eq(1), eq(tenantId)));
+            kafkaCluster.observeValues(ObserveKeyValues.on(topic, 1)
+              .observeFor(30, TimeUnit.SECONDS)
+              .build());
+          } catch (Exception e) {
+            context.fail(e);
+          }
+          async.complete();
+        } else {
+          context.fail(ar.cause());
+        }
+      });
+  }
+
   private SendKeyValues<String, String> prepareWithSpecifiedEventPayload(String eventPayload, String topic) {
     Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(eventPayload);
     KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
@@ -298,6 +379,66 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       })
       .onSuccess(notUsed -> async.complete())
       .onFailure(th -> context.fail(th.getCause()));
+  }
+
+  @Test
+  public void testCommittedDuringExtraProgressUpdate(TestContext context) {
+    Async async = context.async();
+
+    // Arrange
+    // create job execution
+    JobExecution jobExecution = new JobExecution()
+      .withId(jobExecutionId)
+      .withHrId(1000)
+      .withParentJobId(jobExecutionId)
+      .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
+      .withStatus(JobExecution.Status.NEW)
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+    // create job execution progress
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
+      .withCurrentlyFailed(0)
+      .withCurrentlySucceeded(2)
+      .withTotal(1);
+    BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
+      createOkapiConnectionParams(tenantId),
+      jobExecutionProgress);
+    // return appropriate objects for mocks
+    when(jobExecutionService.getJobExecutionById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(jobExecution)));
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecutionId), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(jobExecutionProgress));
+    when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
+      .thenReturn(Future.succeededFuture(jobExecution));
+
+
+    // Act
+    batchJobProgressProducer.write(batchableJobExecutionProgress)
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          // Assert
+          try {
+            await()
+              .atMost(AWAIT_TIME, TimeUnit.SECONDS)
+              .untilAsserted(() -> {
+                verify(jobExecutionProgressDao)
+                  .updateCompletionCounts(eq(jobExecutionId), eq(2), eq(0), eq(tenantId));
+
+                ArgumentCaptor<JobExecution> argumentCaptor = ArgumentCaptor.forClass(JobExecution.class);
+                verify(jobExecutionService).updateJobExecutionWithSnapshotStatus(argumentCaptor.capture(), any());
+                JobExecution.Status status = argumentCaptor.getValue().getStatus();
+                context.assertEquals(JobExecution.Status.COMMITTED, status);
+              });
+          } catch (Exception e) {
+            context.fail(e);
+          }
+          async.complete();
+        } else {
+          context.fail(ar.cause());
+        }
+      });
   }
 
 }

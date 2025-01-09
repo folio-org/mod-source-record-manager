@@ -51,7 +51,8 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
   @Override
   public void handle(Throwable throwable, KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord) {
     List<KafkaHeader> kafkaHeaders = kafkaConsumerRecord.headers();
-    OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+    OkapiConnectionParams okapiParams = OkapiConnectionParams.createSystemUserConnectionParams(
+      KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
 
 
