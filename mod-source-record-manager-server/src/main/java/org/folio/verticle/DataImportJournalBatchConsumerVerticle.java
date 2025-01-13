@@ -1,10 +1,8 @@
 package org.folio.verticle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.reactivex.rxjava3.core.BackpressureOverflowStrategy;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -109,7 +107,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
   public static final String DATA_IMPORT_JOURNAL_BATCH_KAFKA_HANDLER_UUID = "ca0c6c56-e74e-4921-b4c9-7b2de53c43ec";
 
   @Value("$${MAX_NUM_EVENTS:100}")
-  private int MAX_NUM_EVENTS;
+  private int maxNumEvents;
 
   @Autowired
   @Qualifier("newKafkaConfig")
@@ -146,9 +144,9 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
     // Listen to both Kafka events and EventBus messages, merging their streams
     disposables.add(Flowable.merge(listenKafkaEvents(), listenEventBusMessages())
-      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
+      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
       // Save the journal records for each window
-      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(MAX_NUM_EVENTS))
+      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(maxNumEvents))
         .onErrorResumeNext(error -> {
           LOGGER.error("Error saving journal records, continuing with next batch", error);
           return Completable.complete();
@@ -305,7 +303,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Flatten the iterable list of messages
       .flatMapIterable(list -> list)
       // Window the messages in 2-second intervals, with a maximum of MAX_NUM_EVENTS per window
-      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
+      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
       .flatMap(window -> window
         // Group messages by tenant ID
         .groupBy(BatchableJournalRecord::getTenantId)
