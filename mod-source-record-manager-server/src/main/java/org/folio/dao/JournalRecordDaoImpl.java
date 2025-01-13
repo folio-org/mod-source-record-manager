@@ -137,8 +137,6 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final int MAX_RETRIES = 3;
-  private static final long INITIAL_BACKOFF_MS = 50;
   public static final String SOURCE_RECORD_ENTITY_TYPE = "source_record_entity_type";
   public static final String ORDER_ENTITY_ID = "order_entity_id";
   public static final String INCOMING_RECORD_ID = "incoming_record_id";

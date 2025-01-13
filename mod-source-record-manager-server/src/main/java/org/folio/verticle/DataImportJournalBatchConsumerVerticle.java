@@ -43,6 +43,7 @@ import org.folio.util.SharedDataUtil;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -107,7 +108,8 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
   public static final String DATA_IMPORT_JOURNAL_BATCH_KAFKA_HANDLER_UUID = "ca0c6c56-e74e-4921-b4c9-7b2de53c43ec";
 
-  private static final int MAX_NUM_EVENTS = 100;
+  @Value("$${MAX_NUM_EVENTS:100}")
+  private int MAX_NUM_EVENTS;
 
   @Autowired
   @Qualifier("newKafkaConfig")
@@ -268,9 +270,6 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       throw new IllegalStateException("KafkaConsumer not initialized");
     }
     return kafkaConsumer.toFlowable()
-      .onBackpressureBuffer(10_000,
-        () -> LOGGER.error("listenKafkaEvents:: Backpressure buffer full"),
-        BackpressureOverflowStrategy.DROP_OLDEST)
       .map(consumerRecord -> {
         try {
           Map<String, String> map = kafkaHeadersToMap(consumerRecord.headers());
