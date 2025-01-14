@@ -3,10 +3,11 @@ package org.folio.verticle;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.flowables.ConnectableFlowable;
+import io.reactivex.rxjava3.flowables.GroupedFlowable;
 import io.vertx.core.Promise;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.common.TopicPartition;
@@ -40,6 +41,7 @@ import org.folio.util.SharedDataUtil;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -104,7 +106,8 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
   public static final String DATA_IMPORT_JOURNAL_BATCH_KAFKA_HANDLER_UUID = "ca0c6c56-e74e-4921-b4c9-7b2de53c43ec";
 
-  private static final int MAX_NUM_EVENTS = 100;
+  @Value("${MAX_NUM_EVENTS:100}")
+  private int maxNumEvents;
 
   @Autowired
   @Qualifier("newKafkaConfig")
@@ -119,6 +122,8 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
   private MessageConsumer<Collection<BatchableJournalRecord>> eventBusConsumer;
 
   private Scheduler scheduler;
+
+  private final CompositeDisposable disposables = new CompositeDisposable();
 
   @Override
   public void start(Promise<Void> startPromise) {
@@ -138,16 +143,41 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .subscribe();
 
     // Listen to both Kafka events and EventBus messages, merging their streams
-    Flowable.merge(listenKafkaEvents(), listenEventBusMessages())
-      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
+    disposables.add(Flowable.merge(listenKafkaEvents(), listenEventBusMessages())
+      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
       // Save the journal records for each window
-      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay()))
+      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(maxNumEvents))
+        .onErrorResumeNext(error -> {
+          LOGGER.error("Error saving journal records, continuing with next batch", error);
+          return Completable.complete();
+        }))
       .subscribeOn(scheduler)
       .observeOn(scheduler)
-      .doOnError(e -> LOGGER.error("Uncaught exception during journal events processing", e))
-      // Complete the flowable on error to avoid termination
-      .onErrorComplete()
-      .subscribe();
+      .subscribe()
+    );
+  }
+
+  @Override
+  public void stop(Promise<Void> stopPromise) {
+    try {
+      // Dispose of all subscriptions
+      disposables.dispose();
+
+      // Close Kafka consumer
+      if (kafkaConsumer != null) {
+        kafkaConsumer.close();
+      }
+
+      // Close event bus consumer
+      if (eventBusConsumer != null) {
+        eventBusConsumer.unregister();
+      }
+
+      stopPromise.complete();
+    } catch (Exception e) {
+      LOGGER.error("Error while stopping journal batch verticle", e);
+      stopPromise.fail(e);
+    }
   }
 
   public List<String> getEvents() {
@@ -241,8 +271,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .map(consumerRecord -> {
         try {
           Map<String, String> map = kafkaHeadersToMap(consumerRecord.headers());
-          OkapiConnectionParams okapiConnectionParams = OkapiConnectionParams.createSystemUserConnectionParams(
-            map, vertx.getDelegate());
+          OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(map, vertx.getDelegate());
           String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
           JournalEvent event = DatabindCodec.mapper().readValue(consumerRecord.value(), JournalEvent.class);
 
@@ -274,7 +303,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Flatten the iterable list of messages
       .flatMapIterable(list -> list)
       // Window the messages in 2-second intervals, with a maximum of MAX_NUM_EVENTS per window
-      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
+      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
       .flatMap(window -> window
         // Group messages by tenant ID
         .groupBy(BatchableJournalRecord::getTenantId)
@@ -309,22 +338,37 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
               LOGGER.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
               // Save the batch of journal records and handle the response
               return AsyncResultCompletable.toCompletable(completionHandler -> batchJournalService.saveBatchWithResponse(
-                journalRecords,
-                groupedRecords.getKey().get(),
-                completionHandler));
+                  journalRecords,
+                  groupedRecords.getKey().get(),
+                  completionHandler))
+                .onErrorResumeNext(error -> {
+                  LOGGER.error("saveJournalRecords:: Error saving batch for tenant {}", groupedRecords.getKey().get(), error);
+                  return Completable.complete(); // Continue processing other batches
+                });
             } catch (Exception e) {
-              LOGGER.error("Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
+              LOGGER.error("saveJournalRecords:: Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
               return Completable.complete();
             }
           }
         )
       ).doFinally(() -> {
-        // Commit bundles from the flowable at the end of the process
+        // Extract bundles and commit
         Flowable<Bundle> bundleFlowable = flowable
           .map(Pair::getLeft)
           .filter(Optional::isPresent)
           .map(Optional::get);
-        commitKafkaEvents(bundleFlowable);
+
+        disposables.add(
+          commitKafkaEvents(bundleFlowable)
+            .onErrorResumeNext(error -> {
+              LOGGER.error("Error committing Kafka events, will retry on next batch", error);
+              return Completable.complete();
+            })
+            .subscribe(
+              () -> LOGGER.debug("Kafka events committed"),
+              error -> LOGGER.error("Fatal error committing Kafka events", error)
+            )
+        );
       })
       .doOnError(throwable -> LOGGER.error("Error occurred while processing journal events", throwable));
 
@@ -343,38 +387,36 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       col -> col.stream().map(res -> new BatchableJournalRecord(res, tenantId)).toList());
   }
 
-  private void commitKafkaEvents(Flowable<Bundle> bundles) {
-    bundles
-      // Group bundles by topic and partition
+  private Completable commitKafkaEvents(Flowable<Bundle> bundles) {  // Changed return type to Completable
+    return bundles
       .groupBy(bundle -> new TopicPartition(bundle.record.topic(), bundle.record.partition()))
-      .flatMapSingle(groupedBundles ->
-        groupedBundles.toList()
-          // Calculate the maximum offset for each grouped bundle
-          .flatMap(groupBundle ->
-            Observable.fromIterable(groupBundle)
-              .map(bundle -> bundle.record.offset())
-              .reduce(Long::max)
-              .toSingle()
-          )
-          // Prepare the offset data structure for commit
-          .map(maxOffset -> {
-            Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>(2);
-            OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(maxOffset + 1, null);
-            offsets.put(groupedBundles.getKey(), offsetAndMetadata);
-            return offsets;
-          })
+      .flatMapSingle(this::calculateMaxOffsets)
+      .flatMapCompletable(this::commitOffset)
+      .doOnError(error -> LOGGER.error("Error committing Kafka offsets", error))
+      .onErrorComplete();
+  }
+
+  private Single<Map<TopicPartition, OffsetAndMetadata>> calculateMaxOffsets(GroupedFlowable<TopicPartition, Bundle> groupedBundles) {
+    return groupedBundles.toList()
+      .map(bundles -> {
+        long maxOffset = bundles.stream()
+          .mapToLong(bundle -> bundle.record.offset())
+          .max()
+          .orElseThrow(() -> new IllegalStateException("No offsets found in bundle group"));
+
+        Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>(2);
+        offsets.put(groupedBundles.getKey(), new OffsetAndMetadata(maxOffset + 1, null));
+        return offsets;
+      });
+  }
+
+  private Completable commitOffset(Map<TopicPartition, OffsetAndMetadata> offsets) {
+    LOGGER.info("Committing offsets: {}", offsets);
+    return AsyncResultCompletable.toCompletable(handler ->
+        kafkaConsumer.getDelegate().commit(offsets, handler)
       )
-      // Commit the offsets
-      .flatMapCompletable(offsets -> {
-        LOGGER.info("Committing offsets: {}", offsets);
-        return AsyncResultCompletable.toCompletable(completionHandler ->
-            kafkaConsumer.getDelegate().commit(offsets, completionHandler)
-          )
-          .doOnComplete(() -> LOGGER.info("Committed the following offsets: {}", offsets))
-          .doOnError(throwable -> LOGGER.error("DataImportJournalBatchConsumer:: Error while commit offsets: {}", offsets, throwable))
-          .onErrorComplete();
-      })
-      .subscribe(() -> {}, LOGGER::error);
+      .doOnComplete(() -> LOGGER.info("commitOffset:: Successfully committed offsets: {}", offsets))
+      .doOnError(error -> LOGGER.error("commitOffset:: Failed to commit offsets: {}", offsets, error));
   }
 
   private Map<String, String> kafkaHeadersToMap(List<KafkaHeader> kafkaHeaders) {
