@@ -1,7 +1,6 @@
 package org.folio.verticle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.reactivex.rxjava3.core.BackpressureOverflowStrategy;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -269,9 +268,6 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       throw new IllegalStateException("KafkaConsumer not initialized");
     }
     return kafkaConsumer.toFlowable()
-      .onBackpressureBuffer(10_000,
-        () -> LOGGER.error("listenKafkaEvents:: Backpressure buffer full"),
-        BackpressureOverflowStrategy.DROP_OLDEST)
       .map(consumerRecord -> {
         try {
           Map<String, String> map = kafkaHeadersToMap(consumerRecord.headers());
