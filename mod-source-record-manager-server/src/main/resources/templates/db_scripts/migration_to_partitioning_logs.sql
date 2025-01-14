@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_order PAR
 CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_invoice PARTITION OF journal_records_entity_type FOR VALUES IN ('INVOICE');
 CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_edifact PARTITION OF journal_records_entity_type FOR VALUES IN ('EDIFACT');
 CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_empty_entity_type PARTITION OF journal_records_entity_type FOR VALUES IN ('');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_null_entity_type PARTITION OF journal_records_entity_type FOR VALUES IN (NULL);
 
 INSERT INTO ${myuniversity}_${mymodule}.journal_records_entity_type (id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
                                          action_type, action_status, action_date, source_record_order, error, title,
