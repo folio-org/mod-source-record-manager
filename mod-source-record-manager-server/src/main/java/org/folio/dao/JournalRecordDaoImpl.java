@@ -180,18 +180,80 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<List<RowSet<Row>>> saveBatch(Collection<JournalRecord> journalRecords, String tenantId) {
-    LOGGER.info("saveBatch:: Trying to save list of JournalRecord entities to the {} table", JOURNAL_RECORDS_TABLE);
+    LOGGER.debug("saveBatch:: Starting batch save of {} JournalRecord entities", journalRecords.size());
     Promise<List<RowSet<Row>>> promise = Promise.promise();
+
     try {
-      List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(toList());
+      // Group records by jobExecutionId
+      Map<String, List<JournalRecord>> recordsByJobId = journalRecords.stream()
+        .collect(Collectors.groupingBy(JournalRecord::getJobExecutionId));
+
+      // Create the base SQL query
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-      LOGGER.trace("saveBatch:: JournalRecordDaoImpl::saveBatch query = {}; tuples = {}", query, tupleList);
-      pgClientFactory.createInstance(tenantId).execute(query, tupleList, promise);
+
+      // Process groups sequentially using recursive helper
+      List<RowSet<Row>> allResults = new ArrayList<>();
+      processNextGroup(new ArrayList<>(recordsByJobId.entrySet()), 0, query, tenantId, allResults, promise);
+
     } catch (Exception e) {
       LOGGER.warn("saveBatch:: Error saving JournalRecord entities", e);
       promise.fail(e);
     }
-    return promise.future().onFailure(e -> LOGGER.warn("saveBatch:: Error saving JournalRecord entities", e));
+
+    return promise.future();
+  }
+
+  private void processNextGroup(List<Map.Entry<String, List<JournalRecord>>> groups,
+                                int currentIndex,
+                                String query,
+                                String tenantId,
+                                List<RowSet<Row>> accumulatedResults,
+                                Promise<List<RowSet<Row>>> finalPromise) {
+
+    // Base case - all groups processed
+    if (currentIndex >= groups.size()) {
+      finalPromise.complete(accumulatedResults);
+      return;
+    }
+
+    // Get current group
+    Map.Entry<String, List<JournalRecord>> currentGroup = groups.get(currentIndex);
+    List<Tuple> tuples = currentGroup.getValue().stream()
+      .map(this::prepareInsertQueryParameters)
+      .collect(toList());
+
+    LOGGER.debug("processNextGroup:: Processing group {} of {} for jobExecutionId: {}",
+      currentIndex + 1, groups.size(), currentGroup.getKey());
+
+    // Execute current group
+    Promise<List<RowSet<Row>>> groupPromise = Promise.promise();
+    executeGroup(query, tuples, tenantId, groupPromise);
+
+    groupPromise.future().onSuccess(results -> {
+      // Add results to accumulated list
+      accumulatedResults.addAll(results);
+      // Process next group
+      processNextGroup(groups, currentIndex + 1, query, tenantId, accumulatedResults, finalPromise);
+    }).onFailure(err -> {
+      LOGGER.error("processNextGroup:: Error processing group {} for jobExecutionId: {}",
+        currentIndex + 1, currentGroup.getKey(), err);
+      finalPromise.fail(err);
+    });
+  }
+
+  private void executeGroup(String query,
+                            List<Tuple> tuples,
+                            String tenantId,
+                            Promise<List<RowSet<Row>>> promise) {
+    pgClientFactory.createInstance(tenantId)
+      .execute(query, tuples, ar -> {
+        if (ar.succeeded()) {
+          promise.complete(ar.result());
+        } else {
+          LOGGER.warn("executeGroup:: Error saving group of JournalRecord entities", ar.cause());
+          promise.fail(ar.cause());
+        }
+      });
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {
