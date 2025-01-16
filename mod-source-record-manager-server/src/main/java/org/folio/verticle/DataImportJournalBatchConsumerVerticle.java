@@ -223,9 +223,9 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     Map<String, String> consumerProps = kafkaConfigWithDeserializer.getConsumerProps();
     // this is set so that this consumer can start where the non-batch consumer left off, when no previous offset is found.
     consumerProps.put(KafkaConfig.KAFKA_CONSUMER_AUTO_OFFSET_RESET_CONFIG, "latest");
-
-    consumerProps.put(KafkaConfig.KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS_CONFIG, "600000");
-    consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "3000");
+    consumerProps.put(KafkaConfig.KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS_CONFIG, "900000");
+    consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000"); // 30 seconds
+    consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "10000");
 
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaTopicNameHelper.formatGroupName("DATA_IMPORT_JOURNAL_BATCH",
       constructModuleName() + "_" + getClass().getSimpleName()));
