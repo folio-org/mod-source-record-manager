@@ -1,4 +1,4 @@
-FROM 17.0.6_10-jdk-alpine
+FROM openjdk:17-alpine
 
 # Install latest patch versions of packages: https://pythonspeed.com/articles/security-updates-in-docker/
 USER root
