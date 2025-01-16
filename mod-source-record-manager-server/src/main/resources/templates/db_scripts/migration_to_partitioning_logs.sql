@@ -47,5 +47,6 @@ CREATE INDEX journal_records_et_action_type_idx ON ${myuniversity}_${mymodule}.j
 
 ALTER TABLE ${myuniversity}_${mymodule}.journal_records RENAME TO journal_records_backup;
 ALTER TABLE ${myuniversity}_${mymodule}.journal_records_entity_type RENAME TO journal_records;
+--ANALIZE VERBOSE ${myuniversity}_${mymodule}.journal_records;
 
 
