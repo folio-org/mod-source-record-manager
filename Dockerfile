@@ -1,4 +1,4 @@
-FROM openjdk:17-alpine
+FROM folioci/alpine-jre-openjdk17:latest
 
 # Install latest patch versions of packages: https://pythonspeed.com/articles/security-updates-in-docker/
 USER root
