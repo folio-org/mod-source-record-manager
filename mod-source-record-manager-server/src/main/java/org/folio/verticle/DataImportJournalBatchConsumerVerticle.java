@@ -24,6 +24,7 @@ import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -228,7 +229,10 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000"); // 60 seconds
     consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "20000");
     consumerProps.put(KafkaConfig.KAFKA_CONSUMER_MAX_POLL_RECORDS_CONFIG, "50");
-    // max
+    consumerProps.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "org.apache.kafka.clients.consumer.CooperativeStickyAssignor");
+    consumerProps.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, String.format(
+      constructModuleName() + "-" +getClass().getSimpleName() + "-" + UUID.randomUUID()));
+
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaTopicNameHelper.formatGroupName("DATA_IMPORT_JOURNAL_BATCH",
       constructModuleName() + "_" + getClass().getSimpleName()));
     if(SharedDataUtil.getIsTesting(vertx.getDelegate())) {
