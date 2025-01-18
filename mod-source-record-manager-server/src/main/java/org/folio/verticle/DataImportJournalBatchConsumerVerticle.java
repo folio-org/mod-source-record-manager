@@ -24,13 +24,13 @@ import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.kafka.SubscriptionDefinition;
+import org.folio.kafka.headers.FolioKafkaHeaders;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.BatchJournalService;
 import org.folio.services.journal.BatchableJournalRecord;
@@ -57,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.folio.kafka.services.KafkaEnvironmentProperties.environment;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
@@ -225,16 +226,10 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     // this is set so that this consumer can start where the non-batch consumer left off, when no previous offset is found.
     consumerProps.put(KafkaConfig.KAFKA_CONSUMER_AUTO_OFFSET_RESET_CONFIG, "latest");
 
-    consumerProps.put(KafkaConfig.KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS_CONFIG, "900000");
-    consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000"); // 60 seconds
+    consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000");
     consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "20000");
-    consumerProps.put(KafkaConfig.KAFKA_CONSUMER_MAX_POLL_RECORDS_CONFIG, "50");
-    consumerProps.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "org.apache.kafka.clients.consumer.CooperativeStickyAssignor");
-    consumerProps.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, String.format(
-      constructModuleName() + "-" +getClass().getSimpleName() + "-" + UUID.randomUUID()));
-
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaTopicNameHelper.formatGroupName("DATA_IMPORT_JOURNAL_BATCH",
-      constructModuleName() + "_" + getClass().getSimpleName()));
+      environment() + "_" + constructModuleName() + "_" + getClass().getSimpleName()));
     if(SharedDataUtil.getIsTesting(vertx.getDelegate())) {
       // this will allow the consumer to retrieve messages faster during tests
       consumerProps.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, "1000");
