@@ -21,9 +21,11 @@ import io.vertx.rxjava3.impl.AsyncResultSingle;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
+import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.errors.RebalanceInProgressException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -146,8 +148,14 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Save the journal records for each window
       .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(MAX_NUM_EVENTS))
         .onErrorResumeNext(error -> {
-          LOGGER.error("Error saving journal records, continuing with next batch", error);
-          return Completable.complete();
+          if (error instanceof RebalanceInProgressException) {
+            LOGGER.warn("Rebalance in progress, retrying...", error);
+            return Completable.timer(1, TimeUnit.SECONDS) // Retry after a delay
+              .andThen(saveJournalRecords(flowable.replay(MAX_NUM_EVENTS)));
+          } else {
+            LOGGER.error("Error saving journal records, continuing with next batch", error);
+            return Completable.complete();
+          }
         }))
       .subscribeOn(scheduler)
       .observeOn(scheduler)
@@ -220,7 +228,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
     Map<String, String> consumerProps = kafkaConfigWithDeserializer.getConsumerProps();
     // this is set so that this consumer can start where the non-batch consumer left off, when no previous offset is found.
-    consumerProps.put(KafkaConfig.KAFKA_CONSUMER_AUTO_OFFSET_RESET_CONFIG, "latest");
+    consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
 
     consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000");
     consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "20000");
@@ -416,6 +424,14 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     return AsyncResultCompletable.toCompletable(handler ->
         kafkaConsumer.getDelegate().commit(offsets, handler)
       )
+      .onErrorResumeNext(error -> {
+        if (error instanceof RebalanceInProgressException) {
+          LOGGER.warn("Rebalance in progress. Retrying offset commit...");
+          return kafkaConsumer.rxPoll(Duration.ofMillis(100))
+            .flatMapCompletable(records -> commitOffset(offsets));
+        }
+        return Completable.error(error);
+      })
       .doOnComplete(() -> LOGGER.info("commitOffset:: Successfully committed offsets: {}", offsets))
       .doOnError(error -> LOGGER.error("commitOffset:: Failed to commit offsets: {}", offsets, error));
   }
