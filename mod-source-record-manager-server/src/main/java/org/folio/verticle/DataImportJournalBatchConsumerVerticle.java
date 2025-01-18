@@ -30,7 +30,6 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.kafka.SubscriptionDefinition;
-import org.folio.kafka.headers.FolioKafkaHeaders;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.BatchJournalService;
 import org.folio.services.journal.BatchableJournalRecord;
@@ -42,7 +41,6 @@ import org.folio.util.SharedDataUtil;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -96,7 +94,6 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
  * Verticle to write events into journal log. It combines two streams
  * - kafka consumer for specific events defined in {@link DataImportJournalBatchConsumerVerticle#getEvents()}
  * - vert.x event bus for events generated other parts of SRM
- *
  * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
  * @see org.folio.rest.impl.InitAPIImpl
  */
@@ -108,8 +105,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
   public static final String DATA_IMPORT_JOURNAL_BATCH_KAFKA_HANDLER_UUID = "ca0c6c56-e74e-4921-b4c9-7b2de53c43ec";
 
-  @Value("${MAX_NUM_EVENTS:100}")
-  private int maxNumEvents;
+  private static final int MAX_NUM_EVENTS = 100;
 
   @Autowired
   @Qualifier("newKafkaConfig")
@@ -146,9 +142,9 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
     // Listen to both Kafka events and EventBus messages, merging their streams
     disposables.add(Flowable.merge(listenKafkaEvents(), listenEventBusMessages())
-      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
+      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
       // Save the journal records for each window
-      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(maxNumEvents))
+      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(MAX_NUM_EVENTS))
         .onErrorResumeNext(error -> {
           LOGGER.error("Error saving journal records, continuing with next batch", error);
           return Completable.complete();
@@ -308,7 +304,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Flatten the iterable list of messages
       .flatMapIterable(list -> list)
       // Window the messages in 2-second intervals, with a maximum of MAX_NUM_EVENTS per window
-      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
+      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
       .flatMap(window -> window
         // Group messages by tenant ID
         .groupBy(BatchableJournalRecord::getTenantId)
