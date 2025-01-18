@@ -169,6 +169,11 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Dispose of all subscriptions
       disposables.dispose();
 
+      // Close Kafka consumer
+      if (kafkaConsumer != null) {
+        kafkaConsumer.close();
+      }
+
       // Close event bus consumer
       if (eventBusConsumer != null) {
         eventBusConsumer.unregister();
@@ -223,8 +228,8 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
     Map<String, String> consumerProps = kafkaConfigWithDeserializer.getConsumerProps();
     // this is set so that this consumer can start where the non-batch consumer left off, when no previous offset is found.
-    consumerProps.put(KafkaConfig.KAFKA_CONSUMER_AUTO_OFFSET_RESET_CONFIG, "latest");
-    consumerProps.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "900000");
+    consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+
     consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000");
     consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "20000");
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaTopicNameHelper.formatGroupName("DATA_IMPORT_JOURNAL_BATCH",
@@ -425,7 +430,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
           return kafkaConsumer.rxPoll(Duration.ofMillis(100))
             .flatMapCompletable(records -> commitOffset(offsets));
         }
-        return Completable.complete();
+        return Completable.error(error);
       })
       .doOnComplete(() -> LOGGER.info("commitOffset:: Successfully committed offsets: {}", offsets))
       .doOnError(error -> LOGGER.error("commitOffset:: Failed to commit offsets: {}", offsets, error));
