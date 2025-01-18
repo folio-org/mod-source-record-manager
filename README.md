@@ -129,9 +129,6 @@ which are created during tenant initialization, the values of which can be custo
 and `DI_RAW_RECORDS_CHUNK_PARSED_PARTITIONS` env variables respectively.
 Default value - `1`.
 
-## Environment variables
-`MAX_NUM_EVENTS`:`100` - set max num events to consume
-
 #### Note:
 From v 3.1.3 there is a new property which defines limit for retrieving data to fill mapping parameters for the data-import mechanism: **"srm.mapping.parameters.settings.limit:1000"**
 
