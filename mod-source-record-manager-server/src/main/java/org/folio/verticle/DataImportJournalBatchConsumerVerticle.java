@@ -430,7 +430,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
           return kafkaConsumer.rxPoll(Duration.ofMillis(100))
             .flatMapCompletable(records -> commitOffset(offsets));
         }
-        return Completable.error(error);
+        return Completable.complete();
       })
       .doOnComplete(() -> LOGGER.info("commitOffset:: Successfully committed offsets: {}", offsets))
       .doOnError(error -> LOGGER.error("commitOffset:: Failed to commit offsets: {}", offsets, error));
