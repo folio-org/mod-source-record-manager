@@ -41,7 +41,6 @@ import org.folio.util.SharedDataUtil;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.folio.kafka.services.KafkaEnvironmentProperties.environment;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
@@ -94,7 +94,6 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
  * Verticle to write events into journal log. It combines two streams
  * - kafka consumer for specific events defined in {@link DataImportJournalBatchConsumerVerticle#getEvents()}
  * - vert.x event bus for events generated other parts of SRM
- *
  * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
  * @see org.folio.rest.impl.InitAPIImpl
  */
@@ -106,8 +105,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
   public static final String DATA_IMPORT_JOURNAL_BATCH_KAFKA_HANDLER_UUID = "ca0c6c56-e74e-4921-b4c9-7b2de53c43ec";
 
-  @Value("${MAX_NUM_EVENTS:100}")
-  private int maxNumEvents;
+  private static final int MAX_NUM_EVENTS = 100;
 
   @Autowired
   @Qualifier("newKafkaConfig")
@@ -144,9 +142,9 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
     // Listen to both Kafka events and EventBus messages, merging their streams
     disposables.add(Flowable.merge(listenKafkaEvents(), listenEventBusMessages())
-      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
+      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
       // Save the journal records for each window
-      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(maxNumEvents))
+      .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(MAX_NUM_EVENTS))
         .onErrorResumeNext(error -> {
           LOGGER.error("Error saving journal records, continuing with next batch", error);
           return Completable.complete();
@@ -223,8 +221,11 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     Map<String, String> consumerProps = kafkaConfigWithDeserializer.getConsumerProps();
     // this is set so that this consumer can start where the non-batch consumer left off, when no previous offset is found.
     consumerProps.put(KafkaConfig.KAFKA_CONSUMER_AUTO_OFFSET_RESET_CONFIG, "latest");
+
+    consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000");
+    consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "20000");
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaTopicNameHelper.formatGroupName("DATA_IMPORT_JOURNAL_BATCH",
-      constructModuleName() + "_" + getClass().getSimpleName()));
+      environment() + "_" + constructModuleName() + "_" + getClass().getSimpleName()));
     if(SharedDataUtil.getIsTesting(vertx.getDelegate())) {
       // this will allow the consumer to retrieve messages faster during tests
       consumerProps.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, "1000");
@@ -303,7 +304,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Flatten the iterable list of messages
       .flatMapIterable(list -> list)
       // Window the messages in 2-second intervals, with a maximum of MAX_NUM_EVENTS per window
-      .window(2, TimeUnit.SECONDS, scheduler, maxNumEvents, true)
+      .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
       .flatMap(window -> window
         // Group messages by tenant ID
         .groupBy(BatchableJournalRecord::getTenantId)
