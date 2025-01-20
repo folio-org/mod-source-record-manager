@@ -385,7 +385,8 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     LOGGER.debug("createJournalRecords :: start to handle bundle.");
     DataImportEventPayloadWithoutCurrentNode eventPayload = bundle.event().getEventPayload();
     String tenantId = bundle.okapiConnectionParams.getTenantId();
-    return AsyncResultSingle.toSingle(eventTypeHandlerSelector.getHandler(eventPayload).transform(batchJournalService.getJournalService(), eventPayload, tenantId),
+    return AsyncResultSingle.toSingle(eventTypeHandlerSelector.getHandler(eventPayload)
+        .transform(batchJournalService.getJournalService(), eventPayload, tenantId),
       col -> col.stream().map(res -> new BatchableJournalRecord(res, tenantId)).toList());
   }
 
