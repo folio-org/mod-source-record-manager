@@ -169,11 +169,6 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Dispose of all subscriptions
       disposables.dispose();
 
-      // Close Kafka consumer
-      if (kafkaConsumer != null) {
-        kafkaConsumer.close();
-      }
-
       // Close event bus consumer
       if (eventBusConsumer != null) {
         eventBusConsumer.unregister();
