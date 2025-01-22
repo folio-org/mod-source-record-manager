@@ -425,7 +425,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
           return Completable.timer(100, TimeUnit.MILLISECONDS)
             .andThen(commitOffset(offsets));
         }
-        LOGGER.error("Error committing offsets: {}. Retrying in 1 second...", error.getMessage());
+        LOGGER.warn("Error committing offsets: {}. Retrying in 1 second...", error.getMessage());
         return Completable.timer(1, TimeUnit.SECONDS)
           .andThen(commitOffset(offsets));
       })
