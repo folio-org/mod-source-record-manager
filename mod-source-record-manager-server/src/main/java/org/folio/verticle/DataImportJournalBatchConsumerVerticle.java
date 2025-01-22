@@ -422,8 +422,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .onErrorResumeNext(error -> {
         if (error instanceof RebalanceInProgressException) {
           LOGGER.warn("Rebalance in progress. Waiting for the re-balance to complete...");
-          return Completable.timer(100, TimeUnit.MILLISECONDS)
-            .andThen(commitOffset(offsets));
+          return Completable.timer(1, TimeUnit.MILLISECONDS);
         }
         LOGGER.warn("Error committing offsets: {}. Retrying in 1 second...", error.getMessage());
         return Completable.timer(1, TimeUnit.SECONDS)
