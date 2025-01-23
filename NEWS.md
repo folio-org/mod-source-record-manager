@@ -1,3 +1,6 @@
+## 2025-01-23 v3.9.6
+* [MODSOURMAN-1268](https://folio-org.atlassian.net/browse/MODSOURMAN-1268) Log entries are empty for completed jobs
+
 ## 2025-01-08 v3.9.5
 * [MODSOURMAN-1261](https://folio-org.atlassian.net/browse/MODSOURMAN-1261) Complete jobExecution when extra processing events received
 
