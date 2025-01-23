@@ -21,7 +21,6 @@ import io.vertx.rxjava3.impl.AsyncResultSingle;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
-import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
