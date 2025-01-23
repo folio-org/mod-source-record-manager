@@ -21,7 +21,6 @@ import io.vertx.rxjava3.impl.AsyncResultSingle;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
-import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -421,11 +420,12 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       )
       .onErrorResumeNext(error -> {
         if (error instanceof RebalanceInProgressException) {
-          LOGGER.warn("Rebalance in progress. Retrying offset commit...");
-          return kafkaConsumer.rxPoll(Duration.ofMillis(100))
-            .flatMapCompletable(records -> commitOffset(offsets));
+          LOGGER.warn("Rebalance in progress. Waiting for the re-balance to complete...");
+          return Completable.timer(1, TimeUnit.SECONDS);
         }
-        return Completable.complete();
+        LOGGER.warn("Error committing offsets: {}. Retrying in 1 second...", error.getMessage());
+        return Completable.timer(1, TimeUnit.SECONDS)
+          .andThen(commitOffset(offsets));
       })
       .doOnComplete(() -> LOGGER.info("commitOffset:: Successfully committed offsets: {}", offsets))
       .doOnError(error -> LOGGER.error("commitOffset:: Failed to commit offsets: {}", offsets, error));
