@@ -2,6 +2,7 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
@@ -178,82 +179,38 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .onFailure(e -> LOGGER.warn("save:: Error saving JournalRecord entity", e));
   }
 
-  @Override
-  public Future<List<RowSet<Row>>> saveBatch(Collection<JournalRecord> journalRecords, String tenantId) {
-    LOGGER.debug("saveBatch:: Starting batch save of {} JournalRecord entities", journalRecords.size());
-    Promise<List<RowSet<Row>>> promise = Promise.promise();
+  public Future<Void> saveBatch(Collection<JournalRecord> journalRecords, String tenantId) {
+    LOGGER.info("saveBatch:: Saving {} journal records", journalRecords.size());
 
     try {
-      // Group records by jobExecutionId
-      Map<String, List<JournalRecord>> recordsByJobId = journalRecords.stream()
-        .collect(Collectors.groupingBy(JournalRecord::getJobExecutionId));
+      JsonObject[] records = journalRecords.stream()
+        .map(r -> new JsonObject()
+          .put("id", r.getId().toString())
+          .put("job_execution_id", r.getJobExecutionId() != null ? r.getJobExecutionId().toString() : null)
+          .put("source_id", r.getSourceId() != null ? r.getSourceId().toString() : null)
+          .put("entity_type", r.getEntityType())
+          .put("entity_id", r.getEntityId())
+          .put("entity_hrid", r.getEntityHrId())
+          .put("action_type", r.getActionType())
+          .put("action_status", r.getActionStatus())
+          .put("action_date", r.getActionDate())
+          .put("source_record_order", r.getSourceRecordOrder())
+          .put("error", r.getError())
+          .put("title", r.getTitle())
+          .put("instance_id", r.getInstanceId())
+          .put("holdings_id", r.getHoldingsId())
+          .put("order_id", r.getOrderId())
+          .put("permanent_location_id", r.getPermanentLocationId())
+          .put("tenant_id", r.getTenantId()))
+        .toArray(JsonObject[]::new);
 
-      // Create the base SQL query
-      String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-
-      // Process groups sequentially using recursive helper
-      List<RowSet<Row>> allResults = new ArrayList<>();
-      processNextGroup(new ArrayList<>(recordsByJobId.entrySet()), 0, query, tenantId, allResults, promise);
-
+      Tuple tuple = Tuple.tuple().addArrayOfJsonObject(records);
+      return pgClientFactory.createInstance(tenantId).execute("Select insert_journal_records($1::jsonb[])", tuple)
+        .map((Void) null);
     } catch (Exception e) {
-      LOGGER.warn("saveBatch:: Error saving JournalRecord entities", e);
-      promise.fail(e);
+      LOGGER.warn("saveBatch:: Error saving journal records", e);
+      return Future.failedFuture(e);
     }
-
-    return promise.future();
-  }
-
-  private void processNextGroup(List<Map.Entry<String, List<JournalRecord>>> groups,
-                                int currentIndex,
-                                String query,
-                                String tenantId,
-                                List<RowSet<Row>> accumulatedResults,
-                                Promise<List<RowSet<Row>>> finalPromise) {
-
-    // Base case - all groups processed
-    if (currentIndex >= groups.size()) {
-      finalPromise.complete(accumulatedResults);
-      return;
-    }
-
-    // Get current group
-    Map.Entry<String, List<JournalRecord>> currentGroup = groups.get(currentIndex);
-    List<Tuple> tuples = currentGroup.getValue().stream()
-      .map(this::prepareInsertQueryParameters)
-      .collect(toList());
-
-    LOGGER.debug("processNextGroup:: Processing group {} of {} for jobExecutionId: {}",
-      currentIndex + 1, groups.size(), currentGroup.getKey());
-
-    // Execute current group
-    Promise<List<RowSet<Row>>> groupPromise = Promise.promise();
-    executeGroup(query, tuples, tenantId, groupPromise);
-
-    groupPromise.future().onSuccess(results -> {
-      // Add results to accumulated list
-      accumulatedResults.addAll(results);
-      // Process next group
-      processNextGroup(groups, currentIndex + 1, query, tenantId, accumulatedResults, finalPromise);
-    }).onFailure(err -> {
-      LOGGER.error("processNextGroup:: Error processing group {} for jobExecutionId: {}",
-        currentIndex + 1, currentGroup.getKey(), err);
-      finalPromise.fail(err);
-    });
-  }
-
-  private void executeGroup(String query,
-                            List<Tuple> tuples,
-                            String tenantId,
-                            Promise<List<RowSet<Row>>> promise) {
-    pgClientFactory.createInstance(tenantId)
-      .execute(query, tuples, ar -> {
-        if (ar.succeeded()) {
-          promise.complete(ar.result());
-        } else {
-          LOGGER.warn("executeGroup:: Error saving group of JournalRecord entities", ar.cause());
-          promise.fail(ar.cause());
-        }
-      });
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {

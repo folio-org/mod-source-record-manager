@@ -33,7 +33,7 @@ public interface JournalRecordDao {
    * @param tenantId        tenant id
    * @return future with created JournalRecord entities
    */
-  Future<List<RowSet<Row>>> saveBatch(Collection<JournalRecord> journalRecords, String tenantId);
+  Future<Void> saveBatch(Collection<JournalRecord> journalRecords, String tenantId);
 
   /**
    * Searches for JournalRecord entities by jobExecutionId and sorts them using specified sort criteria and direction
