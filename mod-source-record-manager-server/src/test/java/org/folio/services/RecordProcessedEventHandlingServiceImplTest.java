@@ -189,7 +189,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     MockitoAnnotations.openMocks(this);
 
     registerCodecs(vertx);
-    vertx.deployVerticle(new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService));
+    vertx.deployVerticle(new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService, kafkaConfig));
 
     MappingRuleCache mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     marcRecordAnalyzer = new MarcRecordAnalyzer();

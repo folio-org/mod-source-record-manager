@@ -67,7 +67,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
   private Future<Boolean> mapJobExecution(RawRecordsDto incomingChunk, JobExecution jobExecution, boolean acceptInstanceId, OkapiConnectionParams params) {
     if (isNotSupportedJobProfileExists(jobExecution)) {
-      throw new UnsupportedProfileException("Unsupported type of Job Profile.");
+      return Future.failedFuture(new UnsupportedProfileException("Unsupported type of Job Profile."));
     }
 
     JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()

@@ -1,20 +1,6 @@
-## 2025-01-23 v3.9.6
-* [MODSOURMAN-1268](https://folio-org.atlassian.net/browse/MODSOURMAN-1268) Log entries are empty for completed jobs
-
-## 2025-01-08 v3.9.5
-* [MODSOURMAN-1261](https://folio-org.atlassian.net/browse/MODSOURMAN-1261) Complete jobExecution when extra processing events received
-
-## 2024-12-26 v3.9.4
-* [MODSOURMAN-1247](https://folio-org.atlassian.net/browse/MODSOURMAN-1247) Implement RTR support for Eureka-based environments
-
-## 2024-11-26 v3.9.3
-* [MODSOURMAN-1240](https://folio-org.atlassian.net/browse/MODSOURMAN-1240) The title of record is not displayed on the JSON data after importing file for creating order
-
-## 2024-11-20 v3.9.2
-* [MODSOURMAN-1252](https://folio-org.atlassian.net/browse/MODSOURMAN-1252) Log details gives 404 error when try to open any completed job
-
-## 2024-11-18 v3.9.1
-* [MODSOURMAN-1248](https://folio-org.atlassian.net/browse/MODSOURMAN-1248) Missing interface dependencies in module descriptor
+## 2024-11-15 3.10.0-SNAPSHOT
+* [MODSOURMAN-1249](https://folio-org.atlassian.net/browse/MODSOURMAN-1249) Added DI_MARC_FOR_UPDATE_RECEIVED log message handling
+* [MODSOURMAN-1266](https://folio-org.atlassian.net/browse/MODSOURMAN-1266) Event DI_JOB_COMPLETED is not being sent upon the completion of the data import process on snapshot, snapshot-2
 
 ## 2024-10-29 v3.9.0
 * [MODSOURMAN-1232](https://folio-org.atlassian.net/browse/MODSOURMAN-1232) Add the option to exclude job profile names to GET "/metadata-provider/jobExecutions" endpoint
@@ -42,6 +28,7 @@
 * [MODSOURMAN-1241](https://folio-org.atlassian.net/browse/MODSOURMAN-1241) Add missing module permissions for PUT /change-manager/parsedRecords/{id}
 * [MODSOURMAN-1222](https://folio-org.atlassian.net/browse/MODSOURMAN-1222) Fix inconsistencies in permission namings
 * [MODSOURMAN-1244](https://folio-org.atlassian.net/browse/MODSOURMAN-1244) Update MARC bib-instance default mapping to include additional subject types
+* [MODSOURMAN-1240](https://folio-org.atlassian.net/browse/MODSOURMAN-1240) The title of record is not displayed on the JSON data after importing file for creating order
 
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors

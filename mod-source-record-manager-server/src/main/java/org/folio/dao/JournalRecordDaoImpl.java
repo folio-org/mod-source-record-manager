@@ -211,6 +211,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       LOGGER.warn("saveBatch:: Error saving journal records", e);
       return Future.failedFuture(e);
     }
+
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {
