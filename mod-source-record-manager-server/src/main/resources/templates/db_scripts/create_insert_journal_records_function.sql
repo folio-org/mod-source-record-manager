@@ -6,7 +6,25 @@ $$
 BEGIN
     PERFORM pg_advisory_xact_lock(9817236405);
 
-    INSERT INTO journal_records
+    INSERT INTO journal_records (
+        id,
+        job_execution_id,
+        source_id,
+        entity_type,
+        entity_id,
+        entity_hrid,
+        action_type,
+        action_status,
+        action_date,
+        source_record_order,
+        error,
+        title,
+        instance_id,
+        holdings_id,
+        order_id,
+        permanent_location_id,
+        tenant_id
+    )
     SELECT (r ->> 'id')::uuid,
            (r ->> 'job_execution_id')::uuid,
            (r ->> 'source_id')::uuid,
