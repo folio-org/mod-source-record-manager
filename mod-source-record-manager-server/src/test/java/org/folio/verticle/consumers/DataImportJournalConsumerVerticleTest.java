@@ -446,7 +446,5 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       assertJournalRecord(context, jobExecution.getId(), journalRecords -> (long) journalRecords.size() == 1);
       async.complete();
     });
-
-
   }
 }

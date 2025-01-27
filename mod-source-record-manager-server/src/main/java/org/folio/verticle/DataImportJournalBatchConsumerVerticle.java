@@ -315,70 +315,57 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       );
   }
 
-  private Completable saveJournalRecords(ConnectableFlowable<Pair<Optional<Bundle>, Collection<BatchableJournalRecord>>> flowable) {
-    LOGGER.debug("saveJournalRecords:: starting to save records.");
-    Completable completable = flowable
-      // Filter out pairs with empty records
-      .filter(pair -> !pair.getRight().isEmpty())
-      // Group records by tenant ID
-      .groupBy(pair -> {
-        Optional<BatchableJournalRecord> first = pair.getRight().stream().findFirst();
-        return first.map(BatchableJournalRecord::getTenantId);
-      })
-      // Process each group of records
+  Completable saveJournalRecords(ConnectableFlowable<Pair<Optional<Bundle>, Collection<BatchableJournalRecord>>> flowable) {
+    // Track all bundles from this batch window
+    Single<List<Bundle>> allBundles = flowable
+      .map(Pair::getLeft)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .toList();
+
+    Completable processRecords = flowable
+      .filter(pair -> !pair.getRight().isEmpty()) // Filter out empty records
+      .groupBy(pair -> pair.getRight().stream().findFirst().map(BatchableJournalRecord::getTenantId)) // Group by tenant ID
       .flatMapCompletable(groupedRecords -> groupedRecords.toList()
         .flatMapCompletable(pairs -> {
-            try {
-              // Map and collect journal records, setting deterministic identifiers
-              Collection<JournalRecord> journalRecords = pairs
-                .stream()
-                .flatMap(pair -> pair.getRight().stream().map(BatchableJournalRecord::getJournalRecord))
-                .map(this::setDeterministicIdentifer)
-                .toList();
-              // If no records or tenant ID is missing, complete without action
-              if (journalRecords.isEmpty() || groupedRecords.getKey().isEmpty()) return Completable.complete();
-
-              LOGGER.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
-              // Save the batch of journal records and handle the response
-              return AsyncResultCompletable.toCompletable(completionHandler -> batchJournalService.saveBatchWithResponse(
-                  journalRecords,
-                  groupedRecords.getKey().get(),
-                  completionHandler))
-                .onErrorResumeNext(error -> {
-                  LOGGER.error("saveJournalRecords:: Error saving batch for tenant {}", groupedRecords.getKey().get(), error);
-                  return Completable.complete(); // Continue processing other batches
-                });
-            } catch (Exception e) {
-              LOGGER.error("saveJournalRecords:: Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
-              return Completable.complete();
+          try {
+            // Map and collect journal records, setting deterministic identifiers
+            Collection<JournalRecord> journalRecords = pairs
+              .stream()
+              .flatMap(pair -> pair.getRight().stream().map(BatchableJournalRecord::getJournalRecord))
+              .map(this::setDeterministicIdentifer)
+              .toList();
+            // If no records or tenant ID is missing, complete without action
+            if (journalRecords.isEmpty() || groupedRecords.getKey().isEmpty()) {
+              return Completable.complete(); // Skip empty groups
             }
-          }
-        )
-      ).doFinally(() -> {
-        // Extract bundles and commit
-        Flowable<Bundle> bundleFlowable = flowable
-          .map(Pair::getLeft)
-          .filter(Optional::isPresent)
-          .map(Optional::get);
 
-        disposables.add(
-          commitKafkaEvents(bundleFlowable)
-            .onErrorResumeNext(error -> {
-              LOGGER.error("Error committing Kafka events, will retry on next batch", error);
-              return Completable.complete();
-            })
-            .subscribe(
-              () -> LOGGER.debug("Kafka events committed"),
-              error -> LOGGER.error("Fatal error committing Kafka events", error)
-            )
-        );
-      })
-      .doOnError(throwable -> LOGGER.error("Error occurred while processing journal events", throwable));
+            LOGGER.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
+            return AsyncResultCompletable.toCompletable(handler ->
+                batchJournalService.saveBatchWithResponse(journalRecords, groupedRecords.getKey().get(), handler)
+              )
+              .onErrorResumeNext(error -> {
+                LOGGER.error("saveJournalRecords:: Error saving batch for tenant {}", groupedRecords.getKey().get(), error);
+                return Completable.complete(); // Continue processing other batches
+              });
+          } catch (Exception e) {
+            LOGGER.error("saveJournalRecords:: Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
+            return Completable.complete();
+          }
+        })
+      )
+      .doOnError(throwable -> LOGGER.error("Error occurred while processing journal events", throwable))
+      .onErrorComplete() // Allow commit even if some groups fail
+      .andThen(allBundles)
+      .flatMapCompletable(bundles ->
+        commitKafkaEvents(Flowable.fromIterable(bundles))
+          .doOnError(error -> LOGGER.error("Failed to commit offsets", error))
+      );
 
     // Connect the ConnectableFlowable to start emitting items
     flowable.connect();
 
-    return completable;
+    return processRecords;
   }
 
   private Single<Collection<BatchableJournalRecord>> createJournalRecords(Bundle bundle) throws JsonProcessingException, JournalRecordMapperException {
@@ -457,7 +444,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     return Pattern.compile(combinedPatternBuilder.toString());
   }
 
-  private record Bundle(KafkaConsumerRecord<String, byte[]> record, JournalEvent event,
+  record Bundle(KafkaConsumerRecord<String, byte[]> record, JournalEvent event,
                         OkapiConnectionParams okapiConnectionParams) {
   }
 
