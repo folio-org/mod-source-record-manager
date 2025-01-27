@@ -1,5 +1,3 @@
-DROP FUNCTION IF EXISTS insert_journal_records(jsonb[]);
-
 CREATE OR REPLACE FUNCTION insert_journal_records(
     records jsonb[]
 )
