@@ -205,7 +205,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .toArray(JsonObject[]::new);
 
       Tuple tuple = Tuple.tuple().addArrayOfJsonObject(records);
-      return pgClientFactory.createInstance(tenantId).execute("Select insert_journal_records($1::jsonb[])", tuple)
+      return pgClientFactory.createInstance(tenantId).execute("SELECT insert_journal_records($1::jsonb[])", tuple)
         .map((Void) null);
     } catch (Exception e) {
       LOGGER.warn("saveBatch:: Error saving journal records", e);

@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION insert_journal_records(
     RETURNS void AS
 $$
 BEGIN
-    PERFORM pg_advisory_xact_lock(12345);
+    PERFORM pg_advisory_xact_lock(9817236405);
 
     INSERT INTO journal_records
     SELECT (r ->> 'id')::uuid,
