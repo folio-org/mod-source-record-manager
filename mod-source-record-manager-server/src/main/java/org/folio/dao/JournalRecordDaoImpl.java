@@ -185,9 +185,9 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     try {
       JsonObject[] records = journalRecords.stream()
         .map(r -> new JsonObject()
-          .put("id", r.getId().toString())
-          .put("job_execution_id", r.getJobExecutionId() != null ? r.getJobExecutionId().toString() : null)
-          .put("source_id", r.getSourceId() != null ? r.getSourceId().toString() : null)
+          .put("id", r.getId())
+          .put("job_execution_id", r.getJobExecutionId() != null ? r.getJobExecutionId() : null)
+          .put("source_id", r.getSourceId() != null ? r.getSourceId() : null)
           .put("entity_type", r.getEntityType())
           .put("entity_id", r.getEntityId())
           .put("entity_hrid", r.getEntityHrId())
@@ -211,7 +211,6 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       LOGGER.warn("saveBatch:: Error saving journal records", e);
       return Future.failedFuture(e);
     }
-
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {

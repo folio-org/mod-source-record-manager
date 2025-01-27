@@ -340,16 +340,16 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
               return Completable.complete(); // Skip empty groups
             }
 
-            LOGGER.info("Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
+            LOGGER.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
             return AsyncResultCompletable.toCompletable(handler ->
                 batchJournalService.saveBatchWithResponse(journalRecords, groupedRecords.getKey().get(), handler)
               )
               .onErrorResumeNext(error -> {
-                LOGGER.error("Error saving batch for tenant {}", groupedRecords.getKey().get(), error);
+                LOGGER.error("saveJournalRecords:: Error saving batch for tenant {}", groupedRecords.getKey().get(), error);
                 return Completable.complete(); // Continue processing other batches
               });
           } catch (Exception e) {
-            LOGGER.error("Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
+            LOGGER.error("saveJournalRecords:: Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
             return Completable.complete();
           }
         })

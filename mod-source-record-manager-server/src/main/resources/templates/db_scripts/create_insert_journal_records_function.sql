@@ -26,6 +26,7 @@ BEGIN
            r ->> 'order_id',
            r ->> 'permanent_location_id',
            r ->> 'tenant_id'
-    FROM unnest(records) AS r;
+    FROM unnest(records) AS r
+    ON CONFLICT DO NOTHING;
 END;
 $$ LANGUAGE plpgsql;
