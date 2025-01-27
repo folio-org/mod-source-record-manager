@@ -3,6 +3,9 @@ package org.folio.verticle.consumers.util;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.DELETE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 
 import java.util.Arrays;
@@ -41,7 +44,7 @@ public class JournalParams {
     DI_SRS_MARC_BIB_RECORD_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -49,7 +52,7 @@ public class JournalParams {
     DI_SRS_MARC_AUTHORITY_RECORD_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -57,7 +60,7 @@ public class JournalParams {
     DI_SRS_MARC_HOLDINGS_RECORD_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.MARC_HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -73,7 +76,7 @@ public class JournalParams {
     DI_SRS_MARC_BIB_RECORD_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+        return Optional.of(new JournalParams(MATCH,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -81,7 +84,7 @@ public class JournalParams {
     DI_SRS_MARC_AUTHORITY_RECORD_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+        return Optional.of(new JournalParams(MATCH,
           JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -89,7 +92,7 @@ public class JournalParams {
     DI_SRS_MARC_HOLDINGS_RECORD_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+        return Optional.of(new JournalParams(MATCH,
           JournalRecord.EntityType.MARC_HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -97,15 +100,23 @@ public class JournalParams {
     DI_SRS_MARC_BIB_RECORD_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+        return Optional.of(new JournalParams(NON_MATCH,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_SRS_MARC_AUTHORITY_RECORD_DELETED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(DELETE,
+          JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+        return Optional.of(new JournalParams(NON_MATCH,
           JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -113,7 +124,7 @@ public class JournalParams {
     DI_SRS_MARC_HOLDINGS_RECORD_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+        return Optional.of(new JournalParams(NON_MATCH,
           JournalRecord.EntityType.MARC_HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -137,7 +148,7 @@ public class JournalParams {
     DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.INSTANCE,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -153,7 +164,7 @@ public class JournalParams {
     DI_INVENTORY_INSTANCE_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.INSTANCE,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -161,7 +172,7 @@ public class JournalParams {
     DI_INVENTORY_INSTANCE_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+        return Optional.of(new JournalParams(NON_MATCH,
           JournalRecord.EntityType.INSTANCE,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -169,7 +180,7 @@ public class JournalParams {
     DI_INVENTORY_INSTANCE_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+        return Optional.of(new JournalParams(MATCH,
           JournalRecord.EntityType.INSTANCE,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -185,7 +196,7 @@ public class JournalParams {
     DI_INVENTORY_HOLDING_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -193,7 +204,7 @@ public class JournalParams {
     DI_INVENTORY_HOLDING_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+        return Optional.of(new JournalParams(MATCH,
           JournalRecord.EntityType.HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -201,7 +212,7 @@ public class JournalParams {
     DI_INVENTORY_HOLDING_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+        return Optional.of(new JournalParams(NON_MATCH,
           JournalRecord.EntityType.HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -217,7 +228,7 @@ public class JournalParams {
     DI_INVENTORY_AUTHORITY_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -225,7 +236,7 @@ public class JournalParams {
     DI_INVENTORY_AUTHORITY_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+        return Optional.of(new JournalParams(NON_MATCH,
           JournalRecord.EntityType.AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -241,7 +252,7 @@ public class JournalParams {
     DI_INVENTORY_ITEM_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.ITEM,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -249,7 +260,7 @@ public class JournalParams {
     DI_INVENTORY_ITEM_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+        return Optional.of(new JournalParams(MATCH,
           JournalRecord.EntityType.ITEM,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -257,7 +268,7 @@ public class JournalParams {
     DI_INVENTORY_ITEM_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+        return Optional.of(new JournalParams(NON_MATCH,
           JournalRecord.EntityType.ITEM,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -265,7 +276,7 @@ public class JournalParams {
     DI_SRS_MARC_AUTHORITY_RECORD_CREATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -273,7 +284,7 @@ public class JournalParams {
     DI_LOG_SRS_MARC_BIB_RECORD_CREATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -281,7 +292,7 @@ public class JournalParams {
     DI_LOG_SRS_MARC_BIB_RECORD_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+        return Optional.of(new JournalParams(UPDATE,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -289,7 +300,7 @@ public class JournalParams {
     DI_SRS_MARC_HOLDING_RECORD_CREATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.MARC_HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -297,7 +308,7 @@ public class JournalParams {
     DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -305,7 +316,7 @@ public class JournalParams {
     DI_ORDER_CREATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.PO_LINE,
           JournalRecord.ActionStatus.COMPLETED));
       }
