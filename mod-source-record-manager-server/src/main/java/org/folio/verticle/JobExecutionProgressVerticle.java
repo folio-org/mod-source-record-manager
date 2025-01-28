@@ -209,7 +209,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
    * @return a future containing a boolean indicating the success of the update
    */
   private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, OkapiConnectionParams params) {
-    if (progress.getTotal().equals(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())) {
+    if (progress.getTotal() <= progress.getCurrentlySucceeded() + progress.getCurrentlyFailed()) {
       return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
         .compose(jobExecutionOptional -> jobExecutionOptional
           .map(jobExecution -> {
@@ -232,6 +232,8 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
             return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params)
               .compose(updatedExecution -> {
                 if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.COMPOSITE_CHILD)) {
+                  LOGGER.info("COMPOSITE_CHILD subordination type for job {}. Processing...", updatedExecution.getId());
+
 
                   return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
                     .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
@@ -263,6 +265,11 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
                         })
                     );
                 } else {
+                  if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_SINGLE) ||
+                    updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)) {
+                    LOGGER.info("{}  subordination type for job {}. Processing...", updatedExecution.getSubordinationType(), updatedExecution.getId());
+                    sendDiJobCompletedEvent(updatedExecution, params);
+                  }
                   return Future.succeededFuture(updatedExecution);
                 }
               })

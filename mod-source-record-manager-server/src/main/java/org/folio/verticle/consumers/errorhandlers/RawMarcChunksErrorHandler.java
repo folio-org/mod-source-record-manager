@@ -65,7 +65,8 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
         return;
       }
       List<KafkaHeader> kafkaHeaders = record.headers();
-    OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+    OkapiConnectionParams okapiParams = OkapiConnectionParams.createSystemUserConnectionParams(
+      KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
     String chunkId = okapiParams.getHeaders().get(CHUNK_ID_HEADER);
     String tenantId = okapiParams.getTenantId();
