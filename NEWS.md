@@ -1,3 +1,6 @@
+## 2025-01-28 v3.9.7
+* [MODSOURMAN-1268](https://folio-org.atlassian.net/browse/MODSOURMAN-1268) Log entries are empty for completed jobs
+
 ## 2025-01-23 v3.9.6
 * [MODSOURMAN-1268](https://folio-org.atlassian.net/browse/MODSOURMAN-1268) Log entries are empty for completed jobs
 
