@@ -2,6 +2,7 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
@@ -182,10 +183,28 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     LOGGER.info("saveBatch:: Saving {} journal records", journalRecords.size());
 
     try {
+      JsonObject[] records = journalRecords.stream()
+        .map(r -> new JsonObject()
+          .put("id", r.getId())
+          .put("job_execution_id", r.getJobExecutionId() != null ? r.getJobExecutionId() : null)
+          .put("source_id", r.getSourceId() != null ? r.getSourceId() : null)
+          .put("entity_type", r.getEntityType() != null ? r.getEntityType() : EMPTY)
+          .put("entity_id", r.getEntityId())
+          .put("entity_hrid", r.getEntityHrId() != null ? r.getEntityHrId() : EMPTY)
+          .put("action_type", r.getActionType())
+          .put("action_status", r.getActionStatus())
+          .put("action_date", r.getActionDate())
+          .put("source_record_order", r.getSourceRecordOrder())
+          .put("error", r.getError() != null ? r.getError() : EMPTY)
+          .put("title", r.getTitle())
+          .put("instance_id", r.getInstanceId())
+          .put("holdings_id", r.getHoldingsId())
+          .put("order_id", r.getOrderId())
+          .put("permanent_location_id", r.getPermanentLocationId())
+          .put("tenant_id", r.getTenantId()))
+        .toArray(JsonObject[]::new);
 
-      List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).toList();
-
-      Tuple tuple = Tuple.from(tupleList);
+      Tuple tuple = Tuple.tuple().addArrayOfJsonObject(records);
       return pgClientFactory.createInstance(tenantId).execute("SELECT insert_journal_records($1::jsonb[])", tuple)
         .map((Void) null);
     } catch (Exception e) {
