@@ -1,3 +1,6 @@
+## 2025-01-30 v3.9.8
+* [MODSOURMAN-1274](https://folio-org.atlassian.net/browse/MODSOURMAN-1274) Fix the 404 response for job log entries request
+
 ## 2025-01-28 v3.9.7
 * [MODSOURMAN-1268](https://folio-org.atlassian.net/browse/MODSOURMAN-1268) Log entries are empty for completed jobs
 
