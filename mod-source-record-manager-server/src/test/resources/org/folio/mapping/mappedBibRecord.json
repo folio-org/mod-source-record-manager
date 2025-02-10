@@ -181,6 +181,8 @@
     }
   ],
   "administrativeNotes": [],
+  "staffSuppress":false,
+  "discoverySuppress":false,
   "statisticalCodeIds": [],
   "natureOfContentTermIds": [],
   "precedingTitles": [],
