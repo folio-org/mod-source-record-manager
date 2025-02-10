@@ -21,6 +21,38 @@
           ]
         }
       ]
+    },
+    {
+      "target": "discoverySuppress",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Discovery suppress flag based on whether 5 leader`s byte equals to 'd'",
+          "conditions": [
+            {
+              "type": "set_suppress",
+              "LDR": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "staffSuppress",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Staff suppress flag based on whether 5 leader`s byte equals to 'd'",
+          "conditions": [
+            {
+              "type": "set_suppress",
+              "LDR": true
+            }
+          ]
+        }
+      ]
     }
   ],
   "008": [
