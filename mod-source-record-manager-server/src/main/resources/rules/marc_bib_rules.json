@@ -53,6 +53,22 @@
           ]
         }
       ]
+    },
+    {
+      "target": "deleted",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Deleted flag based on whether 5 leader`s byte equals to 'd'",
+          "conditions": [
+            {
+              "type": "set_suppress",
+              "LDR": true
+            }
+          ]
+        }
+      ]
     }
   ],
   "008": [
