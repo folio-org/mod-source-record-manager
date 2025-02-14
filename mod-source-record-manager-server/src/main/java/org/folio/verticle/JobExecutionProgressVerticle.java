@@ -213,23 +213,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
       return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
         .compose(jobExecutionOptional -> jobExecutionOptional
           .map(jobExecution -> {
-            JobExecution.Status statusToUpdate;
-            if (jobExecution.getStatus() == CANCELLED && jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED) {
-              statusToUpdate = CANCELLED;
-            } else if (progress.getCurrentlyFailed() == 0) {
-              statusToUpdate = COMMITTED;
-            } else {
-              statusToUpdate = JobExecution.Status.ERROR;
-            }
-            jobExecution.withStatus(statusToUpdate)
-              .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusToUpdate.name()).getUiStatus()))
-              .withCompletedDate(new Date())
-              .withProgress(new Progress()
-                .withJobExecutionId(jobExecutionId)
-                .withCurrent(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())
-                .withTotal(progress.getTotal()));
-
-            return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params)
+            return updateJobExecutionWithSnapshotStatus(jobExecution, progress, params)
               .compose(updatedExecution -> {
                 if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.COMPOSITE_CHILD)) {
                   LOGGER.info("COMPOSITE_CHILD subordination type for job {}. Processing...", updatedExecution.getId());
@@ -278,6 +262,40 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
           .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));
     }
     return Future.succeededFuture(false);
+  }
+
+  private Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, JobExecutionProgress progress,
+                                                                    OkapiConnectionParams params) {
+    List<JobExecution.UiStatus> finalStatuses = List.of(
+      JobExecution.UiStatus.RUNNING_COMPLETE,
+      JobExecution.UiStatus.CANCELLED,
+      JobExecution.UiStatus.ERROR,
+      JobExecution.UiStatus.DISCARDED
+    );
+
+    if (finalStatuses.contains(jobExecution.getUiStatus())) {
+      LOGGER.info("updateJobExecutionWithSnapshotStatus:: job {} is in final status, not updating status and progress",
+        jobExecution.getId());
+      return Future.succeededFuture(jobExecution);
+    }
+
+    JobExecution.Status statusToUpdate;
+    if (jobExecution.getStatus() == CANCELLED && jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED) {
+      statusToUpdate = CANCELLED;
+    } else if (progress.getCurrentlyFailed() == 0) {
+      statusToUpdate = COMMITTED;
+    } else {
+      statusToUpdate = JobExecution.Status.ERROR;
+    }
+    jobExecution.withStatus(statusToUpdate)
+      .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusToUpdate.name()).getUiStatus()))
+      .withCompletedDate(new Date())
+      .withProgress(new Progress()
+        .withJobExecutionId(jobExecution.getId())
+        .withCurrent(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())
+        .withTotal(progress.getTotal()));
+
+    return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params);
   }
 
   private void sendDiJobCompletedEvent(JobExecution jobExecution, OkapiConnectionParams params) {
