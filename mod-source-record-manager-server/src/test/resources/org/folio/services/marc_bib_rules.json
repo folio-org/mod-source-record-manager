@@ -31,7 +31,7 @@
           "description": "Discovery suppress flag based on whether 5 leader`s byte equals to 'd'",
           "conditions": [
             {
-              "type": "set_suppress",
+              "type": "set_deleted",
               "LDR": true
             }
           ]
@@ -47,7 +47,7 @@
           "description": "Staff suppress flag based on whether 5 leader`s byte equals to 'd'",
           "conditions": [
             {
-              "type": "set_suppress",
+              "type": "set_deleted",
               "LDR": true
             }
           ]
@@ -63,7 +63,7 @@
           "description": "Deleted flag based on whether 5 leader`s byte equals to 'd'",
           "conditions": [
             {
-              "type": "set_suppress",
+              "type": "set_deleted",
               "LDR": true
             }
           ]
