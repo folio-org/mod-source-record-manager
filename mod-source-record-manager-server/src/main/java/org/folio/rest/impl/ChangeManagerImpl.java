@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -26,6 +27,7 @@ import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.Map;
@@ -204,7 +206,14 @@ public class ChangeManagerImpl implements ChangeManager {
         eventDrivenChunkProcessingService.processChunk(entity, id, acceptInstanceId, params)
           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
-          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .otherwise(ex -> {
+            if (ex instanceof DuplicateEventException) {
+              LOGGER.warn("postChangeManagerJobExecutionsRecordsById:: Failed to process chunk of RawRecords with JobExecution id {}: {}", id, ex.getMessage());
+              return ExceptionHelper.mapExceptionToResponse(new BadRequestException(ex.getMessage()));
+            } else {
+              return ExceptionHelper.mapExceptionToResponse(ex);
+            }
+          })
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.warn(getMessage("postChangeManagerJobExecutionsRecordsById:: Failed to process chunk of RawRecords with JobExecution id {}", e, id));
