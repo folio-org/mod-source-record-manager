@@ -158,7 +158,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
           // Assert
           try {
             await()
-              .atMost(20, TimeUnit.SECONDS)
+              .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> verify(jobExecutionProgressDao)
                 .updateCompletionCounts(any(), eq(2), eq(1), eq(tenantId)));
             kafkaCluster.observeValues(ObserveKeyValues.on(topic, 1)
