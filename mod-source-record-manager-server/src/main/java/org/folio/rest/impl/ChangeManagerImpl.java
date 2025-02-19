@@ -208,7 +208,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(Response.class::cast)
           .otherwise(ex -> {
             if (ex instanceof DuplicateEventException) {
-              LOGGER.warn("postChangeManagerJobExecutionsRecordsById:: Failed to process chunk of RawRecords with JobExecution id {}: {}", id, ex.getMessage());
+              LOGGER.warn("postChangeManagerJobExecutionsRecordsById:: Failed to process chunk of RawRecords with JobExecutionId {} with RawRecordsId {}: {}", id, entity.getId(), ex.getMessage());
               return ExceptionHelper.mapExceptionToResponse(new BadRequestException(ex.getMessage()));
             } else {
               return ExceptionHelper.mapExceptionToResponse(ex);
