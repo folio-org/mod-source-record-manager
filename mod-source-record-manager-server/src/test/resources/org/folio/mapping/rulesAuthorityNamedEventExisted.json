@@ -1,0 +1,60 @@
+{
+  "010": [
+    {
+      "target": "identifierStandardNumber",
+      "description": "Library of Congress Control Number",
+      "subfield": [
+        "a",
+        "b",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "150": [
+    {
+      "target": "topicalTerm",
+      "description": "Topical term",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "450": [
+    {
+      "target": "sftTopicalTerm",
+      "description": "See from tracing topical term",
+      "subfield": [
+        "a",
+        "b",
+        "g",
+        "i",
+        "v",
+        "x",
+        "y",
+        "z",
+        "4",
+        "5"
+      ],
+      "rules": []
+    }
+  ],
+  "999": [
+    {
+      "target": "id",
+      "description": "Authority id",
+      "subfield": [
+        "i"
+      ],
+      "rules": []
+    }
+  ]
+}
