@@ -1,6 +1,7 @@
 ## 2024-11-15 3.10.0-SNAPSHOT
 * [MODSOURMAN-1249](https://folio-org.atlassian.net/browse/MODSOURMAN-1249) Added DI_MARC_FOR_UPDATE_RECEIVED log message handling
 * [MODSOURMAN-1266](https://folio-org.atlassian.net/browse/MODSOURMAN-1266) Event DI_JOB_COMPLETED is not being sent upon the completion of the data import process on snapshot, snapshot-2
+* [MODSOURMAN-1276](https://folio-org.atlassian.net/browse/MODSOURMAN-1276) Additional 147/447/547 to authority mappings
 * [MODSOURMAN-1281](https://folio-org.atlassian.net/browse/MODSOURMAN-1281) Event DI_JOB_COMPLETED is not being sent upon the completion of the data import process on snapshot, snapshot-2
 
 ## 2024-10-29 v3.9.0
