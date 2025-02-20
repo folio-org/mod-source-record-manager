@@ -289,7 +289,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
             await()
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> verify(jobExecutionProgressDao)
-                .updateCompletionCounts(eq(jobExecutionId), eq(3), eq(0), eq(tenantId)));
+                .updateCompletionCounts(jobExecutionId, 3, 0, tenantId));
           } catch (Exception e) {
             context.fail(e);
           }
@@ -407,7 +407,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> {
                 verify(jobExecutionProgressDao)
-                  .updateCompletionCounts(eq(jobExecutionId), eq(2), eq(0), eq(tenantId));
+                  .updateCompletionCounts(jobExecutionId, 2, 0, tenantId);
 
                 ArgumentCaptor<JobExecution> argumentCaptor = ArgumentCaptor.forClass(JobExecution.class);
                 verify(jobExecutionService).updateJobExecutionWithSnapshotStatus(argumentCaptor.capture(), any());
