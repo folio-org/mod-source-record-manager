@@ -154,6 +154,24 @@
       }
     },
     {
+      "147": {
+        "subfields": [
+          {
+            "a": "Named event",
+            "c": "Location of named event",
+            "d": "Date of named event",
+            "g": "Miscellaneous information",
+            "v": "Form subdivision",
+            "x": "General subdivision",
+            "y": "Chronological subdivision",
+            "z": "Geographic subdivision"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
       "150": {
         "subfields": [
           {
@@ -300,6 +318,24 @@
           }
         ],
         "ind1": "0",
+        "ind2": " "
+      }
+    },
+    {
+      "447": {
+        "subfields": [
+          {
+            "a": "sftNamed event",
+            "c": "sftLocation of named event",
+            "d": "sftDate of named event",
+            "g": "sftMiscellaneous information",
+            "v": "sftForm subdivision",
+            "x": "sftGeneral subdivision",
+            "y": "sftChronological subdivision",
+            "z": "sftGeographic subdivision"
+          }
+        ],
+        "ind1": " ",
         "ind2": " "
       }
     },
@@ -528,6 +564,24 @@
         ],
         "ind1": " ",
         "ind2": "7"
+      }
+    },
+    {
+      "547": {
+        "subfields": [
+          {
+            "a": "saftNamed event",
+            "c": "saftLocation of named event",
+            "d": "saftDate of named event",
+            "g": "saftMiscellaneous information",
+            "v": "saftForm subdivision",
+            "x": "saftGeneral subdivision",
+            "y": "saftChronological subdivision",
+            "z": "saftGeographic subdivision"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
       }
     },
     {
