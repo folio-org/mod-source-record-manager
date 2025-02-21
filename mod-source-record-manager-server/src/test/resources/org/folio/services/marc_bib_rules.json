@@ -21,6 +21,54 @@
           ]
         }
       ]
+    },
+    {
+      "target": "discoverySuppress",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Discovery suppress flag based on whether 5 leader`s byte equals to 'd'",
+          "conditions": [
+            {
+              "type": "set_deleted",
+              "LDR": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "staffSuppress",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Staff suppress flag based on whether 5 leader`s byte equals to 'd'",
+          "conditions": [
+            {
+              "type": "set_deleted",
+              "LDR": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "deleted",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Deleted flag based on whether 5 leader`s byte equals to 'd'",
+          "conditions": [
+            {
+              "type": "set_deleted",
+              "LDR": true
+            }
+          ]
+        }
+      ]
     }
   ],
   "008": [
