@@ -215,14 +215,13 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .thenReturn(Future.succeededFuture(childJobExecution));
     when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
-          .withJobExecutions(Collections.singletonList(
-            new JobExecutionDto()
-              .withId(childJobExecution.getId())
-              .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
-              .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE))
-          )
-        )
-      );
+        .withJobExecutions(Collections.singletonList(
+          new JobExecutionDto()
+            .withId(childJobExecution.getId())
+            .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
+            .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE)))
+      ));
+
     var topic = formatToKafkaTopicName(DI_JOB_COMPLETED.value(), tenantId);
 
     // Act
