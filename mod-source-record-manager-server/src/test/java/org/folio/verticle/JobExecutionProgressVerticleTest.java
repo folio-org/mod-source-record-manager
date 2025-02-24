@@ -3,18 +3,14 @@ package org.folio.verticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageProducer;
-import io.vertx.core.json.Json;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
-import net.mguenther.kafka.junit.SendKeyValues;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
@@ -33,20 +29,25 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singletonList;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_COMPLETED;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.progress.JobExecutionProgressUtil.getBatchJobProgressProducer;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @RunWith(VertxUnitRunner.class)
@@ -93,7 +94,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testSingleProgressUpdate(TestContext context) throws InterruptedException {
+  public void testSingleProgressUpdate(TestContext context) {
     Async async = context.async();
 
     // Arrange
@@ -137,18 +138,14 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .thenReturn(Future.succeededFuture(childJobExecution));
     when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
-          .withJobExecutions(Collections.singletonList(
-            new JobExecutionDto()
-              .withId(childJobExecution.getId())
-              .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
-              .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE))
-          )
+        .withJobExecutions(Collections.singletonList(
+          new JobExecutionDto()
+            .withId(childJobExecution.getId())
+            .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
+            .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE))
         )
-      );
-    var topic = formatToKafkaTopicName(DI_JOB_COMPLETED.value());
-    var request = prepareWithSpecifiedEventPayload(Json.encode(parentJobExecution), topic);
-
-    kafkaCluster.send(request);
+      ));
+    var topic = formatToKafkaTopicName(DI_JOB_COMPLETED.value(), tenantId);
 
     // Act
     batchJobProgressProducer.write(batchableJobExecutionProgress)
@@ -174,7 +171,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testSingleProgressUpdateSplitFileDisabled(TestContext context) throws InterruptedException {
+  public void testSingleProgressUpdateSplitFileDisabled(TestContext context) {
     Async async = context.async();
 
     // Arrange
@@ -218,18 +215,14 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .thenReturn(Future.succeededFuture(childJobExecution));
     when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
-          .withJobExecutions(Collections.singletonList(
-            new JobExecutionDto()
-              .withId(childJobExecution.getId())
-              .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
-              .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE))
-          )
-        )
-      );
-    var topic = formatToKafkaTopicName(DI_JOB_COMPLETED.value());
-    var request = prepareWithSpecifiedEventPayload(Json.encode(parentJobExecution), topic);
+        .withJobExecutions(Collections.singletonList(
+          new JobExecutionDto()
+            .withId(childJobExecution.getId())
+            .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
+            .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE)))
+      ));
 
-    kafkaCluster.send(request);
+    var topic = formatToKafkaTopicName(DI_JOB_COMPLETED.value(), tenantId);
 
     // Act
     batchJobProgressProducer.write(batchableJobExecutionProgress)
@@ -252,17 +245,6 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
           context.fail(ar.cause());
         }
       });
-  }
-
-  private SendKeyValues<String, String> prepareWithSpecifiedEventPayload(String eventPayload, String topic) {
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(eventPayload);
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
-
-    return SendKeyValues.to(topic, singletonList(kafkaRecord))
-      .useDefaults();
   }
 
   @Test
@@ -306,7 +288,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
             await()
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> verify(jobExecutionProgressDao)
-                .updateCompletionCounts(eq(jobExecutionId), eq(3), eq(0), eq(tenantId)));
+                .updateCompletionCounts(jobExecutionId, 3, 0, tenantId));
           } catch (Exception e) {
             context.fail(e);
           }
@@ -424,7 +406,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> {
                 verify(jobExecutionProgressDao)
-                  .updateCompletionCounts(eq(jobExecutionId), eq(2), eq(0), eq(tenantId));
+                  .updateCompletionCounts(jobExecutionId, 2, 0, tenantId);
 
                 ArgumentCaptor<JobExecution> argumentCaptor = ArgumentCaptor.forClass(JobExecution.class);
                 verify(jobExecutionService).updateJobExecutionWithSnapshotStatus(argumentCaptor.capture(), any());
@@ -439,6 +421,55 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
           context.fail(ar.cause());
         }
       });
+  }
+
+  @Test
+  public void testJobExecutionIsNotUpdatedIfJobExecutionAlreadyCompleted(TestContext context) {
+    Async async = context.async();
+    // Arrange
+    // simulate job execution that has already been completed with COMMITTED status
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withHrId(1000)
+      .withParentJobId(jobExecutionId)
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_CHILD)
+      .withStatus(JobExecution.Status.COMMITTED)
+      .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+      .withCompletedDate(new Date())
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+    context.assertEquals(JobExecution.Status.COMMITTED, jobExecution.getStatus());
+    context.assertEquals(JobExecution.UiStatus.RUNNING_COMPLETE, jobExecution.getUiStatus());
+
+    // simulate job execution progress calculated after job completion upon receiving DI_ERROR event,
+    // produced as a result of re-consuming previously received event by another module
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecution.getId())
+      .withCurrentlyFailed(1)
+      .withCurrentlySucceeded(3)
+      .withTotal(3);
+    BatchableJobExecutionProgress batchableJobExecutionProgress =
+      new BatchableJobExecutionProgress(createOkapiConnectionParams(tenantId), jobExecutionProgress);
+
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecution.getId()), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(jobExecutionProgress));
+    when(jobExecutionService.getJobExecutionById(jobExecution.getId(), tenantId))
+      .thenReturn(Future.succeededFuture(Optional.of(jobExecution)));
+
+    // Act
+    Future<Void> future = batchJobProgressProducer.write(batchableJobExecutionProgress);
+
+    // Assert
+    future.onComplete(ar -> context.verify(v -> {
+      context.assertTrue(ar.succeeded());
+      await()
+        .atMost(AWAIT_TIME, TimeUnit.SECONDS)
+        .untilAsserted(() ->
+          verify(jobExecutionProgressDao).updateCompletionCounts(jobExecution.getId(), 3, 1, tenantId));
+      verify(jobExecutionService, never())
+        .updateJobExecutionWithSnapshotStatus(argThat(job -> job.getId().equals(jobExecution.getId())), any());
+      async.complete();
+    }));
   }
 
 }
