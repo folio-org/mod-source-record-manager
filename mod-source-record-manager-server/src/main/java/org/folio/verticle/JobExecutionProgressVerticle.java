@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +54,12 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 public class JobExecutionProgressVerticle extends AbstractVerticle {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int MAX_NUM_EVENTS = 100;
+  private static final EnumSet<JobExecution.UiStatus> COMPLETED_STATUSES = EnumSet.of(
+    JobExecution.UiStatus.RUNNING_COMPLETE,
+    JobExecution.UiStatus.ERROR,
+    JobExecution.UiStatus.CANCELLED,
+    JobExecution.UiStatus.DISCARDED
+  );
 
   private final JobExecutionProgressDao jobExecutionProgressDao;
   private final JobExecutionService jobExecutionService;
@@ -94,7 +101,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
       .flatMapCompletable(flowable ->
         groupByTenantIdAndJobExecutionId(flowable)
           .map(groupedMessages -> reduceManyJobExecutionProgressObjectsIntoSingleJobExecutionProgress(groupedMessages.toList(), groupedMessages.getKey().jobExecutionId()))
-          .flatMapCompletable(progressMaybe -> saveJobExecutionProgress(progressMaybe))
+          .flatMapCompletable(this::saveJobExecutionProgress)
       )
       .subscribeOn(scheduler)
       .observeOn(scheduler)
@@ -195,64 +202,73 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
     if (progress.getTotal() <= progress.getCurrentlySucceeded() + progress.getCurrentlyFailed()) {
       return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
         .compose(jobExecutionOptional -> jobExecutionOptional
-          .map(jobExecution -> {
-            JobExecution.Status statusToUpdate;
-            if (jobExecution.getStatus() == CANCELLED && jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED) {
-              statusToUpdate = CANCELLED;
-            } else if (progress.getCurrentlyFailed() == 0) {
-              statusToUpdate = COMMITTED;
-            } else {
-              statusToUpdate = JobExecution.Status.ERROR;
-            }
-            jobExecution.withStatus(statusToUpdate)
-              .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusToUpdate.name()).getUiStatus()))
-              .withCompletedDate(new Date())
-              .withProgress(new Progress()
-                .withJobExecutionId(jobExecutionId)
-                .withCurrent(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())
-                .withTotal(progress.getTotal()));
+          .map(jobExecution -> updateJobExecutionWithSnapshotStatus(jobExecution, progress, params)
+            .compose(updatedExecution -> {
+              if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.COMPOSITE_CHILD)) {
 
-            return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params)
-              .compose(updatedExecution -> {
-                if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.COMPOSITE_CHILD)) {
-
-                  return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
-                    .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
-                    .compose(parentExecution ->
-                      jobExecutionService.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
-                        .map(JobExecutionDtoCollection::getJobExecutions)
-                        .map(children ->
-                          children.stream()
-                            .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
-                            .allMatch(child ->
-                              Arrays.asList(
-                                JobExecutionDto.UiStatus.RUNNING_COMPLETE,
-                                JobExecutionDto.UiStatus.CANCELLED,
-                                JobExecutionDto.UiStatus.ERROR,
-                                JobExecutionDto.UiStatus.DISCARDED
-                              ).contains(child.getUiStatus())
-                            )
-                        )
-                        .compose(allChildrenCompleted -> {
-                          if (Boolean.TRUE.equals(allChildrenCompleted)) {
-                            LOGGER.info("All children for job {} have completed!", parentExecution.getId());
-                            parentExecution.withStatus(JobExecution.Status.COMMITTED)
-                              .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
-                              .withCompletedDate(new Date());
-                            return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
-                          }
-                          return Future.succeededFuture(parentExecution);
-                        })
-                    );
-                } else {
-                  return Future.succeededFuture(updatedExecution);
-                }
-              })
-              .map(true);
-          })
+                return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
+                  .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
+                  .compose(parentExecution ->
+                    jobExecutionService.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
+                      .map(JobExecutionDtoCollection::getJobExecutions)
+                      .map(children ->
+                        children.stream()
+                          .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
+                          .allMatch(child ->
+                            Arrays.asList(
+                              JobExecutionDto.UiStatus.RUNNING_COMPLETE,
+                              JobExecutionDto.UiStatus.CANCELLED,
+                              JobExecutionDto.UiStatus.ERROR,
+                              JobExecutionDto.UiStatus.DISCARDED
+                            ).contains(child.getUiStatus())
+                          )
+                      )
+                      .compose(allChildrenCompleted -> {
+                        if (Boolean.TRUE.equals(allChildrenCompleted)) {
+                          LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+                          parentExecution.withStatus(JobExecution.Status.COMMITTED)
+                            .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+                            .withCompletedDate(new Date());
+                          return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
+                        }
+                        return Future.succeededFuture(parentExecution);
+                      })
+                  );
+              } else {
+                return Future.succeededFuture(updatedExecution);
+              }
+            })
+            .map(true))
           .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));
     }
     return Future.succeededFuture(false);
+  }
+
+  private Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, JobExecutionProgress progress,
+                                                                    OkapiConnectionParams params) {
+    if (COMPLETED_STATUSES.contains(jobExecution.getUiStatus())) {
+      LOGGER.info("updateJobExecutionWithSnapshotStatus:: JobExecution with id: '{}' is already completed with {} status, skipping job update",
+        jobExecution.getId(), jobExecution.getStatus());
+      return Future.succeededFuture(jobExecution);
+    }
+
+    JobExecution.Status statusToUpdate;
+    if (jobExecution.getStatus() == CANCELLED && jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED) {
+      statusToUpdate = CANCELLED;
+    } else if (progress.getCurrentlyFailed() == 0) {
+      statusToUpdate = COMMITTED;
+    } else {
+      statusToUpdate = JobExecution.Status.ERROR;
+    }
+    jobExecution.withStatus(statusToUpdate)
+      .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusToUpdate.name()).getUiStatus()))
+      .withCompletedDate(new Date())
+      .withProgress(new Progress()
+        .withJobExecutionId(jobExecution.getId())
+        .withCurrent(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())
+        .withTotal(progress.getTotal()));
+
+    return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params);
   }
 
   private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {

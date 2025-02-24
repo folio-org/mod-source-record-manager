@@ -283,12 +283,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withStatus(StatusDto.Status.ERROR)
             .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
           jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
-            .onComplete(r -> {
-              if (r.failed()) {
-                LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution with id '{}' and snapshot status",
-                  jobExecution.getId(), r.cause());
-              }
-            });
+            .onFailure(e -> LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution with id '{}' and snapshot status",
+              jobExecution.getId(), e));
           jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao

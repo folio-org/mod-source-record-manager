@@ -1,3 +1,6 @@
+## 2025-01-30 v3.9.9
+* [MODSOURMAN-1282](https://folio-org.atlassian.net/browse/MODSOURMAN-1282) Marc Authority DI completed, but status changed fo failed
+
 ## 2025-01-30 v3.9.8
 * [MODSOURMAN-1274](https://folio-org.atlassian.net/browse/MODSOURMAN-1274) Fix the 404 response for job log entries request
 

@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +39,9 @@ import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.progress.JobExecutionProgressUtil.getBatchJobProgressProducer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -131,14 +134,12 @@ public class JobExecutionProgressVerticleTest {
       .thenReturn(Future.succeededFuture(childJobExecution));
     when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
-          .withJobExecutions(Collections.singletonList(
-            new JobExecutionDto()
-              .withId(childJobExecution.getId())
-              .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
-              .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE))
-          )
-        )
-      );
+        .withJobExecutions(Collections.singletonList(
+          new JobExecutionDto()
+            .withId(childJobExecution.getId())
+            .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
+            .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE)))
+        ));
 
     // Act
     batchJobProgressProducer.write(batchableJobExecutionProgress)
@@ -201,7 +202,7 @@ public class JobExecutionProgressVerticleTest {
             await()
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> verify(jobExecutionProgressDao)
-                .updateCompletionCounts(eq(jobExecutionId), eq(3), eq(0), eq(tenantId)));
+                .updateCompletionCounts(jobExecutionId, 3, 0, tenantId));
           } catch (Exception e) {
             context.fail(e);
           }
@@ -319,7 +320,7 @@ public class JobExecutionProgressVerticleTest {
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> {
                 verify(jobExecutionProgressDao)
-                  .updateCompletionCounts(eq(jobExecutionId), eq(2), eq(0), eq(tenantId));
+                  .updateCompletionCounts(jobExecutionId, 2, 0, tenantId);
 
                 ArgumentCaptor<JobExecution> argumentCaptor = ArgumentCaptor.forClass(JobExecution.class);
                 verify(jobExecutionService).updateJobExecutionWithSnapshotStatus(argumentCaptor.capture(), any());
@@ -334,6 +335,55 @@ public class JobExecutionProgressVerticleTest {
           context.fail(ar.cause());
         }
       });
+  }
+
+  @Test
+  public void testJobExecutionIsNotUpdatedIfJobExecutionAlreadyCompleted(TestContext context) {
+    Async async = context.async();
+    // Arrange
+    // simulate job execution that has already been completed with COMMITTED status
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withHrId(1000)
+      .withParentJobId(jobExecutionId)
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_CHILD)
+      .withStatus(JobExecution.Status.COMMITTED)
+      .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+      .withCompletedDate(new Date())
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+    context.assertEquals(JobExecution.Status.COMMITTED, jobExecution.getStatus());
+    context.assertEquals(JobExecution.UiStatus.RUNNING_COMPLETE, jobExecution.getUiStatus());
+
+    // simulate job execution progress calculated after job completion upon receiving DI_ERROR event,
+    // produced as a result of re-consuming previously received event by another module
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecution.getId())
+      .withCurrentlyFailed(1)
+      .withCurrentlySucceeded(3)
+      .withTotal(3);
+    BatchableJobExecutionProgress batchableJobExecutionProgress =
+      new BatchableJobExecutionProgress(createOkapiConnectionParams(tenantId), jobExecutionProgress);
+
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecution.getId()), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(jobExecutionProgress));
+    when(jobExecutionService.getJobExecutionById(jobExecution.getId(), tenantId))
+      .thenReturn(Future.succeededFuture(Optional.of(jobExecution)));
+
+    // Act
+    Future<Void> future = batchJobProgressProducer.write(batchableJobExecutionProgress);
+
+    // Assert
+    future.onComplete(ar -> context.verify(v -> {
+      context.assertTrue(ar.succeeded());
+      await()
+        .atMost(AWAIT_TIME, TimeUnit.SECONDS)
+        .untilAsserted(() ->
+          verify(jobExecutionProgressDao).updateCompletionCounts(jobExecution.getId(), 3, 1, tenantId));
+      verify(jobExecutionService, never())
+        .updateJobExecutionWithSnapshotStatus(argThat(job -> job.getId().equals(jobExecution.getId())), any());
+      async.complete();
+    }));
   }
 
 }
