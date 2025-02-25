@@ -2,7 +2,8 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.Vertx;
+import io.vertx.pgclient.PgException;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
@@ -158,6 +159,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final String GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY = "SELECT * FROM get_record_processing_log('%s', '%s')";
   private static final String GET_JOB_SUMMARY_QUERY = "SELECT * FROM get_job_execution_summary('%s')";
   private static final String UPDATE_ERROR_JOURNAL_RECORD_BY_ORDER_ID_AND_JOB_EXECUTION_ID = "UPDATE %s.%s SET error = $1  WHERE order_id = $2 AND job_execution_id = $3;";
+  private static final int MAX_RETRIES = 5;
+  private static final long INITIAL_RETRY_DELAY_MS = 100L;
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -183,34 +186,45 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     LOGGER.info("saveBatch:: Saving {} journal records", journalRecords.size());
 
     try {
-      JsonObject[] records = journalRecords.stream()
-        .map(r -> new JsonObject()
-          .put("id", r.getId())
-          .put("job_execution_id", r.getJobExecutionId() != null ? r.getJobExecutionId() : null)
-          .put("source_id", r.getSourceId() != null ? r.getSourceId() : null)
-          .put("entity_type", r.getEntityType() != null ? r.getEntityType().toString() : EMPTY)
-          .put("entity_id", r.getEntityId())
-          .put("entity_hrid", r.getEntityHrId() != null ? r.getEntityHrId() : EMPTY)
-          .put("action_type", r.getActionType().toString())
-          .put("action_status", r.getActionStatus().toString())
-          .put("action_date", r.getActionDate())
-          .put("source_record_order", r.getSourceRecordOrder())
-          .put("error", r.getError() != null ? r.getError() : EMPTY)
-          .put("title", r.getTitle())
-          .put("instance_id", r.getInstanceId())
-          .put("holdings_id", r.getHoldingsId())
-          .put("order_id", r.getOrderId())
-          .put("permanent_location_id", r.getPermanentLocationId())
-          .put("tenant_id", r.getTenantId()))
-        .toArray(JsonObject[]::new);
+      List<Tuple> tupleList = journalRecords.stream()
+        .map(this::prepareInsertQueryParameters)
+        .collect(toList());
+      String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
+      LOGGER.trace("saveBatch:: query = {}; tuples = {}", query, tupleList);
 
-      Tuple tuple = Tuple.tuple().addArrayOfJsonObject(records);
-      return pgClientFactory.createInstance(tenantId).execute("SELECT insert_journal_records($1::jsonb[])", tuple)
-        .map((Void) null);
+      return executeWithRetry(query, tupleList, tenantId, MAX_RETRIES, INITIAL_RETRY_DELAY_MS)
+        .mapEmpty();
     } catch (Exception e) {
       LOGGER.warn("saveBatch:: Error saving journal records", e);
       return Future.failedFuture(e);
     }
+  }
+
+  private Future<RowSet<Row>> executeWithRetry(String query,
+                                               List<Tuple> tupleList,
+                                               String tenantId,
+                                               int retriesLeft,
+                                               long delayMs) {
+    return pgClientFactory.createInstance(tenantId)
+      .execute(query, tupleList)
+      .recover(ex -> {
+        if (isDeadlock(ex) && retriesLeft > 0) {
+          LOGGER.warn("Deadlock detected. Retries left: {} - Retrying in {}ms", retriesLeft, delayMs);
+          Promise<RowSet<Row>> promise = Promise.promise();
+          vertx().setTimer(delayMs, tid -> executeWithRetry(query, tupleList, tenantId, retriesLeft - 1, delayMs * 2)
+            .onComplete(promise));
+          return promise.future();
+        }
+        return Future.failedFuture(ex);
+      });
+  }
+
+  private boolean isDeadlock(Throwable throwable) {
+    return throwable instanceof PgException && "40P01".equals(((PgException) throwable).getSqlState());
+  }
+
+  private Vertx vertx() {
+    return pgClientFactory.getVertx();
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {
