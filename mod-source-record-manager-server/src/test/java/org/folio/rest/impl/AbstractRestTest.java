@@ -627,7 +627,11 @@ public abstract class AbstractRestTest {
   }
 
   protected String formatToKafkaTopicName(String eventType) {
-    return KafkaTopicNameHelper.formatTopicName(KAFKA_ENV_VALUE, getDefaultNameSpace(), TENANT_ID, eventType);
+    return formatToKafkaTopicName(eventType, TENANT_ID);
+  }
+
+  protected String formatToKafkaTopicName(String eventType, String tenantId) {
+    return KafkaTopicNameHelper.formatTopicName(KAFKA_ENV_VALUE, getDefaultNameSpace(), tenantId, eventType);
   }
 
   protected  <T> T getBeanFromSpringContext(Vertx vtx, Class<T> clazz) {
