@@ -1,11 +1,5 @@
 {
-  "001": [
-    {
-      "target": "hrid",
-      "description": "The human readable ID",
-      "subfield": [],
-      "rules": []
-    },
+  "LDR": [
     {
       "target": "modeOfIssuanceId",
       "description": "",
@@ -15,8 +9,7 @@
           "description": "Issuance mode based on 7 leader`s byte",
           "conditions": [
             {
-              "type": "set_issuance_mode_id",
-              "LDR": true
+              "type": "set_issuance_mode_id"
             }
           ]
         }
@@ -31,8 +24,7 @@
           "description": "Discovery suppress flag based on whether 5 leader`s byte equals to 'd'",
           "conditions": [
             {
-              "type": "set_deleted",
-              "LDR": true
+              "type": "set_deleted"
             }
           ]
         }
@@ -47,8 +39,7 @@
           "description": "Staff suppress flag based on whether 5 leader`s byte equals to 'd'",
           "conditions": [
             {
-              "type": "set_deleted",
-              "LDR": true
+              "type": "set_deleted"
             }
           ]
         }
@@ -63,12 +54,19 @@
           "description": "Deleted flag based on whether 5 leader`s byte equals to 'd'",
           "conditions": [
             {
-              "type": "set_deleted",
-              "LDR": true
+              "type": "set_deleted"
             }
           ]
         }
       ]
+    }
+  ],
+  "001": [
+    {
+      "target": "hrid",
+      "description": "The human readable ID",
+      "subfield": [],
+      "rules": []
     }
   ],
   "008": [
