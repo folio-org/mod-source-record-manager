@@ -161,6 +161,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final String UPDATE_ERROR_JOURNAL_RECORD_BY_ORDER_ID_AND_JOB_EXECUTION_ID = "UPDATE %s.%s SET error = $1  WHERE order_id = $2 AND job_execution_id = $3;";
   private static final int MAX_RETRIES = 5;
   private static final long INITIAL_RETRY_DELAY_MS = 100L;
+  private static final String DEADLOCK_ERROR_CODE = "40P01";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -188,7 +189,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     try {
       List<Tuple> tupleList = journalRecords.stream()
         .map(this::prepareInsertQueryParameters)
-        .collect(toList());
+        .toList();
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
       LOGGER.trace("saveBatch:: query = {}; tuples = {}", query, tupleList);
 
@@ -220,7 +221,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private boolean isDeadlock(Throwable throwable) {
-    return throwable instanceof PgException && "40P01".equals(((PgException) throwable).getSqlState());
+    return throwable instanceof PgException pgException && DEADLOCK_ERROR_CODE.equals(pgException.getSqlState());
   }
 
   private Vertx vertx() {
