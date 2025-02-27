@@ -11,23 +11,6 @@
       "rules": []
     }
   ],
-  "147": [
-    {
-      "target": "namedEvent",
-      "description": "Heading named event",
-      "subfield": [
-        "a",
-        "c",
-        "d",
-        "g",
-        "v",
-        "x",
-        "y",
-        "z"
-      ],
-      "rules": []
-    }
-  ],
   "150": [
     {
       "target": "topicalTerm",
@@ -37,23 +20,6 @@
         "b",
         "c",
         "d",
-        "v",
-        "x",
-        "y",
-        "z"
-      ],
-      "rules": []
-    }
-  ],
-  "447": [
-    {
-      "target": "sftNamedEvent",
-      "description": "See from tracing named event",
-      "subfield": [
-        "a",
-        "c",
-        "d",
-        "g",
         "v",
         "x",
         "y",
@@ -81,19 +47,21 @@
       "rules": []
     }
   ],
-  "547": [
+  "550": [
     {
-      "target": "saftNamedEvent",
-      "description": "See also from tracing named event",
+      "target": "saftTopicalTerm",
+      "description": "See also from tracing topical term",
       "subfield": [
         "a",
-        "c",
-        "d",
+        "b",
         "g",
+        "i",
         "v",
         "x",
         "y",
-        "z"
+        "z",
+        "4",
+        "5"
       ],
       "rules": []
     }
