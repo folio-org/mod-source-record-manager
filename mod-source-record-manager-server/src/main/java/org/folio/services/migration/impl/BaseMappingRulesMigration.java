@@ -10,6 +10,13 @@ import org.folio.services.migration.CustomMigration;
 
 public abstract class BaseMappingRulesMigration implements CustomMigration {
 
+  private static final String TARGET = "target";
+  private static final String DESCRIPTION = "description";
+  private static final String SUBFIELD = "subfield";
+  private static final String RULES = "rules";
+
+  protected static final JsonArray EMPTY_RULES = new JsonArray();
+
   protected final MappingRuleService mappingRuleService;
 
   protected BaseMappingRulesMigration(MappingRuleService mappingRuleService) {
@@ -37,10 +44,10 @@ public abstract class BaseMappingRulesMigration implements CustomMigration {
 
   protected JsonObject createField(String target, String description, JsonArray subfields, JsonArray rules) {
     return new JsonObject()
-      .put("target", target)
-      .put("description", description)
-      .put("subfield", subfields)
-      .put("rules", rules);
+      .put(TARGET, target)
+      .put(DESCRIPTION, description)
+      .put(SUBFIELD, subfields)
+      .put(RULES, rules);
   }
 
   protected JsonObject sortRules(JsonObject rules) {
