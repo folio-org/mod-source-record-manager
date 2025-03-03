@@ -4,7 +4,6 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
@@ -25,12 +24,7 @@ public class AuthorityMappingNamedEventCustomMigration extends BaseMappingRulesM
   private static final String DESCRIPTION = "Authority mapping rules: add rules for named event fields";
 
   protected AuthorityMappingNamedEventCustomMigration(MappingRuleService mappingRuleService) {
-    super(mappingRuleService);
-  }
-
-  @Override
-  protected Record.RecordType getRecordType() {
-    return MARC_AUTHORITY;
+    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
   }
 
   @Override
@@ -42,15 +36,5 @@ public class AuthorityMappingNamedEventCustomMigration extends BaseMappingRulesM
     addFieldIfNotExists(rules, TAG_447, field447);
     addFieldIfNotExists(rules, TAG_547, field547);
     return sortRules(rules).encode();
-  }
-
-  @Override
-  public String getFeatureVersion() {
-    return FEATURE_VERSION;
-  }
-
-  @Override
-  public String getDescription() {
-    return DESCRIPTION;
   }
 }

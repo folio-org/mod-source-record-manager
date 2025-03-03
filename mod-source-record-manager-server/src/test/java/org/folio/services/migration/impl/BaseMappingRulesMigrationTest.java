@@ -29,9 +29,12 @@ public class BaseMappingRulesMigrationTest {
   private static final String UPDATED_RULES = "updated rules";
   private static final String TAG = "tag";
   private static final String TARGET = "target";
+  private static final String FEATURE_VERSION = "some-version";
+  private static final String DESCRIPTION = "some-description";
 
   private final MappingRuleService mappingRuleService = mock(MappingRuleService.class);
-  private final TestBaseMappingRulesMigration migration = new TestBaseMappingRulesMigration(mappingRuleService);
+  private final TestBaseMappingRulesMigration migration = new TestBaseMappingRulesMigration(MARC_AUTHORITY,
+    FEATURE_VERSION, DESCRIPTION, mappingRuleService);
 
   @Test
   public void migrateShouldDoNothingIfNoRulesExist() {
@@ -55,6 +58,16 @@ public class BaseMappingRulesMigrationTest {
       verify(mappingRuleService).internalUpdate(UPDATED_RULES, MARC_AUTHORITY, TENANT_ID);
       Assert.assertTrue(ar.succeeded());
     });
+  }
+
+  @Test
+  public void getFeatureVersionShouldReturnCorrectFeatureVersion() {
+    Assert.assertEquals(FEATURE_VERSION, migration.getFeatureVersion());
+  }
+
+  @Test
+  public void getDescriptionShouldReturnCorrectDescription() {
+    Assert.assertEquals(DESCRIPTION, migration.getDescription());
   }
 
   @Test
@@ -108,28 +121,14 @@ public class BaseMappingRulesMigrationTest {
 
   private static final class TestBaseMappingRulesMigration extends BaseMappingRulesMigration {
 
-    private TestBaseMappingRulesMigration(MappingRuleService mappingRuleService) {
-      super(mappingRuleService);
-    }
-
-    @Override
-    protected Record.RecordType getRecordType() {
-      return MARC_AUTHORITY;
+    private TestBaseMappingRulesMigration(Record.RecordType recordType, String featureVersion, String description,
+                                          MappingRuleService mappingRuleService) {
+      super(recordType, featureVersion, description, mappingRuleService);
     }
 
     @Override
     protected String updateRules(JsonObject rules) {
       return UPDATED_RULES;
-    }
-
-    @Override
-    public String getFeatureVersion() {
-      return "";
-    }
-
-    @Override
-    public String getDescription() {
-      return "";
     }
   }
 }

@@ -4,7 +4,6 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.folio.Record;
 import org.folio.services.MappingRuleService;
 
 public class AuthorityMappingGeneralSubdivisionCustomMigration extends BaseMappingRulesMigration {
@@ -23,12 +22,7 @@ public class AuthorityMappingGeneralSubdivisionCustomMigration extends BaseMappi
   private static final String DESCRIPTION = "Authority mapping rules: add rules for general subdivision fields";
 
   protected AuthorityMappingGeneralSubdivisionCustomMigration(MappingRuleService mappingRuleService) {
-    super(mappingRuleService);
-  }
-
-  @Override
-  protected Record.RecordType getRecordType() {
-    return MARC_AUTHORITY;
+    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
   }
 
   @Override
@@ -40,15 +34,5 @@ public class AuthorityMappingGeneralSubdivisionCustomMigration extends BaseMappi
     addFieldIfNotExists(rules, TAG_480, field480);
     addFieldIfNotExists(rules, TAG_580, field580);
     return sortRules(rules).encode();
-  }
-
-  @Override
-  public String getFeatureVersion() {
-    return FEATURE_VERSION;
-  }
-
-  @Override
-  public String getDescription() {
-    return DESCRIPTION;
   }
 }

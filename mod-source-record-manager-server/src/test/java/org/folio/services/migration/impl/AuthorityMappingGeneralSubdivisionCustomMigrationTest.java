@@ -48,15 +48,4 @@ public class AuthorityMappingGeneralSubdivisionCustomMigrationTest {
       Assert.assertEquals(expectedRules, rulesCaptor.getValue());
     });
   }
-
-  @Test
-  public void getFeatureVersionShouldReturnCorrectFeatureVersion() {
-    Assert.assertEquals("3.10.0", migration.getFeatureVersion());
-  }
-
-  @Test
-  public void getDescriptionShouldReturnCorrectDescription() {
-    Assert.assertEquals("Authority mapping rules: add rules for general subdivision fields",
-            migration.getDescription());
-  }
 }
