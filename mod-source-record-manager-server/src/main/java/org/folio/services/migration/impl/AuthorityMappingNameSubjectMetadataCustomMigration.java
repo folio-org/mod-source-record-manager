@@ -5,30 +5,17 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
-import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorityMappingNameSubjectMetadataCustomMigration extends BaseMappingRulesMigration {
 
+  private static final String FEATURE_VERSION = "3.9.0";
+  private static final String DESCRIPTION = "Authority mapping rules: update rules for name fields with subject metadata";
+
   public AuthorityMappingNameSubjectMetadataCustomMigration(MappingRuleService mappingRuleService) {
-    super(mappingRuleService);
-  }
-
-  @Override
-  protected Record.RecordType getRecordType() {
-    return MARC_AUTHORITY;
-  }
-
-  @Override
-  public String getFeatureVersion() {
-    return "3.9.0";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Authority mapping rules: update rules for name fields with subject metadata";
+    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
   }
 
   @Override

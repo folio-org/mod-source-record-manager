@@ -22,19 +22,19 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AuthorityMappingNamedEventCustomMigrationTest {
+public class AuthorityMappingGeneralSubdivisionCustomMigrationTest {
 
   private static final String TENANT_ID = "test";
-  private static final String PATH = "src/test/resources/org/folio/mapping/namedEvent/";
+  private static final String PATH = "src/test/resources/org/folio/mapping/generalSubdivision/";
 
   private @Mock MappingRuleService mappingRuleService;
-  private @InjectMocks AuthorityMappingNamedEventCustomMigration migration;
+  private @InjectMocks AuthorityMappingGeneralSubdivisionCustomMigration migration;
   private @Captor ArgumentCaptor<String> rulesCaptor;
 
   @Test
-  public void shouldAddNamedEventFieldsToMarcAuthorityRules() throws IOException {
-    var existedJson = readFileFromPath(PATH + "rulesAuthorityNamedEventExisted.json");
-    var expectedJson = readFileFromPath(PATH + "rulesAuthorityNamedEventExpected.json");
+  public void shouldAddGeneralSubdivisionFieldsToMarcAuthorityRules() throws IOException {
+    var existedJson = readFileFromPath(PATH + "rulesAuthorityGeneralSubdivisionExisted.json");
+    var expectedJson = readFileFromPath(PATH + "rulesAuthorityGeneralSubdivisionExpected.json");
     var expectedRules = new JsonObject(expectedJson).encode();
 
     when(mappingRuleService.get(MARC_AUTHORITY, TENANT_ID))

@@ -11,49 +11,22 @@
       "rules": []
     }
   ],
-  "147": [
-    {
-      "target": "namedEvent",
-      "description": "Heading named event",
-      "subfield": [
-        "a",
-        "c",
-        "d",
-        "g",
-        "v",
-        "x",
-        "y",
-        "z"
-      ],
-      "rules": []
-    }
-  ],
   "150": [
     {
       "target": "topicalTerm",
       "description": "Topical term",
       "subfield": [
         "a",
-        "b",
-        "c",
-        "d",
-        "v",
-        "x",
-        "y",
-        "z"
+        "b"
       ],
       "rules": []
     }
   ],
-  "447": [
+  "180": [
     {
-      "target": "sftNamedEvent",
-      "description": "See from tracing named event",
+      "target": "generalSubdivision",
+      "description": "Heading general subdivision",
       "subfield": [
-        "a",
-        "c",
-        "d",
-        "g",
         "v",
         "x",
         "y",
@@ -68,28 +41,40 @@
       "description": "See from tracing topical term",
       "subfield": [
         "a",
-        "b",
-        "g",
-        "i",
-        "v",
-        "x",
-        "y",
-        "z",
-        "4",
-        "5"
+        "b"
       ],
       "rules": []
     }
   ],
-  "547": [
+  "480": [
     {
-      "target": "saftNamedEvent",
-      "description": "See also from tracing named event",
+      "target": "sftGeneralSubdivision",
+      "description": "See from tracing general subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "550": [
+    {
+      "target": "saftTopicalTerm",
+      "description": "See also from tracing topical term",
       "subfield": [
         "a",
-        "c",
-        "d",
-        "g",
+        "b"
+      ],
+      "rules": []
+    }
+  ],
+  "580": [
+    {
+      "target": "saftGeneralSubdivision",
+      "description": "See also from tracing general subdivision",
+      "subfield": [
         "v",
         "x",
         "y",
