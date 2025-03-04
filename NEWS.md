@@ -5,6 +5,7 @@
 * [MODSOURMAN-1281](https://folio-org.atlassian.net/browse/MODSOURMAN-1281) 500 Error Returned when Posting Records Chunk with Existing ID Value
 * [MODSOURMAN-1282](https://folio-org.atlassian.net/browse/MODSOURMAN-1282) Marc Authority DI completed, but status changed fo failed
 * [MODSOURMAN-1288](https://folio-org.atlassian.net/browse/MODSOURMAN-1288) Add MARC fields 180/480/580 to authority mappings
+* [MODSOURMAN-1283](https://folio-org.atlassian.net/browse/MODSOURMAN-1283) Update mod-source-record-manager to Java 21
 
 ## 2024-10-29 v3.9.0
 * [MODSOURMAN-1232](https://folio-org.atlassian.net/browse/MODSOURMAN-1232) Add the option to exclude job profile names to GET "/metadata-provider/jobExecutions" endpoint
