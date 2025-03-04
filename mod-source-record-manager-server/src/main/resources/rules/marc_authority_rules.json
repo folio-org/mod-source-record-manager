@@ -383,6 +383,20 @@
       "rules": []
     }
   ],
+  "148": [
+    {
+      "target": "chronTerm",
+      "description": "Heading chron term",
+      "subfield": [
+        "a",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
   "150": [
     {
       "target": "topicalTerm",
@@ -427,10 +441,59 @@
       "rules": []
     }
   ],
+  "162": [
+    {
+      "target": "mediumPerfTerm",
+      "description": "Heading medium perf term",
+      "subfield": [
+        "a"
+      ],
+      "rules": []
+    }
+  ],
   "180": [
     {
       "target": "generalSubdivision",
       "description": "Heading general subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "181": [
+    {
+      "target": "geographicSubdivision",
+      "description": "Heading geographic subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "182": [
+    {
+      "target": "chronSubdivision",
+      "description": "Heading chron subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "185": [
+    {
+      "target": "formSubdivision",
+      "description": "Heading form subdivision",
       "subfield": [
         "v",
         "x",
@@ -616,6 +679,20 @@
       "rules": []
     }
   ],
+  "448": [
+    {
+      "target": "sftChronTerm",
+      "description": "See from tracing chron term",
+      "subfield": [
+        "a",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
   "450": [
     {
       "target": "sftTopicalTerm",
@@ -671,10 +748,59 @@
       "rules": []
     }
   ],
+  "462": [
+    {
+      "target": "sftMediumPerfTerm",
+      "description": "See from tracing medium perf term",
+      "subfield": [
+        "a"
+      ],
+      "rules": []
+    }
+  ],
   "480": [
     {
       "target": "sftGeneralSubdivision",
       "description": "See from tracing general subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "481": [
+    {
+      "target": "sftGeographicSubdivision",
+      "description": "See from tracing geographic subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "482": [
+    {
+      "target": "sftChronSubdivision",
+      "description": "See from tracing chron subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "485": [
+    {
+      "target": "sftFormSubdivision",
+      "description": "See from tracing form subdivision",
       "subfield": [
         "v",
         "x",
@@ -862,6 +988,20 @@
       "rules": []
     }
   ],
+  "548": [
+    {
+      "target": "saftChronTerm",
+      "description": "See also from tracing chron term",
+      "subfield": [
+        "a",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
   "550": [
     {
       "target": "saftTopicalTerm",
@@ -917,10 +1057,59 @@
       "rules": []
     }
   ],
+  "562": [
+    {
+      "target": "saftMediumPerfTerm",
+      "description": "See also from tracing medium perf term",
+      "subfield": [
+        "a"
+      ],
+      "rules": []
+    }
+  ],
   "580": [
     {
       "target": "saftGeneralSubdivision",
       "description": "See also from tracing general subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "581": [
+    {
+      "target": "saftGeographicSubdivision",
+      "description": "See also from tracing geographic subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "582": [
+    {
+      "target": "saftChronSubdivision",
+      "description": "See also from tracing chron subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "585": [
+    {
+      "target": "saftFormSubdivision",
+      "description": "See also from tracing form subdivision",
       "subfield": [
         "v",
         "x",

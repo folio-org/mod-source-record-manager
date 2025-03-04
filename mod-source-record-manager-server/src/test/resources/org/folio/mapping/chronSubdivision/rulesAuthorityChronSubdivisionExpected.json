@@ -1,0 +1,96 @@
+{
+  "010": [
+    {
+      "target": "identifierStandardNumber",
+      "description": "Library of Congress Control Number",
+      "subfield": [
+        "a",
+        "b",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "150": [
+    {
+      "target": "topicalTerm",
+      "description": "Topical term",
+      "subfield": [
+        "a",
+        "b"
+      ],
+      "rules": []
+    }
+  ],
+  "182": [
+    {
+      "target": "chronSubdivision",
+      "description": "Heading chron subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "450": [
+    {
+      "target": "sftTopicalTerm",
+      "description": "See from tracing topical term",
+      "subfield": [
+        "a",
+        "b"
+      ],
+      "rules": []
+    }
+  ],
+  "482": [
+    {
+      "target": "sftChronSubdivision",
+      "description": "See from tracing chron subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "550": [
+    {
+      "target": "saftTopicalTerm",
+      "description": "See also from tracing topical term",
+      "subfield": [
+        "a",
+        "b"
+      ],
+      "rules": []
+    }
+  ],
+  "582": [
+    {
+      "target": "saftChronSubdivision",
+      "description": "See also from tracing chron subdivision",
+      "subfield": [
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": []
+    }
+  ],
+  "999": [
+    {
+      "target": "id",
+      "description": "Authority id",
+      "subfield": [
+        "i"
+      ],
+      "rules": []
+    }
+  ]
+}
