@@ -208,6 +208,20 @@
       }
     },
     {
+      "180": {
+        "subfields": [
+          {
+            "v": "Indexes",
+            "x": "Periodicals",
+            "y": "16th century",
+            "z": "United States"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
       "375": {
         "subfields": [
           {
@@ -469,6 +483,20 @@
       }
     },
     {
+      "480": {
+        "subfields": [
+          {
+            "v": "sftIndexes",
+            "x": "sftPeriodicals",
+            "y": "sft16th century",
+            "z": "sftUnited States"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
       "500": {
         "subfields": [
           {
@@ -642,6 +670,20 @@
         ],
         "ind1": "0",
         "ind2": "3"
+      }
+    },
+    {
+      "580": {
+        "subfields": [
+          {
+            "v": "saftIndexes",
+            "x": "saftPeriodicals",
+            "y": "saft16th century",
+            "z": "saftUnited States"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
       }
     },
     {

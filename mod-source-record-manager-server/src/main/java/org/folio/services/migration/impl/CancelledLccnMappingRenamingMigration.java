@@ -1,12 +1,14 @@
 package org.folio.services.migration.impl;
 
 import io.vertx.core.json.JsonObject;
+import org.folio.Record;
 import org.folio.services.MappingRuleService;
 
 public abstract class CancelledLccnMappingRenamingMigration extends BaseMappingRulesMigration {
 
-  protected CancelledLccnMappingRenamingMigration(MappingRuleService mappingRuleService) {
-    super(mappingRuleService);
+  protected CancelledLccnMappingRenamingMigration(Record.RecordType recordType, String featureVersion,
+                                                  String description, MappingRuleService mappingRuleService) {
+    super(recordType, featureVersion, description, mappingRuleService);
   }
 
   @Override

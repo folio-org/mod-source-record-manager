@@ -17,13 +17,7 @@
       "description": "Topical term",
       "subfield": [
         "a",
-        "b",
-        "c",
-        "d",
-        "v",
-        "x",
-        "y",
-        "z"
+        "b"
       ],
       "rules": []
     }
@@ -34,15 +28,18 @@
       "description": "See from tracing topical term",
       "subfield": [
         "a",
-        "b",
-        "g",
-        "i",
-        "v",
-        "x",
-        "y",
-        "z",
-        "4",
-        "5"
+        "b"
+      ],
+      "rules": []
+    }
+  ],
+  "550": [
+    {
+      "target": "saftTopicalTerm",
+      "description": "See also from tracing topical term",
+      "subfield": [
+        "a",
+        "b"
       ],
       "rules": []
     }
