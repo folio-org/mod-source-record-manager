@@ -14,7 +14,7 @@
   "148": [
     {
       "target": "chronTerm",
-      "description": "Heading chron term",
+      "description": "Heading chronological term",
       "subfield": [
         "a",
         "v",
@@ -39,7 +39,7 @@
   "448": [
     {
       "target": "sftChronTerm",
-      "description": "See from tracing chron term",
+      "description": "See from tracing chronological term",
       "subfield": [
         "a",
         "v",
@@ -64,7 +64,7 @@
   "548": [
     {
       "target": "saftChronTerm",
-      "description": "See also from tracing chron term",
+      "description": "See also from tracing chronological term",
       "subfield": [
         "a",
         "v",

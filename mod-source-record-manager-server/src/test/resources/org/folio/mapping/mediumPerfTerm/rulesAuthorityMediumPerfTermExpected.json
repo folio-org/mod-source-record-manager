@@ -25,7 +25,7 @@
   "162": [
     {
       "target": "mediumPerfTerm",
-      "description": "Heading medium perf term",
+      "description": "Heading medium of performance term",
       "subfield": [
         "a"
       ],
@@ -46,7 +46,7 @@
   "462": [
     {
       "target": "sftMediumPerfTerm",
-      "description": "See from tracing medium perf term",
+      "description": "See from tracing medium of performance term",
       "subfield": [
         "a"
       ],
@@ -67,7 +67,7 @@
   "562": [
     {
       "target": "saftMediumPerfTerm",
-      "description": "See also from tracing medium perf term",
+      "description": "See also from tracing medium of performance term",
       "subfield": [
         "a"
       ],

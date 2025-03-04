@@ -386,7 +386,7 @@
   "148": [
     {
       "target": "chronTerm",
-      "description": "Heading chron term",
+      "description": "Heading chronological term",
       "subfield": [
         "a",
         "v",
@@ -444,7 +444,7 @@
   "162": [
     {
       "target": "mediumPerfTerm",
-      "description": "Heading medium perf term",
+      "description": "Heading medium of performance term",
       "subfield": [
         "a"
       ],
@@ -480,7 +480,7 @@
   "182": [
     {
       "target": "chronSubdivision",
-      "description": "Heading chron subdivision",
+      "description": "Heading chronological subdivision",
       "subfield": [
         "v",
         "x",
@@ -682,7 +682,7 @@
   "448": [
     {
       "target": "sftChronTerm",
-      "description": "See from tracing chron term",
+      "description": "See from tracing chronological term",
       "subfield": [
         "a",
         "v",
@@ -751,7 +751,7 @@
   "462": [
     {
       "target": "sftMediumPerfTerm",
-      "description": "See from tracing medium perf term",
+      "description": "See from tracing medium of performance term",
       "subfield": [
         "a"
       ],
@@ -787,7 +787,7 @@
   "482": [
     {
       "target": "sftChronSubdivision",
-      "description": "See from tracing chron subdivision",
+      "description": "See from tracing chronological subdivision",
       "subfield": [
         "v",
         "x",
@@ -991,7 +991,7 @@
   "548": [
     {
       "target": "saftChronTerm",
-      "description": "See also from tracing chron term",
+      "description": "See also from tracing chronological term",
       "subfield": [
         "a",
         "v",
@@ -1060,7 +1060,7 @@
   "562": [
     {
       "target": "saftMediumPerfTerm",
-      "description": "See also from tracing medium perf term",
+      "description": "See also from tracing medium of performance term",
       "subfield": [
         "a"
       ],
@@ -1096,7 +1096,7 @@
   "582": [
     {
       "target": "saftChronSubdivision",
-      "description": "See also from tracing chron subdivision",
+      "description": "See also from tracing chronological subdivision",
       "subfield": [
         "v",
         "x",

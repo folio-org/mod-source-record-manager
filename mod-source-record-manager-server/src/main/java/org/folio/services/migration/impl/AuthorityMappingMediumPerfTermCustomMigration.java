@@ -14,14 +14,14 @@ public class AuthorityMappingMediumPerfTermCustomMigration extends BaseMappingRu
   private static final String TARGET_162 = "mediumPerfTerm";
   private static final String TARGET_462 = "sftMediumPerfTerm";
   private static final String TARGET_562 = "saftMediumPerfTerm";
-  private static final String DESCRIPTION_162 = "Heading medium perf term";
-  private static final String DESCRIPTION_462 = "See from tracing medium perf term";
-  private static final String DESCRIPTION_562 = "See also from tracing medium perf term";
+  private static final String DESCRIPTION_162 = "Heading medium of performance term";
+  private static final String DESCRIPTION_462 = "See from tracing medium of performance term";
+  private static final String DESCRIPTION_562 = "See also from tracing medium of performance term";
   private static final String TAG_162 = "162";
   private static final String TAG_462 = "462";
   private static final String TAG_562 = "562";
   private static final String FEATURE_VERSION = "3.10.0";
-  private static final String DESCRIPTION = "Authority mapping rules: add rules for medium perf term fields";
+  private static final String DESCRIPTION = "Authority mapping rules: add rules for medium of performance term fields";
 
   protected AuthorityMappingMediumPerfTermCustomMigration(MappingRuleService mappingRuleService) {
     super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);

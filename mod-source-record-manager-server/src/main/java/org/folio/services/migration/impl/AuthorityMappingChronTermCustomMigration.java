@@ -14,14 +14,14 @@ public class AuthorityMappingChronTermCustomMigration extends BaseMappingRulesMi
   private static final String TARGET_148 = "chronTerm";
   private static final String TARGET_448 = "sftChronTerm";
   private static final String TARGET_548 = "saftChronTerm";
-  private static final String DESCRIPTION_148 = "Heading chron term";
-  private static final String DESCRIPTION_448 = "See from tracing chron term";
-  private static final String DESCRIPTION_548 = "See also from tracing chron term";
+  private static final String DESCRIPTION_148 = "Heading chronological term";
+  private static final String DESCRIPTION_448 = "See from tracing chronological term";
+  private static final String DESCRIPTION_548 = "See also from tracing chronological term";
   private static final String TAG_148 = "148";
   private static final String TAG_448 = "448";
   private static final String TAG_548 = "548";
   private static final String FEATURE_VERSION = "3.10.0";
-  private static final String DESCRIPTION = "Authority mapping rules: add rules for chron term fields";
+  private static final String DESCRIPTION = "Authority mapping rules: add rules for chronological term fields";
 
   protected AuthorityMappingChronTermCustomMigration(MappingRuleService mappingRuleService) {
     super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);

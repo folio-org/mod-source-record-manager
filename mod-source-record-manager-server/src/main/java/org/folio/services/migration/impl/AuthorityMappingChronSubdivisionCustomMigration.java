@@ -14,14 +14,14 @@ public class AuthorityMappingChronSubdivisionCustomMigration extends BaseMapping
   private static final String TARGET_182 = "chronSubdivision";
   private static final String TARGET_482 = "sftChronSubdivision";
   private static final String TARGET_582 = "saftChronSubdivision";
-  private static final String DESCRIPTION_182 = "Heading chron subdivision";
-  private static final String DESCRIPTION_482 = "See from tracing chron subdivision";
-  private static final String DESCRIPTION_582 = "See also from tracing chron subdivision";
+  private static final String DESCRIPTION_182 = "Heading chronological subdivision";
+  private static final String DESCRIPTION_482 = "See from tracing chronological subdivision";
+  private static final String DESCRIPTION_582 = "See also from tracing chronological subdivision";
   private static final String TAG_182 = "182";
   private static final String TAG_482 = "482";
   private static final String TAG_582 = "582";
   private static final String FEATURE_VERSION = "3.10.0";
-  private static final String DESCRIPTION = "Authority mapping rules: add rules for chron subdivision fields";
+  private static final String DESCRIPTION = "Authority mapping rules: add rules for chronological subdivision fields";
 
   protected AuthorityMappingChronSubdivisionCustomMigration(MappingRuleService mappingRuleService) {
     super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
