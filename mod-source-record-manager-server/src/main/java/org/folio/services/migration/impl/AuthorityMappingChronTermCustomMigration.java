@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthorityMappingChronTermCustomMigration extends BaseMappingRulesMigration{
 
-  private static final JsonArray SUBFIELDS = JsonArray.of("a","v", "x", "y", "z");
+  private static final JsonArray SUBFIELDS = JsonArray.of("a", "v", "x", "y", "z");
   private static final String TARGET_148 = "chronTerm";
   private static final String TARGET_448 = "sftChronTerm";
   private static final String TARGET_548 = "saftChronTerm";
