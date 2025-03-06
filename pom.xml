@@ -19,7 +19,7 @@
   </modules>
 
   <properties>
-    <raml-module-builder.version>35.3.0</raml-module-builder.version>
+    <raml-module-builder.version>35.4.0</raml-module-builder.version>
     <vertx.version>4.5.7</vertx.version>
     <spring.version>6.1.12</spring.version>
     <junit.version>5.10.1</junit.version>
@@ -66,7 +66,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
-          <release>17</release>
+          <release>21</release>
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
