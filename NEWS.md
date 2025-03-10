@@ -1,3 +1,6 @@
+## 2025-03-10 v3.9.10
+* [MODSOURMAN-1281](https://folio-org.atlassian.net/browse/MODSOURMAN-1281) 500 Error Returned when Posting Records Chunk with Existing ID Value
+
 ## 2025-02-24 v3.9.9
 * [MODSOURMAN-1282](https://folio-org.atlassian.net/browse/MODSOURMAN-1282) Marc Authority DI completed, but status changed fo failed
 
