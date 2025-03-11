@@ -244,11 +244,16 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
                       .compose(allChildrenCompleted -> {
                         if (Boolean.TRUE.equals(allChildrenCompleted) && (!COMMITTED.equals(parentExecution.getStatus())))  {
                           LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+
                           parentExecution.withStatus(JobExecution.Status.COMMITTED)
                             .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
                             .withCompletedDate(new Date());
-                          sendDiJobCompletedEvent(parentExecution, params);
-                          return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
+
+                          return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params)
+                            .compose(updatedJobExecution -> {
+                              sendDiJobCompletedEvent(updatedJobExecution, params);
+                              return Future.succeededFuture(updatedJobExecution);
+                            });
                         }
                         return Future.succeededFuture(parentExecution);
                       })
