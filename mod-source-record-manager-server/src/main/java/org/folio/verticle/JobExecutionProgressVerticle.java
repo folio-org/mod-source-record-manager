@@ -301,7 +301,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
     var key = String.valueOf(indexer.incrementAndGet() % MAX_DISTRIBUTION);
     sendEventToKafka(params.getTenantId(), Json.encode(jobExecution), DI_JOB_COMPLETED.value(), kafkaHeaders, kafkaConfig, key)
-      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
+      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId = {}", jobExecution.getId()))
       .onFailure(event -> LOGGER.warn("sendDiJobCompletedEvent:: Error publishing DI_JOB_COMPLETED event, jobExecutionId = {}", jobExecution.getId(), event));
   }
 

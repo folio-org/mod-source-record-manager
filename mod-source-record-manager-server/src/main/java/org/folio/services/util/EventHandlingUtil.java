@@ -45,16 +45,12 @@ public final class EventHandlingUtil {
   public static Future<Boolean> sendEventToKafka(String tenantId, String eventPayload, String eventType,
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
     Event event = createEvent(eventPayload, eventType, tenantId);
-
     String topicName = createTopicName(eventType, tenantId, kafkaConfig);
-
     KafkaProducerRecord<String, String> record = createProducerRecord(event, key, topicName, kafkaHeaders);
 
     String chunkId = extractHeader(kafkaHeaders, "chunkId");
     String recordId = extractHeader(kafkaHeaders, "recordId");
-
-    final String jobExecutionId = Optional.ofNullable(extractHeader(kafkaHeaders, "jobExecutionId"))
-      .orElse(eventPayload.contains("jobExecutionId") ? extractJobExecutionId(eventPayload) : null);
+    String jobExecutionId = extractHeader(kafkaHeaders, "jobExecutionId");
 
     String producerName = eventType + "_Producer";
     LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {}, jobExecutionId: {}, recordId: {} and chunkId: {}",
