@@ -22,6 +22,7 @@ import org.folio.services.exceptions.RecordsPublishingException;
 import static org.folio.services.util.RecordConversionUtil.RECORDS;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class EventHandlingUtil {
@@ -52,23 +53,34 @@ public final class EventHandlingUtil {
     String chunkId = extractHeader(kafkaHeaders, "chunkId");
     String recordId = extractHeader(kafkaHeaders, "recordId");
 
+    final String jobExecutionId = Optional.ofNullable(extractHeader(kafkaHeaders, "jobExecutionId"))
+      .orElse(eventPayload.contains("jobExecutionId") ? extractJobExecutionId(eventPayload) : null);
+
     String producerName = eventType + "_Producer";
-    LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {} and recordId: {} and chunkId: {}", eventType, recordId, chunkId);
+    LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {}, jobExecutionId: {}, recordId: {} and chunkId: {}",
+      eventType, jobExecutionId, recordId, chunkId);
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
     return producer.send(record)
         .eventually(x -> producer.close())
         .map(true)
-        .onSuccess(x -> logSendingSucceeded(eventType, chunkId, recordId))
+        .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
         .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
   }
 
-  private static void logSendingSucceeded(String eventType, String chunkId, String recordId) {
+  private static void logSendingSucceeded(String eventType, String jobExecutionId, String chunkId, String recordId) {
     if (recordId == null) {
-      LOGGER.info("logSendingSucceeded:: Event with type: {} and chunkId: {} was sent to kafka", eventType, chunkId);
+      LOGGER.info("logSendingSucceeded:: Event with type: {} for jobExecutionId: {} and chunkId: {} was sent to kafka",
+        eventType, jobExecutionId, chunkId);
     } else {
-      LOGGER.info("logSendingSucceeded:: Event with type: {} and recordId: {} was sent to kafka", eventType, recordId);
+      LOGGER.info("logSendingSucceeded:: Event with type: {} for jobExecutionId: {} and recordId: {} was sent to kafka",
+        eventType, jobExecutionId, recordId);
     }
+  }
+
+  public static String extractJobExecutionId(String eventPayload) {
+    JsonObject jsonObject = new JsonObject(eventPayload);
+    return jsonObject.getString("jobExecutionId");
   }
 
   private static String extractHeader(List<KafkaHeader> kafkaHeaders, String headerName) {
