@@ -123,6 +123,25 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
+    Promise<JobExecution> promise = Promise.promise();
+
+    updateJobExecution(jobExecution, params)
+      .onSuccess(updatedJobExecution -> {
+        updateSnapshotStatus(updatedJobExecution, params)
+          .onComplete(ar -> {
+            if (ar.failed()) {
+              LOGGER.warn("updateSnapshotStatus failed: {}", ar.cause().getMessage());
+            } else {
+              LOGGER.info("updateSnapshotStatus completed successfully");
+            }
+          });
+        promise.complete(updatedJobExecution);
+      })
+      .onFailure(promise::fail);
+    return promise.future();
+  }
+
+  public Future<JobExecution> deprecatedUpdateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
     return updateJobExecution(jobExecution, params)
       .compose(jobExec -> updateSnapshotStatus(jobExecution, params));
   }
