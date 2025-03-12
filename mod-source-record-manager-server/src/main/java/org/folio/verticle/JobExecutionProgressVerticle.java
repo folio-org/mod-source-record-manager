@@ -302,6 +302,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
 
   private void sendDiJobCompletedEvent(JobExecution jobExecution, OkapiConnectionParams params) {
     var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+    kafkaHeaders.removeIf(header -> JOB_EXECUTION_ID_HEADER.equals(header.key()));
     kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
     var key = String.valueOf(indexer.incrementAndGet() % MAX_DISTRIBUTION);
