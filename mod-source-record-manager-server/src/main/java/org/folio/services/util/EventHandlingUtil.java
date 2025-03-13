@@ -73,11 +73,6 @@ public final class EventHandlingUtil {
     }
   }
 
-  public static String extractJobExecutionId(String eventPayload) {
-    JsonObject jsonObject = new JsonObject(eventPayload);
-    return jsonObject.getString("jobExecutionId");
-  }
-
   private static String extractHeader(List<KafkaHeader> kafkaHeaders, String headerName) {
     return kafkaHeaders.stream()
       .filter(header -> header.key().equals(headerName))
