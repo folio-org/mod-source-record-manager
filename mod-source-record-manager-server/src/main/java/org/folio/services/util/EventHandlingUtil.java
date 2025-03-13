@@ -22,7 +22,6 @@ import org.folio.services.exceptions.RecordsPublishingException;
 import static org.folio.services.util.RecordConversionUtil.RECORDS;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class EventHandlingUtil {
