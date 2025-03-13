@@ -249,7 +249,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
                             .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
                             .withCompletedDate(new Date());
 
-                          return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params)
+                          return jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentExecution, params)
                             .compose(updatedJobExecution -> {
                               sendDiJobCompletedEvent(updatedJobExecution, params);
                               return Future.succeededFuture(updatedJobExecution);
