@@ -134,7 +134,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
     when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecutionId), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(jobExecutionProgress));
-    when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
+    when(jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(any(), any()))
       .thenReturn(Future.succeededFuture(childJobExecution));
     when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()

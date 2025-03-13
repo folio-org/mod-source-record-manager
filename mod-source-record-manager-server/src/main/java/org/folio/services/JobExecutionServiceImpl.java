@@ -123,8 +123,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, OkapiConnectionParams params) {
-    Promise<JobExecution> promise = Promise.promise();
+    LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId {}", jobExecution.getId());
 
+    Promise<JobExecution> promise = Promise.promise();
     updateJobExecution(jobExecution, params)
       .onSuccess(updatedJobExecution -> {
         updateSnapshotStatus(updatedJobExecution, params)
