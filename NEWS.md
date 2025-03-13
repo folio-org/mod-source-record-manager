@@ -1,10 +1,14 @@
-## 2024-11-15 3.10.0-SNAPSHOT
-* [MODSOURMAN-1249](https://folio-org.atlassian.net/browse/MODSOURMAN-1249) Added DI_MARC_FOR_UPDATE_RECEIVED log message handling
-* [MODSOURMAN-1266](https://folio-org.atlassian.net/browse/MODSOURMAN-1266) Event DI_JOB_COMPLETED is not being sent upon the completion of the data import process on snapshot, snapshot-2
+## 2025-03-13 v3.10.0
+* [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
+* [MODSOURMAN-1266](https://folio-org.atlassian.net/browse/MODSOURMAN-1266) Event DI_JOB_COMPLETED is not being sent upon the completion of the data import process
+* [MODDATAIMP-1151](https://folio-org.atlassian.net/browse/MODDATAIMP-1151) Fix import job stuck if used invalid job profile (MODSOURMAN-1301)
 * [MODSOURMAN-1276](https://folio-org.atlassian.net/browse/MODSOURMAN-1276) Add MARC fields 147/447/547 to authority mappings
 * [MODSOURMAN-1281](https://folio-org.atlassian.net/browse/MODSOURMAN-1281) 500 Error Returned when Posting Records Chunk with Existing ID Value
+* [MODINV-1140](https://folio-org.atlassian.net/browse/MODINV-1140) Update MARC-Instance mapping to account for Leader 05 value
 * [MODSOURMAN-1282](https://folio-org.atlassian.net/browse/MODSOURMAN-1282) Marc Authority DI completed, but status changed fo failed
+* [MODDICORE-440](https://folio-org.atlassian.net/browse/MODDICORE-440) Fix Mode of Issuance mapping if incoming record has no 001 field
 * [MODSOURMAN-1288](https://folio-org.atlassian.net/browse/MODSOURMAN-1288) Add MARC fields 180/480/580 to authority mappings
+* [MODSOURMAN-1294](https://folio-org.atlassian.net/browse/MODSOURMAN-1294) Fix slow DB query for journal records insert
 * [MODSOURMAN-1283](https://folio-org.atlassian.net/browse/MODSOURMAN-1283) Update mod-source-record-manager to Java 21
 * [MODSOURMAN-1033](https://folio-org.atlassian.net/browse/MODSOURMAN-1033) Add MARC fields 1XX/4XX/5XX to authority mappings
 
