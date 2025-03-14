@@ -120,7 +120,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
       .withUserId(UUID.randomUUID().toString());
     // create job execution progress
-    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(childJobExecution.getId())
       .withCurrentlyFailed(1)
       .withCurrentlySucceeded(2)
       .withTotal(3);
@@ -132,7 +132,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .thenReturn(Future.succeededFuture(Optional.of(childJobExecution)));
     when(jobExecutionService.getJobExecutionById(eq(parentJobExecution.getId()), any()))
       .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
-    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecutionId), anyInt(), anyInt(), any()))
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(childJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(jobExecutionProgress));
     when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
       .thenReturn(Future.succeededFuture(childJobExecution));
@@ -200,7 +200,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
       .withUserId(UUID.randomUUID().toString());
     // create job execution progress
-    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(childJobExecution.getId())
       .withCurrentlyFailed(0)
       .withCurrentlySucceeded(3)
       .withTotal(3);
@@ -211,13 +211,15 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
     when(jobExecutionService.getJobExecutionById(eq(childJobExecution.getId()), any()))
       .thenReturn(Future.succeededFuture(Optional.of(childJobExecution)));
     when(jobExecutionService.getJobExecutionById(eq(parentJobExecution.getId()), any()))
-      .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
-    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecutionId), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(
+        parentJobExecution
+          .withStatus(JobExecution.Status.COMMITTED)
+          .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+      )));
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(childJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(jobExecutionProgress));
     when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
       .thenReturn(Future.succeededFuture(childJobExecution));
-    when(jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(any(), any()))
-      .thenReturn(Future.succeededFuture(parentJobExecution.withStatus(JobExecution.Status.COMMITTED)));
     when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
         .withJobExecutions(Collections.singletonList(
@@ -236,9 +238,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
           try {
             await()
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
-              .untilAsserted(() -> {
-                verify(jobExecutionService, never()).updateJobExecutionWithSnapshotStatusAsync(any(), any());
-              });
+              .untilAsserted(() -> verify(jobExecutionService, never()).updateJobExecutionWithSnapshotStatusAsync(any(), any()));
           } catch (Exception e) {
             context.fail(e);
           }
