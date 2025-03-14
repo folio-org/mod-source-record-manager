@@ -60,6 +60,15 @@ public interface JobExecutionService {
   Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params);
 
   /**
+   * Updates jobExecution and calls source-record-storage to update Snapshot status by asynchronous way
+   *
+   * @param jobExecution entity to update
+   * @param params       connection parameters
+   * @return updated entity
+   */
+  Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, OkapiConnectionParams params);
+
+  /**
    * Updates jobExecution
    *
    * @param jobExecution entity to update
