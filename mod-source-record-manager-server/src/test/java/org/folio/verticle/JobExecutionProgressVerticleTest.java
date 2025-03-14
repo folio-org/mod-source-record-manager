@@ -120,7 +120,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
       .withUserId(UUID.randomUUID().toString());
     // create job execution progress
-    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(childJobExecution.getId())
       .withCurrentlyFailed(1)
       .withCurrentlySucceeded(2)
       .withTotal(3);
@@ -132,10 +132,12 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .thenReturn(Future.succeededFuture(Optional.of(childJobExecution)));
     when(jobExecutionService.getJobExecutionById(eq(parentJobExecution.getId()), any()))
       .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
-    when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecutionId), anyInt(), anyInt(), any()))
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(childJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(jobExecutionProgress));
     when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
       .thenReturn(Future.succeededFuture(childJobExecution));
+    when(jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(any(), any()))
+      .thenReturn(Future.succeededFuture(childJobExecution.withStatus(JobExecution.Status.COMMITTED)));
     when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
         .withJobExecutions(Collections.singletonList(
@@ -160,6 +162,83 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
             kafkaCluster.observeValues(ObserveKeyValues.on(topic, 1)
               .observeFor(30, TimeUnit.SECONDS)
               .build());
+          } catch (Exception e) {
+            context.fail(e);
+          }
+          async.complete();
+        } else {
+          context.fail(ar.cause());
+        }
+      });
+  }
+
+
+  @Test
+  public void testUpdateJobExecutionIfAllRecordsProcessedParentStatusNotCommittedDiJobCompletedShouldNotSend(TestContext context) {
+    Async async = context.async();
+
+    // Arrange
+    // create job execution
+    JobExecution childJobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withHrId(1000)
+      .withParentJobId(jobExecutionId)
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_CHILD)
+      .withStatus(JobExecution.Status.NEW)
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+
+    JobExecution parentJobExecution = new JobExecution()
+      .withId(jobExecutionId)
+      .withHrId(1000)
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT)
+      .withStatus(JobExecution.Status.NEW) // Set parent status to NEW
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+    // create job execution progress
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(childJobExecution.getId())
+      .withCurrentlyFailed(0)
+      .withCurrentlySucceeded(3)
+      .withTotal(3);
+    BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
+      createOkapiConnectionParams(tenantId),
+      jobExecutionProgress);
+    // return appropriate objects for mocks
+    when(jobExecutionService.getJobExecutionById(eq(childJobExecution.getId()), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(childJobExecution)));
+    when(jobExecutionService.getJobExecutionById(eq(parentJobExecution.getId()), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(
+        parentJobExecution
+          .withStatus(JobExecution.Status.COMMITTED)
+          .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+      )));
+    when(jobExecutionProgressDao.updateCompletionCounts(eq(childJobExecution.getId()), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(jobExecutionProgress));
+    when(jobExecutionService.updateJobExecutionWithSnapshotStatus(any(), any()))
+      .thenReturn(Future.succeededFuture(childJobExecution));
+    when(jobExecutionService.getJobExecutionCollectionByParentId(eq(parentJobExecution.getId()), anyInt(), anyInt(), any()))
+      .thenReturn(Future.succeededFuture(new JobExecutionDtoCollection()
+        .withJobExecutions(Collections.singletonList(
+          new JobExecutionDto()
+            .withId(childJobExecution.getId())
+            .withSubordinationType(JobExecutionDto.SubordinationType.COMPOSITE_CHILD)
+            .withUiStatus(JobExecutionDto.UiStatus.RUNNING_COMPLETE))
+        )
+      ));
+
+    // Act
+    batchJobProgressProducer.write(batchableJobExecutionProgress)
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          // Assert
+          try {
+            await()
+              .atMost(AWAIT_TIME, TimeUnit.SECONDS)
+              .untilAsserted(() -> verify(jobExecutionService, never()).updateJobExecutionWithSnapshotStatusAsync(any(), any()));
           } catch (Exception e) {
             context.fail(e);
           }

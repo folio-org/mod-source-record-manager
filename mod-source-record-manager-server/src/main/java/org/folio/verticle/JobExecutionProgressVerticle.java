@@ -242,13 +242,18 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
                           )
                       )
                       .compose(allChildrenCompleted -> {
-                        if (Boolean.TRUE.equals(allChildrenCompleted)) {
+                        if (Boolean.TRUE.equals(allChildrenCompleted) && (!COMMITTED.equals(parentExecution.getStatus())))  {
                           LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+
                           parentExecution.withStatus(JobExecution.Status.COMMITTED)
                             .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
                             .withCompletedDate(new Date());
-                          sendDiJobCompletedEvent(parentExecution, params);
-                          return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
+
+                          return jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentExecution, params)
+                            .compose(updatedJobExecution -> {
+                              sendDiJobCompletedEvent(updatedJobExecution, params);
+                              return Future.succeededFuture(updatedJobExecution);
+                            });
                         }
                         return Future.succeededFuture(parentExecution);
                       })
@@ -297,11 +302,12 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
 
   private void sendDiJobCompletedEvent(JobExecution jobExecution, OkapiConnectionParams params) {
     var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+    kafkaHeaders.removeIf(header -> JOB_EXECUTION_ID_HEADER.equals(header.key()));
     kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
     var key = String.valueOf(indexer.incrementAndGet() % MAX_DISTRIBUTION);
     sendEventToKafka(params.getTenantId(), Json.encode(jobExecution), DI_JOB_COMPLETED.value(), kafkaHeaders, kafkaConfig, key)
-      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
+      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId = {}", jobExecution.getId()))
       .onFailure(event -> LOGGER.warn("sendDiJobCompletedEvent:: Error publishing DI_JOB_COMPLETED event, jobExecutionId = {}", jobExecution.getId(), event));
   }
 
