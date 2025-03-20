@@ -554,7 +554,7 @@ public class JournalUtilTest {
       .withContext(context);
 
     var journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
-      CREATE, INSTANCE, COMPLETED);
+      CREATE, INSTANCE, ERROR);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
@@ -562,8 +562,39 @@ public class JournalUtilTest {
     Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
+    Assert.assertEquals(ERROR, journalRecord.get(0).getActionStatus());
     Assert.assertNotNull(journalRecord.get(0).getActionDate());
+  }
+
+  @Test
+  public void shouldBuildMarcBibJournalRecordOnInstanceErrorWithoutRelatedMarcBib() throws JournalRecordMapperException {
+    var testError = "Something Happened";
+    var testJobExecutionId = UUID.randomUUID().toString();
+
+    var context = new HashMap<String, String>();
+    context.put(ERROR_KEY, testError);
+
+    var eventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(testJobExecutionId)
+      .withContext(context);
+
+    var journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      UPDATE, INSTANCE, ERROR);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(2, journalRecord.size());
+    Assert.assertEquals(testError, journalRecord.get(0).getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(UPDATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(ERROR, journalRecord.get(0).getActionStatus());
+
+    Assert.assertEquals(testError, journalRecord.get(1).getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.get(1).getJobExecutionId());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecord.get(1).getEntityType());
+    Assert.assertEquals(UPDATE, journalRecord.get(1).getActionType());
+    Assert.assertEquals(ERROR, journalRecord.get(1).getActionStatus());
   }
 
   @Test
