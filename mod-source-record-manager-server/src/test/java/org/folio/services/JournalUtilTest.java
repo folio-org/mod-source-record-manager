@@ -567,12 +567,25 @@ public class JournalUtilTest {
   }
 
   @Test
-  public void shouldBuildMarcBibJournalRecordOnInstanceErrorWithoutRelatedMarcBib() throws JournalRecordMapperException {
+  public void shouldBuildMarcBibJournalRecordOnInstanceUpdateError() throws JournalRecordMapperException {
     var testError = "Something Happened";
     var testJobExecutionId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = UUID.randomUUID().toString();
+
+    var recordJson = new JsonObject()
+      .put("id", UUID.randomUUID().toString())
+      .put("snapshotId", testJobExecutionId)
+      .put("order", 1);
+
+    JsonObject instanceJson = new JsonObject()
+      .put("id", instanceId)
+      .put("hrid", instanceHrid);
 
     var context = new HashMap<String, String>();
     context.put(ERROR_KEY, testError);
+    context.put(INSTANCE.value(), instanceJson.encode());
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
 
     var eventPayload = new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
@@ -594,6 +607,50 @@ public class JournalUtilTest {
     Assert.assertEquals(testJobExecutionId, journalRecord.get(1).getJobExecutionId());
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecord.get(1).getEntityType());
     Assert.assertEquals(UPDATE, journalRecord.get(1).getActionType());
+    Assert.assertEquals(ERROR, journalRecord.get(1).getActionStatus());
+  }
+
+  @Test
+  public void shouldBuildMarcBibJournalRecordOnInstanceCreateError() throws JournalRecordMapperException {
+    var testError = "Something Happened";
+    var testJobExecutionId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = UUID.randomUUID().toString();
+
+    var recordJson = new JsonObject()
+      .put("id", UUID.randomUUID().toString())
+      .put("snapshotId", testJobExecutionId)
+      .put("order", 1);
+
+    JsonObject instanceJson = new JsonObject()
+      .put("id", instanceId)
+      .put("hrid", instanceHrid);
+
+    var context = new HashMap<String, String>();
+    context.put(ERROR_KEY, testError);
+    context.put(INSTANCE.value(), instanceJson.encode());
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+
+    var eventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(testJobExecutionId)
+      .withContext(context);
+
+    var journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, INSTANCE, ERROR);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(2, journalRecord.size());
+    Assert.assertEquals(testError, journalRecord.get(0).getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(ERROR, journalRecord.get(0).getActionStatus());
+
+    Assert.assertEquals(testError, journalRecord.get(1).getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.get(1).getJobExecutionId());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecord.get(1).getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.get(1).getActionType());
     Assert.assertEquals(ERROR, journalRecord.get(1).getActionStatus());
   }
 
