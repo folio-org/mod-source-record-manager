@@ -31,8 +31,7 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
@@ -63,7 +62,6 @@ public class JournalUtil {
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
-  private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
   public static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
   public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
   public static final String BATCH_JOURNAL_ADDRESS = "batch-journal-queue";
@@ -184,8 +182,7 @@ public class JournalUtil {
           if (entityType == PO_LINE) {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
-          if (eventPayload.getEventType().equals(DI_INVENTORY_INSTANCE_CREATED.value()) ||
-            isCreateOrUpdateInstanceEventReceived(eventPayloadContext)) {
+          if (entityType == INSTANCE && (actionType == UPDATE || actionType == CREATE)) {
             var journalRecordWithMarcBib = buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId);
             return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
           }
@@ -237,14 +234,6 @@ public class JournalUtil {
   public static Vertx registerCodecs(Vertx vertx) {
     vertx.eventBus().registerCodec(new BatchableJournalRecordCodec());
     return vertx;
-  }
-
-  private static boolean isCreateOrUpdateInstanceEventReceived(HashMap<String, String> eventPayloadContext) {
-    if (eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)) {
-      var currentEventType = DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE));
-      return ((DI_INVENTORY_INSTANCE_CREATED == currentEventType) || (DI_INVENTORY_INSTANCE_UPDATED == currentEventType));
-    }
-    return false;
   }
 
   private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
