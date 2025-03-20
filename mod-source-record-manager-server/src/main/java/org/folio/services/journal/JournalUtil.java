@@ -205,20 +205,9 @@ public class JournalUtil {
           return Lists.newArrayList(journalRecord);
         }
       } else {
-        if (eventPayload.getEventType().equals(DI_ERROR.value())) {
-          if (eventPayloadContext.containsKey(MARC_BIBLIOGRAPHIC.value())) {
-            return Lists.newArrayList(
-              journalRecord,
-              buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
-            );
-          }
-          if (entityType == INSTANCE) {
-            return Lists.newArrayList(
-              journalRecord,
-              buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
-                .withEntityType(MARC_BIBLIOGRAPHIC)
-            );
-          }
+        if (eventPayload.getEventType().equals(DI_ERROR.value()) && eventPayloadContext.containsKey(MARC_BIBLIOGRAPHIC.value())) {
+          var journalRecordWithMarcBib = buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId);
+          return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
         }
       }
       return Lists.newArrayList(journalRecord);
