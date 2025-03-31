@@ -1,3 +1,6 @@
+## 2025-03-31 v3.10.1
+* [MODSOURMAN-1305](https://folio-org.atlassian.net/browse/MODSOURMAN-1305) Fix mapping-rules migration
+
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
 * [MODSOURMAN-1266](https://folio-org.atlassian.net/browse/MODSOURMAN-1266) Event DI_JOB_COMPLETED is not being sent upon the completion of the data import process
