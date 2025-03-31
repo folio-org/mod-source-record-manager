@@ -5,7 +5,9 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.folio.services.MappingRuleService;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AuthorityMappingGeneralSubdivisionCustomMigration extends BaseMappingRulesMigration {
 
   private static final JsonArray SUBFIELDS = JsonArray.of("v", "x", "y", "z");
