@@ -20,6 +20,7 @@
     <kafkaclients.version>3.7.1</kafkaclients.version>
     <kafkajunit.version>3.5.1</kafkajunit.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
+    <jsonassert.version>1.5.3</jsonassert.version>
   </properties>
 
   <dependencies>
@@ -265,6 +266,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${commons-lang3.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+      <version>${jsonassert.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>

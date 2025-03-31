@@ -35,7 +35,11 @@ public class AuthorityMappingNameSubjectMetadataCustomMigration extends BaseMapp
       if (!rule.getString("target").endsWith("Title")) {
         var subfields = rule.getJsonArray("subfield");
         var newSubfields = JsonArray.of("v", "x", "y", "z");
-        subfields.addAll(newSubfields);
+        for (var newSubfield : newSubfields) {
+          if (!subfields.contains(newSubfield)) {
+            subfields.add(newSubfield);
+          }
+        }
       }
     }
 
