@@ -1,32 +1,43 @@
 package org.folio.services.migration;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.folio.dbschema.Versioned;
+import org.folio.okapi.common.SemVer;
 import org.folio.rest.jaxrs.model.TenantAttributes;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Log4j2
 @Service
 public class CustomMigrationService {
 
-  @Autowired
-  private List<CustomMigration> migrationList;
+  private final List<CustomMigration> migrationList;
+
+  public CustomMigrationService(List<CustomMigration> migrationList) {
+    this.migrationList = migrationList.stream()
+      .sorted(Comparator.comparing(o -> new SemVer(o.getFeatureVersion())))
+      .toList();
+  }
 
   public Future<Void> doCustomMigrations(TenantAttributes attributes, String tenantId) {
-    @SuppressWarnings("rawtypes")
-    List<Future> futures = new ArrayList<>();
+    var result = Future.<Void>succeededFuture();
     for (var migration : migrationList) {
       if (isNew(attributes, migration.getFeatureVersion())) {
         log.info("Do custom migration [description: {}, tenant: {}]", migration.getDescription(), tenantId);
-        futures.add(migration.migrate(tenantId));
+        result = result.compose(o -> migration.migrate(tenantId));
       }
     }
-    return CompositeFuture.all(futures).mapEmpty();
+
+    return result
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          log.info("Custom migrations completed successfully for tenant {}", tenantId);
+        } else {
+          log.error("Custom migrations failed for tenant {}: {}", tenantId, ar.cause().getMessage());
+        }
+      });
   }
 
   private static boolean isNew(TenantAttributes attributes, String featureVersion) {

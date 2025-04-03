@@ -7,14 +7,16 @@ import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import lombok.SneakyThrows;
 import org.apache.http.HttpStatus;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.folio.TestUtil;
 import org.folio.rest.impl.AbstractRestTest;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 /**
  * REST tests for MappingRulesProvider
@@ -33,17 +35,17 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   private static final ObjectMapper mapper = new ObjectMapper();
 
   @Test
-  public void shouldReturnDefaultMarcBibRulesOnGet() throws IOException {
+  public void shouldReturnDefaultMarcBibRulesOnGet() {
     shouldReturnDefaultMarcRulesOnGet(DEFAULT_MARC_BIB_RULES_PATH, MARC_BIB);
   }
 
   @Test
-  public void shouldReturnDefaultMarcHoldingsRulesOnGet() throws IOException {
+  public void shouldReturnDefaultMarcHoldingsRulesOnGet() {
     shouldReturnDefaultMarcRulesOnGet(DEFAULT_MARC_HOLDINGS_RULES_PATH, MARC_HOLDINGS);
   }
 
-  @Ignore("custom migration occur that change the default auth rules")
-  public void shouldReturnDefaultMarcAuthorityRulesOnGet() throws IOException {
+  @Test
+  public void shouldReturnDefaultMarcAuthorityRulesOnGet() {
     shouldReturnDefaultMarcRulesOnGet(DEFAULT_MARC_AUTHORITY_RULES_PATH, MARC_AUTHORITY);
   }
 
@@ -128,7 +130,8 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
-  private void shouldReturnDefaultMarcRulesOnGet(String defaultMarcBibRulesPath, String recordType) throws IOException {
+  @SneakyThrows
+  private void shouldReturnDefaultMarcRulesOnGet(String defaultMarcBibRulesPath, String recordType) {
     JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(defaultMarcBibRulesPath));
     JsonObject defaultRules = new JsonObject(
       RestAssured.given()
@@ -140,7 +143,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
         .extract().body().asString());
     Assert.assertNotNull(defaultRules);
     Assert.assertFalse(defaultRules.isEmpty());
-    Assert.assertEquals(expectedRules, defaultRules);
+    JSONAssert.assertEquals(expectedRules.encode(), defaultRules.encode(), JSONCompareMode.NON_EXTENSIBLE);
   }
 
   private void shouldUpdateDefaultMarcRulesOnPut(String defaultMarcBibRulesPath, String marcBib) throws IOException {
