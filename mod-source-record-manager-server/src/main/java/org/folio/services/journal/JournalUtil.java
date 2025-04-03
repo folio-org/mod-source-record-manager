@@ -89,7 +89,7 @@ public class JournalUtil {
 
   public static List<JournalRecord> buildJournalRecordsByRecords(List<Record> records) {
     return records.stream().map(sourceRecord -> {
-      JournalRecord journalRecord = new JournalRecord()
+      var journalRecord = new JournalRecord()
         .withId(UUID.randomUUID().toString())
         .withJobExecutionId(sourceRecord.getSnapshotId())
         .withSourceId(sourceRecord.getId())
@@ -106,7 +106,7 @@ public class JournalUtil {
 
   public static List<IncomingRecord> buildIncomingRecordsByRecords(List<Record> records) {
     return records.stream().map(sourceRecord -> {
-      IncomingRecord incomingRecord = new IncomingRecord()
+      var incomingRecord = new IncomingRecord()
         .withId(sourceRecord.getId())
         .withJobExecutionId(sourceRecord.getSnapshotId())
         .withOrder(sourceRecord.getOrder())
@@ -127,17 +127,17 @@ public class JournalUtil {
                                                                JournalRecord.ActionStatus actionStatus)
     throws JournalRecordMapperException {
     try {
-      HashMap<String, String> context = eventPayload.getContext();
-      Record sourceRecord = getRecordFromContext(context, eventPayload);
-      String incomingRecordId = getIncomingRecordId(context, sourceRecord);
-      String entityJsonString = context.get(entityType.value());
+      var context = eventPayload.getContext();
+      var sourceRecord = getRecordFromContext(context, eventPayload);
+      var incomingRecordId = getIncomingRecordId(context, sourceRecord);
+      var entityJsonString = context.get(entityType.value());
 
-      JournalRecord baseRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
+      var baseRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
         .withEntityType(entityType);
 
       // Handle related entity records if needed
       if (isRelatedEntityRecordNeeded(entityType, actionType)) {
-        JournalRecord relatedRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
+        var relatedRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
           .withEntityType(ENTITY_TO_RELATED_ENTITY.get(entityType));
         return Lists.newArrayList(baseRecord, relatedRecord);
       }
@@ -149,11 +149,11 @@ public class JournalUtil {
 
       // Process when entity JSON is present
       if (!isEmpty(entityJsonString)) {
-        ProcessEntityContext ctx = new ProcessEntityContext(context, sourceRecord, eventPayload, incomingRecordId, baseRecord, entityJsonString);
+        var ctx = new ProcessEntityContext(context, sourceRecord, eventPayload, incomingRecordId, baseRecord, entityJsonString);
         return processEntity(ctx, entityType, actionType, actionStatus);
       } else if (isDiErrorEvent(eventPayload, context)) {
         // Fallback: for DI_ERROR event when MARC_BIBLIOGRAPHIC exists in the context
-        JournalRecord marcBibRecord = buildJournalRecordWithMarcBibType(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId);
+        var marcBibRecord = buildJournalRecordWithMarcBibType(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId);
         return Lists.newArrayList(baseRecord, marcBibRecord);
       }
 
@@ -196,7 +196,7 @@ public class JournalUtil {
                                                                         JournalRecord.EntityType entityType,
                                                                         JournalRecord.ActionType actionType,
                                                                         JournalRecord.ActionStatus actionStatus) {
-    JsonObject json = new JsonObject(ctx.entityJsonString());
+    var json = new JsonObject(ctx.entityJsonString());
     ctx.baseRecord().setEntityId(json.getString(ID_KEY));
     if (entityType == INSTANCE || entityType == PO_LINE) {
       ctx.baseRecord().setEntityHrId(json.getString(HRID_KEY));
@@ -205,16 +205,15 @@ public class JournalUtil {
       ctx.baseRecord().setOrderId(json.getString("purchaseOrderId"));
     }
     if (entityType == INSTANCE && (actionType == UPDATE || actionType == CREATE)) {
-      JournalRecord marcBibRecord = buildJournalRecordWithMarcBibType(actionStatus, actionType,
-        ctx.sourceRecord(), ctx.eventPayload(), ctx.context(),
-        ctx.incomingRecordId());
+      var marcBibRecord = buildJournalRecordWithMarcBibType(actionStatus, actionType,
+        ctx.sourceRecord(), ctx.eventPayload(), ctx.context(), ctx.incomingRecordId());
       return Lists.newArrayList(ctx.baseRecord(), marcBibRecord);
     }
     return Lists.newArrayList(ctx.baseRecord());
   }
 
   private static Record getRecordFromContext(HashMap<String, String> context, DataImportEventPayload eventPayload) {
-    String recordAsString = extractRecord(context);
+    var recordAsString = extractRecord(context);
     if (StringUtils.isBlank(recordAsString)) {
       return new Record()
         .withId(UUID.randomUUID().toString())
@@ -245,11 +244,11 @@ public class JournalUtil {
                                                           JournalRecord.EntityType entityType,
                                                           String incomingRecordId,
                                                           JournalRecord.ActionType actionType) {
-    List<JournalRecord> records = new ArrayList<>();
-    String notMatchedNumberField = context.get(NOT_MATCHED_NUMBER);
-    boolean isNotMatchedNumberPresent = isNotBlank(notMatchedNumberField);
+    var records = new ArrayList<JournalRecord>();
+    var notMatchedNumberField = context.get(NOT_MATCHED_NUMBER);
+    var isNotMatchedNumberPresent = isNotBlank(notMatchedNumberField);
     if (isNotMatchedNumberPresent || actionType == NON_MATCH) {
-      int notMatchedNumber = isNotMatchedNumberPresent ? Integer.parseInt(notMatchedNumberField) : 1;
+      var notMatchedNumber = isNotMatchedNumberPresent ? Integer.parseInt(notMatchedNumberField) : 1;
       for (int i = 0; i < notMatchedNumber; i++) {
         records.add(constructBlankJournalRecord(sourceRecord, entityType, actionStatus, baseRecord.getError(), incomingRecordId)
           .withEntityType(entityType));
@@ -301,15 +300,15 @@ public class JournalUtil {
 
   private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
                                                                  DataImportEventPayload eventPayload, Map<String, String> eventPayloadContext, String incomingRecordId) {
-    String marcBibEntityAsString = eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value());
-    String marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(MATCHED_ID_KEY);
+    var marcBibEntityAsString = eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value());
+    var marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(MATCHED_ID_KEY);
 
     var actionTypeForMarcBib = actionType;
     if (eventPayloadContext.containsKey(MARC_BIB_RECORD_CREATED)) {
-      String actionTypeFromContext = eventPayloadContext.get(MARC_BIB_RECORD_CREATED);
-
-      if (actionTypeFromContext.equals(Boolean.TRUE.toString())) actionTypeForMarcBib = JournalRecord.ActionType.CREATE;
-      else actionTypeForMarcBib = UPDATE;
+      var actionTypeFromContext = eventPayloadContext.get(MARC_BIB_RECORD_CREATED);
+      actionTypeForMarcBib = actionTypeFromContext.equals(Boolean.TRUE.toString())
+        ? JournalRecord.ActionType.CREATE
+        : UPDATE;
     }
 
     return buildCommonJournalRecord(actionStatus, actionTypeForMarcBib, currentRecord, eventPayload, eventPayloadContext, incomingRecordId)
@@ -319,8 +318,7 @@ public class JournalUtil {
 
   private static JournalRecord buildCommonJournalRecord(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
                                                         DataImportEventPayload eventPayload, Map<String, String> eventPayloadContext, String incomingRecordId) {
-    String tenantId = eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY);
-
+    var tenantId = eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY);
     var currentJournalRecord = new JournalRecord()
       .withJobExecutionId(currentRecord.getSnapshotId())
       .withSourceId(incomingRecordId)
@@ -335,19 +333,18 @@ public class JournalUtil {
     if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
       currentJournalRecord.setError(eventPayloadContext.get(ERROR_KEY));
     }
-
     return currentJournalRecord;
   }
 
   private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
                                                      JournalRecord.ActionStatus actionStatus, Map<String, String> eventPayloadContext, Record sourceRecord,
                                                      String incomingRecordId) {
-    JsonArray multipleHoldings = getJsonArrayOfHoldings(eventPayloadContext.get(entityType.value()));
-    List<JournalRecord> journalRecords = new ArrayList<>();
+    var multipleHoldings = getJsonArrayOfHoldings(eventPayloadContext.get(entityType.value()));
+    var journalRecords = new ArrayList<JournalRecord>();
 
     for (int i = 0; i < multipleHoldings.size(); i++) {
-      JsonObject holdingsAsJson = multipleHoldings.getJsonObject(i);
-      JournalRecord journalRecord = new JournalRecord()
+      var holdingsAsJson = multipleHoldings.getJsonObject(i);
+      var journalRecord = new JournalRecord()
         .withJobExecutionId(sourceRecord.getSnapshotId())
         .withSourceId(incomingRecordId)
         .withSourceRecordOrder(sourceRecord.getOrder())
@@ -375,12 +372,12 @@ public class JournalUtil {
   private static List<JournalRecord> processItems(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
                                                   JournalRecord.ActionStatus actionStatus, Map<String, String> eventPayloadContext, Record sourceRecord,
                                                   String incomingRecordId) {
-    JsonArray multipleItems = new JsonArray(eventPayloadContext.get(entityType.value()));
-    List<JournalRecord> journalRecords = new ArrayList<>();
+    var multipleItems = new JsonArray(eventPayloadContext.get(entityType.value()));
+    var journalRecords = new ArrayList<JournalRecord>();
 
     for (int i = 0; i < multipleItems.size(); i++) {
-      JsonObject itemAsJson = multipleItems.getJsonObject(i);
-      JournalRecord journalRecord = new JournalRecord()
+      var itemAsJson = multipleItems.getJsonObject(i);
+      var journalRecord = new JournalRecord()
         .withJobExecutionId(sourceRecord.getSnapshotId())
         .withSourceId(incomingRecordId)
         .withSourceRecordOrder(sourceRecord.getOrder())
@@ -392,10 +389,10 @@ public class JournalUtil {
         .withEntityHrId(itemAsJson.getString(HRID_KEY));
 
       if (eventPayloadContext.containsKey(INSTANCE.value())) {
-        JsonObject instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
+        var instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
         journalRecord.setInstanceId(instanceJson.getString(ID_KEY));
       } else if (eventPayloadContext.containsKey(HOLDINGS.value())) {
-        Map<String, String> holdingsIdInstanceId = initalizeHoldingsIdInstanceIdMap(eventPayloadContext);
+        var holdingsIdInstanceId = initalizeHoldingsIdInstanceIdMap(eventPayloadContext);
         journalRecord.setInstanceId(holdingsIdInstanceId.get(getHoldingsId(itemAsJson)));
       }
       journalRecord.setHoldingsId(getHoldingsId(itemAsJson));
@@ -412,12 +409,12 @@ public class JournalUtil {
 
   private static List<JournalRecord> processErrors(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
                                                    Map<String, String> eventPayloadContext, Record sourceRecord, String incomingRecordId) {
-    JsonArray errors = new JsonArray(eventPayloadContext.get(MULTIPLE_ERRORS_KEY));
-    List<JournalRecord> journalErrorRecords = new ArrayList<>();
+    var errors = new JsonArray(eventPayloadContext.get(MULTIPLE_ERRORS_KEY));
+    var journalErrorRecords = new ArrayList<JournalRecord>();
 
     for (int i = 0; i < errors.size(); i++) {
-      JsonObject errorAsJson = errors.getJsonObject(i);
-      JournalRecord journalRecord = new JournalRecord()
+      var errorAsJson = errors.getJsonObject(i);
+      var journalRecord = new JournalRecord()
         .withJobExecutionId(sourceRecord.getSnapshotId())
         .withSourceId(incomingRecordId)
         .withSourceRecordOrder(sourceRecord.getOrder())
@@ -436,10 +433,10 @@ public class JournalUtil {
   }
 
   private static Map<String, String> initalizeHoldingsIdInstanceIdMap(Map<String, String> eventPayloadContext) {
-    Map<String, String> holdingsIdInstanceId = new HashMap<>();
-    JsonArray multipleHoldings = new JsonArray(eventPayloadContext.get(HOLDINGS.value()));
+    var holdingsIdInstanceId = new HashMap<String, String>();
+    var multipleHoldings = new JsonArray(eventPayloadContext.get(HOLDINGS.value()));
     for (int j = 0; j < multipleHoldings.size(); j++) {
-      JsonObject holding = multipleHoldings.getJsonObject(j);
+      var holding = multipleHoldings.getJsonObject(j);
       holdingsIdInstanceId.put(holding.getString(ID_KEY), holding.getString(INSTANCE_ID_KEY));
     }
     return holdingsIdInstanceId;
