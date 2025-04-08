@@ -132,30 +132,70 @@ public class JournalUtil {
       var incomingRecordId = getIncomingRecordId(context, sourceRecord);
       var entityJsonString = context.get(entityType.value());
 
+      // Build the base record.
       var baseRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
         .withEntityType(entityType);
 
+      // [Change 1] For entityType INSTANCE: do not save logs if eventType is DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING.
+      if (entityType == INSTANCE &&
+        DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING.value().equals(eventPayload.getEventType())) {
+        return List.of();
+      }
+
+      // Preserve the original related entity branch for MATCH/NON_MATCH.
       if (isRelatedEntityRecordNeeded(entityType, actionType)) {
         var relatedRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
           .withEntityType(ENTITY_TO_RELATED_ENTITY.get(entityType));
         return Lists.newArrayList(baseRecord, relatedRecord);
       }
-      // Handle MATCH/NON_MATCH for HOLDINGS or ITEM types
+
+      // Handle blank records for HOLDINGS or ITEM if needed.
       if (shouldConstructBlankRecords(actionType, entityType)) {
         return constructBlankRecords(context, sourceRecord, actionStatus, baseRecord, entityType, incomingRecordId, actionType);
       }
+
+      // [Change 2] For entityType MARC_BIBLIOGRAPHIC:
+      // If actionStatus == COMPLETED, build two records: one from the MARC_BIB JSON and one from the INSTANCE JSON.
+      if (entityType == JournalRecord.EntityType.MARC_BIBLIOGRAPHIC) {
+        if (!isEmpty(entityJsonString)) {
+          var json = new JsonObject(entityJsonString);
+          baseRecord.setEntityId(json.getString(MATCHED_ID_KEY));
+        }
+        if (actionStatus == JournalRecord.ActionStatus.COMPLETED) {
+          String instanceJsonString = context.get(INSTANCE.value());
+          JournalRecord instanceRecord;
+          if (!isEmpty(instanceJsonString)) {
+            var instanceJson = new JsonObject(instanceJsonString);
+            instanceRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
+              .withEntityType(INSTANCE);
+            // [Change 3] Populate instance record with hrid and id.
+            instanceRecord.setEntityId(instanceJson.getString(ID_KEY));
+            instanceRecord.setEntityHrId(instanceJson.getString(HRID_KEY));
+          } else {
+            instanceRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
+              .withEntityType(INSTANCE);
+          }
+          return Lists.newArrayList(baseRecord, instanceRecord);
+        } else {
+          return Lists.newArrayList(baseRecord);
+        }
+      }
+
+      // For all other entity types:
       if (!isEmpty(entityJsonString)) {
         var ctx = new ProcessEntityContext(context, sourceRecord, eventPayload, incomingRecordId, baseRecord, entityJsonString);
+        if (entityType == INSTANCE) {
+          return processInstanceOrPoLineOrAuthority(ctx, INSTANCE, actionType, actionStatus);
+        }
         return processEntity(ctx, entityType, actionType, actionStatus);
       } else if (isDiErrorEvent(eventPayload, context)) {
-        // Fallback: for DI_ERROR event when MARC_BIBLIOGRAPHIC exists in the context
         var marcBibRecord = buildJournalRecordWithMarcBibType(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId);
         return Lists.newArrayList(baseRecord, marcBibRecord);
       }
-
       return Lists.newArrayList(baseRecord);
     } catch (Exception e) {
-      LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
+      LOGGER.warn("buildJournalRecordsByEvent:: Error while building JournalRecords, entityType: {}",
+        entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
   }
