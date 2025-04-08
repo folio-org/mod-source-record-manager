@@ -61,6 +61,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.folio.verticle.JobExecutionProgressVerticle.COMPLETED_STATUSES;
 
 /**
  * Implementation of the JobExecutionService, calls JobExecutionDao to access JobExecution metadata.
@@ -123,25 +124,45 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId {}", jobExecution.getId());
+    LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId={}", jobExecution.getId());
 
     Promise<JobExecution> promise = Promise.promise();
-    updateJobExecution(jobExecution, params)
+    if (jobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_CHILD) {
+      LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={}", jobExecution.getId());
+      return getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
+        .compose(parentJobOptional ->
+          parentJobOptional
+            .map(parentExecution -> {
+              if (COMPLETED_STATUSES.contains(parentExecution.getUiStatus())) {
+                LOGGER.info("updateJobExecutionWithSnapshotStatusAsync:: Parent job with jobExecutionId={} already has completed status. Skipping update.", parentExecution.getId());
+                return Future.succeededFuture(jobExecution);
+              } else {
+                return updateJobExecutionAndSnapshot(jobExecution, params, promise);
+              }
+            })
+            .orElse(Future.failedFuture(format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job execution with jobExecutionId=%s", jobExecution.getParentJobId())))
+        );
+    } else {
+      return updateJobExecutionAndSnapshot(jobExecution, params, promise);
+    }
+  }
+
+  private Future<JobExecution> updateJobExecutionAndSnapshot(JobExecution jobExecution, OkapiConnectionParams params, Promise<JobExecution> promise) {
+    return updateJobExecution(jobExecution, params)
       .onSuccess(updatedJobExecution -> {
         updateSnapshotStatus(updatedJobExecution, params)
           .onComplete(ar -> {
             if (ar.failed()) {
-              LOGGER.warn("updateJobExecutionWithSnapshotStatusAsync:: update snapshot status for jobExecutionId: {} failed: {}",
+              LOGGER.warn("updateJobExecutionAndSnapshot:: update snapshot status for jobExecutionId={} failed: {}",
                 jobExecution.getId(), ar.cause().getMessage());
             } else {
-              LOGGER.info("updateJobExecutionWithSnapshotStatusAsync:: update snapshot status for jobExecutionId: {} completed successfully",
+              LOGGER.info("updateJobExecutionAndSnapshot:: update snapshot status for jobExecutionId={} completed successfully.",
                 jobExecution.getId());
             }
           });
         promise.complete(updatedJobExecution);
       })
       .onFailure(promise::fail);
-    return promise.future();
   }
 
   public Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
