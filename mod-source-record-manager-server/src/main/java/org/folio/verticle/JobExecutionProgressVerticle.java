@@ -276,7 +276,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
               }
             })
             .map(true))
-          .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));
+          .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with jobExecutionId='%s'", jobExecutionId))));
     }
     return Future.succeededFuture(false);
   }
@@ -284,7 +284,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
   private Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, JobExecutionProgress progress,
                                                                     OkapiConnectionParams params) {
     if (COMPLETED_STATUSES.contains(jobExecution.getUiStatus())) {
-      LOGGER.info("updateJobExecutionWithSnapshotStatus:: JobExecution with id: '{}' is already completed with {} status, skipping job update",
+      LOGGER.info("updateJobExecutionWithSnapshotStatus:: JobExecution with jobExecutionId='{}' is already completed with {} status, skipping job update",
         jobExecution.getId(), jobExecution.getStatus());
       return Future.succeededFuture(jobExecution);
     }
@@ -315,8 +315,8 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
     var key = String.valueOf(indexer.incrementAndGet() % MAX_DISTRIBUTION);
     sendEventToKafka(params.getTenantId(), Json.encode(jobExecution), DI_JOB_COMPLETED.value(), kafkaHeaders, kafkaConfig, key)
-      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId = {}", jobExecution.getId()))
-      .onFailure(event -> LOGGER.warn("sendDiJobCompletedEvent:: Error publishing DI_JOB_COMPLETED event, jobExecutionId = {}", jobExecution.getId(), event));
+      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
+      .onFailure(event -> LOGGER.warn("sendDiJobCompletedEvent:: Error publishing DI_JOB_COMPLETED event, jobExecutionId={}", jobExecution.getId(), event));
   }
 
   private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {
