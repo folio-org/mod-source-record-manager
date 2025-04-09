@@ -127,7 +127,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId={}", jobExecution.getId());
 
     Promise<JobExecution> promise = Promise.promise();
-    if (jobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_CHILD) {
+    if (jobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT) {
       LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={}", jobExecution.getId());
       return getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
         .compose(parentJobOptional ->
