@@ -14,6 +14,7 @@ import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
@@ -25,14 +26,14 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
@@ -175,6 +176,106 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
 
     future.onComplete(ar -> {
       context.assertTrue(ar.failed());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void updateJobExecutionWithSnapshotStatusAsyncHandlesParentJobWithCompletedStatus(TestContext context) {
+    Async async = context.async();
+
+    JobExecution parentJobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
+
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withParentJobId(parentJobExecution.getId())
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+
+    when(jobExecutionDao.getJobExecutionById(eq(parentJobExecution.getId()), anyString()))
+      .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
+
+    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      context.assertEquals(jobExecution, ar.result());
+      verify(jobExecutionDao, never()).updateBlocking(anyString(), any(), anyString());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void updateJobExecutionWithSnapshotStatusAsyncHandlesParentJobWithoutCompletedStatus(TestContext context) {
+    Async async = context.async();
+
+    JobExecution parentJobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION);
+
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withParentJobId(parentJobExecution.getId())
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+
+    when(jobExecutionDao.getJobExecutionById(eq(parentJobExecution.getId()), anyString()))
+      .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
+    when(jobExecutionDao.updateBlocking(anyString(), any(), anyString()))
+      .thenReturn(Future.succeededFuture(jobExecution));
+
+    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      context.assertEquals(jobExecution, ar.result());
+      verify(jobExecutionDao).updateBlocking(anyString(), any(), anyString());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void updateJobExecutionWithSnapshotStatusAsyncFailsWhenParentJobNotFound(TestContext context) {
+    Async async = context.async();
+
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withParentJobId(UUID.randomUUID().toString())
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+
+    when(jobExecutionDao.getJobExecutionById(eq(jobExecution.getParentJobId()), anyString()))
+      .thenReturn(Future.succeededFuture(Optional.empty()));
+
+    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.failed());
+      context.assertEquals(
+        String.format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job execution with jobExecutionId=%s", jobExecution.getParentJobId()),
+        ar.cause().getMessage()
+      );
+      async.complete();
+    });
+  }
+
+  @Test
+  public void updateJobExecutionWithSnapshotStatusAsyncUpdatesNonParentJob(TestContext context) {
+    Async async = context.async();
+
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withStatus(JobExecution.Status.COMMITTED)
+      .withSubordinationType(JobExecution.SubordinationType.CHILD);
+
+    when(jobExecutionDao.updateBlocking(anyString(), any(), anyString()))
+      .thenReturn(Future.succeededFuture(jobExecution));
+
+    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      context.assertEquals(jobExecution, ar.result());
+      verify(jobExecutionDao).updateBlocking(anyString(), any(), anyString());
       async.complete();
     });
   }
