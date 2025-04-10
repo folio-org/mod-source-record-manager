@@ -217,7 +217,9 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
     JobExecution jobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
       .withParentJobId(parentJobExecution.getId())
-      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+      .withStatus(JobExecution.Status.COMMITTED)
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT)
+      .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
 
     when(jobExecutionDao.getJobExecutionById(eq(parentJobExecution.getId()), anyString()))
       .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
