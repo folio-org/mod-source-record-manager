@@ -1194,13 +1194,16 @@ public class JournalUtilTest {
     List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
       UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED);
 
-    Assert.assertEquals(1, journalRecords.size());
+    Assert.assertEquals(2, journalRecords.size());
     Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(expectedCentralTenantId, journalRecords.get(0).getTenantId());
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
     Assert.assertEquals(UPDATE, journalRecords.get(0).getActionType());
     Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
+    Assert.assertEquals(INSTANCE, journalRecords.get(1).getEntityType());
+    Assert.assertEquals(UPDATE, journalRecords.get(1).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(1).getActionStatus());
   }
 
   @Test
@@ -1225,7 +1228,7 @@ public class JournalUtilTest {
     List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
       UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED);
 
-    Assert.assertEquals(1, journalRecords.size());
+    Assert.assertEquals(2, journalRecords.size());
     Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(record.getMatchedId(), journalRecords.get(0).getEntityId());
@@ -1233,6 +1236,7 @@ public class JournalUtilTest {
     Assert.assertEquals(UPDATE, journalRecords.get(0).getActionType());
     Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
+    Assert.assertEquals(INSTANCE, journalRecords.get(1).getEntityType());
   }
 
   @Test

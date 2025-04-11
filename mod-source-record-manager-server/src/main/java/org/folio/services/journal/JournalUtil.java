@@ -127,79 +127,116 @@ public class JournalUtil {
                                                                JournalRecord.ActionStatus actionStatus)
     throws JournalRecordMapperException {
     try {
+      //skip processing of MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING event
+      if (DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING.value().equals(eventPayload.getEventType())) {
+        return List.of();
+      }
+
       var context = eventPayload.getContext();
       var sourceRecord = getRecordFromContext(context, eventPayload);
       var incomingRecordId = getIncomingRecordId(context, sourceRecord);
       var entityJsonString = context.get(entityType.value());
 
-      // Build the base record.
       var baseRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
         .withEntityType(entityType);
 
-      // [Change 1] For entityType INSTANCE: do not save logs if eventType is DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING.
-      if (entityType == INSTANCE &&
-        DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING.value().equals(eventPayload.getEventType())) {
-        return List.of();
-      }
-
-      // Preserve the original related entity branch for MATCH/NON_MATCH.
       if (isRelatedEntityRecordNeeded(entityType, actionType)) {
         var relatedRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
           .withEntityType(ENTITY_TO_RELATED_ENTITY.get(entityType));
         return Lists.newArrayList(baseRecord, relatedRecord);
       }
 
-      // Handle blank records for HOLDINGS or ITEM if needed.
+      // Handle MATCH/NON_MATCH for HOLDINGS or ITEM types
       if (shouldConstructBlankRecords(actionType, entityType)) {
         return constructBlankRecords(context, sourceRecord, actionStatus, baseRecord, entityType, incomingRecordId, actionType);
       }
 
-      // [Change 2] For entityType MARC_BIBLIOGRAPHIC:
-      // If actionStatus == COMPLETED, build two records: one from the MARC_BIB JSON and one from the INSTANCE JSON.
-      if (entityType == JournalRecord.EntityType.MARC_BIBLIOGRAPHIC) {
-        if (!isEmpty(entityJsonString)) {
-          var json = new JsonObject(entityJsonString);
-          baseRecord.setEntityId(json.getString(MATCHED_ID_KEY));
-        }
-        if (actionStatus == JournalRecord.ActionStatus.COMPLETED) {
-          String instanceJsonString = context.get(INSTANCE.value());
-          JournalRecord instanceRecord;
-          if (!isEmpty(instanceJsonString)) {
-            var instanceJson = new JsonObject(instanceJsonString);
-            instanceRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
-              .withEntityType(INSTANCE);
-            // [Change 3] Populate instance record with hrid and id.
-            instanceRecord.setEntityId(instanceJson.getString(ID_KEY));
-            instanceRecord.setEntityHrId(instanceJson.getString(HRID_KEY));
-          } else {
-            instanceRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
-              .withEntityType(INSTANCE);
-          }
-          return Lists.newArrayList(baseRecord, instanceRecord);
-        } else {
-          return Lists.newArrayList(baseRecord);
-        }
+      var ctx = new ProcessEntityContext(context, sourceRecord, eventPayload, incomingRecordId, baseRecord, entityJsonString);
+      // Handle MARC_BIBLIOGRAPHIC
+      if (entityType == MARC_BIBLIOGRAPHIC) {
+        return buildMarcBibJournalRecords(ctx, actionType, actionStatus);
       }
 
-      // For all other entity types:
       if (!isEmpty(entityJsonString)) {
-        var ctx = new ProcessEntityContext(context, sourceRecord, eventPayload, incomingRecordId, baseRecord, entityJsonString);
-        if (entityType == INSTANCE) {
-          return processInstanceOrPoLineOrAuthority(ctx, INSTANCE, actionType, actionStatus);
-        }
         return processEntity(ctx, entityType, actionType, actionStatus);
       } else if (isDiErrorEvent(eventPayload, context)) {
+        // Fallback: for DI_ERROR event when MARC_BIBLIOGRAPHIC exists in the context
         var marcBibRecord = buildJournalRecordWithMarcBibType(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId);
         return Lists.newArrayList(baseRecord, marcBibRecord);
       }
+
       return Lists.newArrayList(baseRecord);
     } catch (Exception e) {
-      LOGGER.warn("buildJournalRecordsByEvent:: Error while building JournalRecords, entityType: {}",
-        entityType.value(), e);
+      LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
   }
 
+  /**
+   * Builds a list of {@link JournalRecord} objects for processing MARC BIB records.
+   * Depending on the action status, it creates records for the base entity and optionally the related INSTANCE entity.
+   *
+   * @param ctx         the {@link ProcessEntityContext} containing details such as JSON strings, source record, and context data.
+   * @param actionType  the action type (e.g., CREATE, UPDATE) as {@link JournalRecord.ActionType}.
+   * @param actionStatus the action status (e.g., COMPLETED, FAILED) as {@link JournalRecord.ActionStatus}.
+   *
+   * @return a {@link List} of {@link JournalRecord}:
+   *         <ul>
+   *           <li>If {@code actionStatus} is {@code COMPLETED}, includes both base and INSTANCE records.</li>
+   *           <li>Otherwise, includes only the base record.</li>
+   *         </ul>
+   *
+   * @see ProcessEntityContext
+   * @see JournalRecord
+   */
+  private static List<JournalRecord> buildMarcBibJournalRecords(ProcessEntityContext ctx,
+                                                                JournalRecord.ActionType actionType,
+                                                                JournalRecord.ActionStatus actionStatus) {
+    var entityJsonString = ctx.entityJsonString();
+    var sourceRecord = ctx.sourceRecord();
+    var baseRecord = ctx.baseRecord();
+    if (!isEmpty(entityJsonString)) {
+      var json = new JsonObject(entityJsonString);
+      baseRecord.setEntityId(json.getString(MATCHED_ID_KEY));
+    }
+    //Create INSTANCE record, if MARC_BIB is completed
+    if (actionStatus == JournalRecord.ActionStatus.COMPLETED) {
+      String instanceJsonString = ctx.context.get(INSTANCE.value());
+      JournalRecord instanceRecord;
+      if (!isEmpty(instanceJsonString)) {
+        var instanceJson = new JsonObject(instanceJsonString);
+        instanceRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, ctx.eventPayload, ctx.context, ctx.incomingRecordId)
+          .withEntityType(INSTANCE);
+        instanceRecord.setEntityId(instanceJson.getString(ID_KEY));
+        instanceRecord.setEntityHrId(instanceJson.getString(HRID_KEY));
+      } else {
+        instanceRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, ctx.eventPayload, ctx.context, ctx.incomingRecordId)
+          .withEntityType(INSTANCE);
+      }
+      return Lists.newArrayList(baseRecord, instanceRecord);
+    } else {
+      return Lists.newArrayList(baseRecord);
+    }
+  }
+
+  /**
+   * Processes an entity and builds a list of {@link JournalRecord} objects based on the entity type and context.
+   *
+   * @param ctx         the {@link ProcessEntityContext} providing data like JSON strings and source records.
+   * @param entityType  the type of the entity being processed (e.g., MARC, INSTANCE, HOLDINGS, ITEM).
+   * @param actionType  the action type (e.g., CREATE, UPDATE).
+   * @param actionStatus the status of the action (e.g., COMPLETED, FAILED).
+   *
+   * @return a {@link List} of {@link JournalRecord} objects. The processing depends on the entity type:
+   *         <ul>
+   *           <li>MARC entities result in a single base record.</li>
+   *           <li>Instances, HOLDINGS, or ITEM entities may generate multiple records.</li>
+   *           <li>Error processing occurs if errors are present in the context.</li>
+   *         </ul>
+   *
+   * @see ProcessEntityContext
+   * @see JournalRecord
+   */
   private static List<JournalRecord> processEntity(ProcessEntityContext ctx,
                                                    JournalRecord.EntityType entityType,
                                                    JournalRecord.ActionType actionType,
@@ -228,6 +265,17 @@ public class JournalUtil {
     return Lists.newArrayList(ctx.baseRecord());
   }
 
+  /**
+   * Processes INSTANCE, PO_LINE, or AUTHORITY entities and builds a list of {@link JournalRecord} objects.
+   *
+   * @param ctx         the {@link ProcessEntityContext} containing the entity context and data.
+   * @param entityType  the type of the entity (e.g., INSTANCE, PO_LINE, AUTHORITY).
+   * @param actionType  the action type (e.g., CREATE, UPDATE).
+   * @param actionStatus the status of the action (e.g., COMPLETED, FAILED).
+   *
+   * @return a {@link List} of {@link JournalRecord} objects, including the base record and optional MARC BIB records
+   *         if the entity is an INSTANCE and the action is CREATE or UPDATE.
+   */
   private static List<JournalRecord> processInstanceOrPoLineOrAuthority(ProcessEntityContext ctx,
                                                                         JournalRecord.EntityType entityType,
                                                                         JournalRecord.ActionType actionType,
@@ -491,6 +539,16 @@ public class JournalUtil {
       .withError(error);
   }
 
+  /**
+   * Represents the context for processing an entity during data import.
+   *
+   * @param context         a map of context-related key-value pairs.
+   * @param sourceRecord    the original source {@link Record} being processed.
+   * @param eventPayload    the {@link DataImportEventPayload} containing event-related data.
+   * @param incomingRecordId the ID of the incoming record being processed.
+   * @param baseRecord      the base {@link JournalRecord} for the entity.
+   * @param entityJsonString the JSON string representation of the entity.
+   */
   private record ProcessEntityContext(
     Map<String, String> context,
     Record sourceRecord,
