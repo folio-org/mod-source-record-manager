@@ -216,69 +216,73 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
    * @return a future containing a boolean indicating the success of the update
    */
   private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, OkapiConnectionParams params) {
-    if (progress.getTotal() <= progress.getCurrentlySucceeded() + progress.getCurrentlyFailed()) {
-      return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
-        .compose(jobExecutionOptional -> jobExecutionOptional
-          .map(jobExecution -> updateJobExecutionWithSnapshotStatus(jobExecution, progress, params)
-            .compose(updatedExecution -> {
-              if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.COMPOSITE_CHILD)) {
-                LOGGER.info("COMPOSITE_CHILD subordination type for job {}. Processing...", updatedExecution.getId());
-
-                return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
-                  .compose(parentJobOptional ->
-                    parentJobOptional
-                      .map(parentExecution -> {
-                        if (COMPLETED_STATUSES.contains(parentExecution.getUiStatus())) {
-                          LOGGER.info("Parent job {} already has completed status. Skipping update.", parentExecution.getId());
-                          return Future.succeededFuture(parentExecution);
-                        } else {
-                          return jobExecutionService.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
-                            .map(JobExecutionDtoCollection::getJobExecutions)
-                            .map(children ->
-                              children.stream()
-                                .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
-                                .allMatch(child ->
-                                  Arrays.asList(
-                                    JobExecutionDto.UiStatus.RUNNING_COMPLETE,
-                                    JobExecutionDto.UiStatus.CANCELLED,
-                                    JobExecutionDto.UiStatus.ERROR,
-                                    JobExecutionDto.UiStatus.DISCARDED
-                                  ).contains(child.getUiStatus())
-                                )
-                            )
-                            .compose(allChildrenCompleted -> {
-                              if (Boolean.TRUE.equals(allChildrenCompleted) && (!COMMITTED.equals(parentExecution.getStatus())))  {
-                                LOGGER.info("All children for job {} have completed!", parentExecution.getId());
-
-                                parentExecution.withStatus(JobExecution.Status.COMMITTED)
-                                  .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
-                                  .withCompletedDate(new Date());
-
-                                return jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentExecution, params)
-                                  .compose(updatedJobExecution -> {
-                                    sendDiJobCompletedEvent(updatedJobExecution, params);
-                                    return Future.succeededFuture(updatedJobExecution);
-                                  });
-                              }
-                              return Future.succeededFuture(parentExecution);
-                            });
-                        }
-                      })
-                      .orElse(Future.failedFuture(format("Couldn't find parent job execution with id %s", updatedExecution.getParentJobId())))
-                  );
-              } else {
-                if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_SINGLE) ||
-                  updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)) {
-                  LOGGER.info("{}  subordination type for job {}. Processing...", updatedExecution.getSubordinationType(), updatedExecution.getId());
-                  sendDiJobCompletedEvent(updatedExecution, params);
-                }
-                return Future.succeededFuture(updatedExecution);
-              }
-            })
-            .map(true))
-          .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with jobExecutionId='%s'", jobExecutionId))));
+    if (progress.getTotal() > progress.getCurrentlySucceeded() + progress.getCurrentlyFailed()) {
+      return Future.succeededFuture(false);
     }
-    return Future.succeededFuture(false);
+
+    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
+      .compose(jobExecutionOptional -> jobExecutionOptional
+        .map(jobExecution -> updateJobExecutionWithSnapshotStatus(jobExecution, progress, params)
+          .compose(updatedExecution -> handleSubordinationType(updatedExecution, params))
+          .map(true))
+        .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with jobExecutionId='%s'", jobExecutionId))));
+  }
+
+  private Future<JobExecution> handleSubordinationType(JobExecution updatedExecution, OkapiConnectionParams params) {
+    if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.COMPOSITE_CHILD)) {
+      return handleCompositeChild(updatedExecution, params);
+    }
+
+    if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_SINGLE) ||
+      updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)) {
+      LOGGER.info("{} subordination type for job with jobExecutionId={}. Processing...", updatedExecution.getSubordinationType(), updatedExecution.getId());
+      sendDiJobCompletedEvent(updatedExecution, params);
+    }
+
+    return Future.succeededFuture(updatedExecution);
+  }
+
+  private Future<JobExecution> handleCompositeChild(JobExecution updatedExecution, OkapiConnectionParams params) {
+    LOGGER.info("COMPOSITE_CHILD subordination type for job with jobExecutionId={}. Processing...", updatedExecution.getId());
+
+    return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
+      .compose(parentJobOptional -> parentJobOptional
+        .map(parentExecution -> processParentExecution(parentExecution, params))
+        .orElse(Future.failedFuture(format("Couldn't find parent job with jobExecutionId=%s", updatedExecution.getParentJobId()))));
+  }
+
+  private Future<JobExecution> processParentExecution(JobExecution parentExecution, OkapiConnectionParams params) {
+    LOGGER.debug("processParentExecution:: Processing parent job with jobExecutionId={}", parentExecution.getId());
+    if (COMPLETED_STATUSES.contains(parentExecution.getUiStatus())) {
+      LOGGER.info("Parent job with jobExecutionId={} already has completed status. Skipping update.", parentExecution.getId());
+      return Future.succeededFuture(parentExecution);
+    }
+
+    return jobExecutionService.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
+      .map(JobExecutionDtoCollection::getJobExecutions)
+      .map(children -> children.stream()
+        .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
+        .allMatch(child -> Arrays.asList(
+          JobExecutionDto.UiStatus.RUNNING_COMPLETE,
+          JobExecutionDto.UiStatus.CANCELLED,
+          JobExecutionDto.UiStatus.ERROR,
+          JobExecutionDto.UiStatus.DISCARDED
+        ).contains(child.getUiStatus())))
+      .compose(allChildrenCompleted -> {
+        if (Boolean.TRUE.equals(allChildrenCompleted) && !COMMITTED.equals(parentExecution.getStatus())) {
+          LOGGER.info("All children for job with jobExecutionId={} have completed!", parentExecution.getId());
+          parentExecution.withStatus(JobExecution.Status.COMMITTED)
+            .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+            .withCompletedDate(new Date());
+
+          return jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentExecution, params)
+            .compose(updatedJobExecution -> {
+              sendDiJobCompletedEvent(updatedJobExecution, params);
+              return Future.succeededFuture(updatedJobExecution);
+            });
+        }
+        return Future.succeededFuture(parentExecution);
+      });
   }
 
   private Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, JobExecutionProgress progress,
