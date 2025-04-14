@@ -61,6 +61,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.folio.verticle.JobExecutionProgressVerticle.COMPLETED_STATUSES;
 
 /**
  * Implementation of the JobExecutionService, calls JobExecutionDao to access JobExecution metadata.
@@ -123,25 +124,45 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId {}", jobExecution.getId());
+    LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId={}", jobExecution.getId());
 
     Promise<JobExecution> promise = Promise.promise();
-    updateJobExecution(jobExecution, params)
+    if (jobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT) {
+      LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={}", jobExecution.getId());
+      return getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
+        .compose(parentJobOptional ->
+          parentJobOptional
+            .map(parentExecution -> {
+              if (COMPLETED_STATUSES.contains(parentExecution.getUiStatus())) {
+                LOGGER.info("updateJobExecutionWithSnapshotStatusAsync:: Parent job with jobExecutionId={} already has completed status. Skipping update.", parentExecution.getId());
+                return Future.succeededFuture(jobExecution);
+              } else {
+                return updateJobExecutionAndSnapshot(jobExecution, params, promise);
+              }
+            })
+            .orElse(Future.failedFuture(format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job execution with jobExecutionId=%s", jobExecution.getParentJobId())))
+        );
+    } else {
+      return updateJobExecutionAndSnapshot(jobExecution, params, promise);
+    }
+  }
+
+  private Future<JobExecution> updateJobExecutionAndSnapshot(JobExecution jobExecution, OkapiConnectionParams params, Promise<JobExecution> promise) {
+    return updateJobExecution(jobExecution, params)
       .onSuccess(updatedJobExecution -> {
         updateSnapshotStatus(updatedJobExecution, params)
           .onComplete(ar -> {
             if (ar.failed()) {
-              LOGGER.warn("updateJobExecutionWithSnapshotStatusAsync:: update snapshot status for jobExecutionId: {} failed: {}",
+              LOGGER.warn("updateJobExecutionAndSnapshot:: update snapshot status for jobExecutionId={} failed: {}",
                 jobExecution.getId(), ar.cause().getMessage());
             } else {
-              LOGGER.info("updateJobExecutionWithSnapshotStatusAsync:: update snapshot status for jobExecutionId: {} completed successfully",
+              LOGGER.info("updateJobExecutionAndSnapshot:: update snapshot status for jobExecutionId={} completed successfully.",
                 jobExecution.getId());
             }
           });
         promise.complete(updatedJobExecution);
       })
       .onFailure(promise::fail);
-    return promise.future();
   }
 
   public Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
@@ -151,7 +172,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecution:: jobExecutionId {}", jobExecution.getId());
+    LOGGER.debug("updateJobExecution:: jobExecutionId={}", jobExecution.getId());
     return jobExecutionDao.updateBlocking(jobExecution.getId(), currentJobExec -> {
       Promise<JobExecution> promise = Promise.promise();
       if (JobExecution.Status.PARENT.equals(jobExecution.getStatus()) ^ JobExecution.Status.PARENT.equals(currentJobExec.getStatus())) {
@@ -191,7 +212,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecutionStatus:: jobExecutionId {}, status {}", jobExecutionId, status.getStatus());
+    LOGGER.debug("updateJobExecutionStatus:: jobExecutionId={}, status {}", jobExecutionId, status.getStatus());
     if (JobExecution.Status.PARENT.name().equals(status.getStatus().name())) {
       String errorMessage = "Cannot update JobExecution status to PARENT";
       LOGGER.warn(errorMessage);
@@ -211,7 +232,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
               promise.complete(jobExecution);
             }
           } catch (Exception e) {
-            String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
+            String errorMessage = "Error updating JobExecution with jobExecutionId=" + jobExecutionId;
             LOGGER.warn(errorMessage, e);
             promise.fail(errorMessage);
           }
@@ -256,7 +277,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
-    LOGGER.debug("setJobProfileToJobExecution:: jobExecutionId {}, jobProfileId {}", jobExecutionId, jobProfile.getId());
+    LOGGER.debug("setJobProfileToJobExecution:: jobExecutionId={}, jobProfileId {}", jobExecutionId, jobProfile.getId());
     return loadJobProfileById(jobProfile.getId(), params)
       .map(profile -> jobProfile.withName(profile.getName()))
       .compose(v -> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
@@ -368,7 +389,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       case COMPOSITE -> {
         var parentJobId = dto.getParentJobId();
         var isParent = StringUtils.isBlank(parentJobId);
-        File file = files.get(0);
+        File file = files.getFirst();
         var jobExecution = buildNewJobExecution(isParent, true, true, parentJobExecutionId, file.getName(), userId)
           .withJobPartNumber(dto.getJobPartNumber())
           .withTotalJobParts(dto.getTotalJobParts())
@@ -385,7 +406,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           }
           result.add(buildNewJobExecution(true, false, false, parentJobExecutionId, null, userId).withRunBy(runBy));
         } else {
-          File file = files.get(0);
+          File file = files.getFirst();
           result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
         }
         return result;
@@ -451,7 +472,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * Create new JobExecution object and fill fields
    */
   private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, boolean isComposite, String parentJobExecutionId, String fileName, String userId) {
-    LOGGER.debug("buildNewJobExecution:: parentJobExecutionId {}, fileName {}, userId {}", parentJobExecutionId, fileName, userId);
+    LOGGER.debug("buildNewJobExecution:: parentJobExecutionId={}, fileName {}, userId {}", parentJobExecutionId, fileName, userId);
     JobExecution job = new JobExecution()
       .withId(isParent ? parentJobExecutionId : UUID.randomUUID().toString())
       .withParentJobId(parentJobExecutionId)
@@ -547,7 +568,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @return future
    */
   private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
-    LOGGER.debug("postSnapshot:: jobExecutionId {}", snapshot.getJobExecutionId());
+    LOGGER.debug("postSnapshot:: jobExecutionId={}", snapshot.getJobExecutionId());
     Promise<String> promise = Promise.promise();
 
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
@@ -568,7 +589,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateSnapshotStatus:: jobExecutionId {}", jobExecution.getId());
+    LOGGER.debug("updateSnapshotStatus:: jobExecutionId={}", jobExecution.getId());
     Promise<JobExecution> promise = Promise.promise();
     Snapshot snapshot = new Snapshot()
       .withJobExecutionId(jobExecution.getId())
