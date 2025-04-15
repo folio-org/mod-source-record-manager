@@ -1,3 +1,6 @@
+## 2025-04-15 v3.10.2
+* [MODSOURMAN-1287](https://folio-org.atlassian.net/browse/MODSOURMAN-1287) DI completion event is produced more than once
+
 ## 2025-03-31 v3.10.1
 * [MODSOURMAN-1305](https://folio-org.atlassian.net/browse/MODSOURMAN-1305) Fix mapping-rules migration
 
