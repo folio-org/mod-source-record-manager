@@ -1,3 +1,6 @@
+## 2025-05-02 v3.10.5
+* [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
+
 ## 2025-05-02 v3.10.4
 * [MODSOURMAN-1308](https://folio-org.atlassian.net/browse/MODSOURMAN-1308) Upgrade all dependencies for Sunflower fixing vulnerabilities
 
