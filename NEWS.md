@@ -1,3 +1,6 @@
+## XXXX-XX-XX v3.1X.X
+* [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
+
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
 * [MODSOURMAN-1266](https://folio-org.atlassian.net/browse/MODSOURMAN-1266) Event DI_JOB_COMPLETED is not being sent upon the completion of the data import process
