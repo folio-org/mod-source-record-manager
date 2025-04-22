@@ -12,6 +12,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.folio.KafkaUtil.checkKafkaEventSent;
+import static org.folio.KafkaUtil.getValues;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
@@ -55,13 +57,15 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.folio.KafkaUtil;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
@@ -1745,21 +1749,21 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(TestContext testContext, String rawRecord) throws InterruptedException {
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(TestContext testContext, String rawRecord) {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()
@@ -1803,8 +1807,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     final AtomicReference<DataImportEventPayload> eventPayloadRef = new AtomicReference<>();
 
     await().forever().pollInterval(1, TimeUnit.SECONDS).until(() -> {
-      List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
-        .build());
+      List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 3));
       return observedValues.stream()
         .anyMatch(value -> {
           Event event = Json.decodeValue(value, Event.class);
@@ -2139,10 +2142,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_MARC_FOR_UPDATE_RECEIVED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .observeFor(2000, TimeUnit.SECONDS)
-      .build());
-
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     assertEquals(DI_MARC_FOR_UPDATE_RECEIVED.value(), obtainedEvent.getEventType());
     DataImportEventPayload dataImportEventPayload = Json
@@ -2155,8 +2155,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateInstanceActionProfile(TestContext testContext)
-    throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateInstanceActionProfile(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2190,10 +2189,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 2)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
-
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 2, 30, TimeUnit.SECONDS));
     Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
     assertEquals(DI_ERROR.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
@@ -2248,9 +2244,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(
-      ObserveKeyValues.on(topicToObserve, 57).observeFor(30, TimeUnit.SECONDS).build());
-
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 57, 30, TimeUnit.SECONDS));
     Event obtainedEvent = Json.decodeValue(observedValues.get(56), Event.class);
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
@@ -2260,8 +2254,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcAuthorityActionProfile(TestContext testContext)
-    throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcAuthorityActionProfile(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2302,10 +2295,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
-
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
@@ -2350,9 +2340,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .observeFor(30, TimeUnit.SECONDS).build());
-
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     assertEquals(DI_ERROR.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
@@ -2361,8 +2349,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext)
-    throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2403,9 +2390,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 2)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 2, 30, TimeUnit.SECONDS));
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
@@ -2446,7 +2431,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .extract().path("parentJobExecutionId");
 
     DeleteJobExecutionsReq deleteJobExecutionsReq =
-      new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
+      new DeleteJobExecutionsReq().withIds(asList(parentJobExecutionId));
     RestAssured.given()
       .spec(spec)
       .body(deleteJobExecutionsReq)
@@ -2496,7 +2481,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .extract().path("parentJobExecutionId");
 
     DeleteJobExecutionsReq deleteJobExecutionsReq =
-      new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId, parentJobExecutionId_2));
+      new DeleteJobExecutionsReq().withIds(asList(parentJobExecutionId, parentJobExecutionId_2));
     RestAssured.given()
       .spec(spec)
       .body(deleteJobExecutionsReq)
@@ -2558,7 +2543,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   public static DeleteJobExecutionsResp returnDeletedJobExecutionResponse(String[] parentJobExecutionId) {
     DeleteJobExecutionsReq deleteJobExecutionsReq =
-      new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
+      new DeleteJobExecutionsReq().withIds(asList(parentJobExecutionId));
     return RestAssured.given()
       .spec(spec)
       .body(deleteJobExecutionsReq)
