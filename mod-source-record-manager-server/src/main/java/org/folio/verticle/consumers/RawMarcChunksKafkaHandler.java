@@ -56,6 +56,8 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
+    LOGGER.info("handle:: System user enabled: {}", System.getProperty("SYSTEM_USER_ENABLED"));
+    System.setProperty("SYSTEM_USER_ENABLED", "false");
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiParams = OkapiConnectionParams.createSystemUserConnectionParams(
       KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
