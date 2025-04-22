@@ -915,7 +915,7 @@
     "env": [
       {
         "name": "JAVA_OPTIONS",
-        "value": "-XX:MaxRAMPercentage=66.0  -Djava.util.logging.config.file=vertx-default-jul-logging.properties -DSYSTEM_USER_ENABLED=false"
+        "value": "-XX:MaxRAMPercentage=66.0  -Djava.util.logging.config.file=vertx-default-jul-logging.properties"
       },
       {
         "name": "DB_HOST",
@@ -964,6 +964,10 @@
       {
         "name": "DB_RECONNECTINTERVAL",
         "value": "1000"
+      },
+      {
+        "name": "SYSTEM_USER_ENABLED",
+        "value": false
       }
     ]
   }
