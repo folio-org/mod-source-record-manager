@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.folio.KafkaUtil;
 import org.folio.MappingProfile;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
@@ -69,6 +70,7 @@ import org.folio.rest.tools.utils.Envs;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.SharedDataUtil;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -367,6 +369,11 @@ public abstract class AbstractRestTest {
       .envId(KAFKA_ENV_VALUE)
       .build();
     deployVerticle(context);
+  }
+
+  @After
+  public void clearKafkaTopics() {
+    KafkaUtil.clearAllTopics();
   }
 
   @AfterClass

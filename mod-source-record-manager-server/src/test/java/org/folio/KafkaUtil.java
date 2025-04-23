@@ -3,11 +3,14 @@ package org.folio;
 import com.google.common.collect.Lists;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.logging.log4j.LogManager;
@@ -18,7 +21,9 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +37,7 @@ public final class KafkaUtil {
     = DockerImageName.parse("apache/kafka-native:3.8.0");
 
   private static final KafkaContainer KAFKA_CONTAINER = new KafkaContainer(IMAGE_NAME)
-      .withStartupAttempts(3);
+    .withStartupAttempts(3);
 
   private KafkaUtil() {
     throw new UnsupportedOperationException("Cannot instantiate utility class.");
@@ -71,39 +76,49 @@ public final class KafkaUtil {
     return checkKafkaEventSent(topicToObserve, amountOfEvents,3, TimeUnit.SECONDS);
   }
 
-  /**
-   * Checks if the specified number of events have been sent to a Kafka topic within a given timeout.
-   *
-   * @param topicToObserve The Kafka topic to observe for events.
-   * @param amountOfEvents The number of events expected to be found in the topic.
-   * @param timeout        The maximum time to wait for the events.
-   * @param timeUnit       The unit of time for the timeout (e.g., seconds, milliseconds).
-   * @return A list of ConsumerRecord objects containing the events retrieved from the topic.
-   * @throws AssertionError If the expected number of events are not found within the given timeout.
-   */
   public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve, int amountOfEvents,
                                                                          long timeout, TimeUnit timeUnit) {
     Properties consumerProperties = getConsumerProperties();
-    List<ConsumerRecord<String, String>> allRecords = Lists.newArrayList();
+    ConsumerRecords<String, String> records;
 
-    try (var kafkaConsumer = new KafkaConsumer<String, String>(consumerProperties)) {
+    try (KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(consumerProperties)) {
+      kafkaConsumer.seekToBeginning(kafkaConsumer.assignment());
+
       kafkaConsumer.subscribe(Collections.singletonList(topicToObserve));
+      records = kafkaConsumer.poll(Duration.of(timeout, timeUnit.toChronoUnit()));
 
-      while (allRecords.size() < amountOfEvents) {
-        var records = kafkaConsumer.poll(Duration.of(timeout, timeUnit.toChronoUnit()));
-        logger.info("Found {} records in the topic {}", records.count(), topicToObserve);
-        assert !records.isEmpty() : "Expected " + amountOfEvents + " events, but found " + allRecords.size();
-
-        records.forEach(allRecords::add);
-      }
+      assert records.count() == amountOfEvents :
+        String.format("Expected %d events, but found %d", amountOfEvents, records.count());
     }
-    return allRecords;
+
+    return Lists.newArrayList(records.iterator());
   }
 
   public static RecordMetadata sendEvent(ProducerRecord<String, String> producerRecord) throws ExecutionException, InterruptedException {
     var producerProperties = getProducerProperties();
     try (KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(producerProperties)) {
       return kafkaProducer.send(producerRecord).get();
+    }
+  }
+
+  public static void clearAllTopics() {
+    Properties consumerProperties = getConsumerProperties();
+    try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+      Set<TopicPartition> partitions = consumer.listTopics().values().stream()
+        .flatMap(partitionInfos -> partitionInfos.stream()
+          .map(partitionInfo -> new TopicPartition(partitionInfo.topic(), partitionInfo.partition())))
+        .collect(java.util.stream.Collectors.toSet());
+
+      if (!partitions.isEmpty()) {
+        consumer.assign(partitions);
+        consumer.seekToEnd(partitions);
+        Map<TopicPartition, OffsetAndMetadata> offsetsToCommit = partitions.stream()
+          .collect(java.util.stream.Collectors.toMap(
+            partition -> partition,
+            partition -> new OffsetAndMetadata(consumer.position(partition))
+          ));
+        consumer.commitSync(offsetsToCommit);
+      }
     }
   }
 
