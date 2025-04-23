@@ -7,10 +7,8 @@ import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import net.mguenther.kafka.junit.KeyValue;
-import net.mguenther.kafka.junit.ObserveKeyValues;
-import net.mguenther.kafka.junit.SendKeyValues;
 import org.apache.http.HttpStatus;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.folio.MatchDetail;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
@@ -41,14 +39,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.folio.KafkaUtil.checkKafkaEventSent;
+import static org.folio.KafkaUtil.getValues;
+import static org.folio.KafkaUtil.sendEvent;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
@@ -71,16 +71,15 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   private static final String INCOMING_RECORD_ID_KEY = "INCOMING_RECORD_ID";
   private static final String ERROR_KEY = "ERROR";
   private static final String JOB_PROFILE_ID = UUID.randomUUID().toString();
-  private static final String GROUP_ID = "test-consumers";
   private static String rawEdifactContent;
 
-  private ActionProfile updateInstanceActionProfile = new ActionProfile()
+  private final ActionProfile updateInstanceActionProfile = new ActionProfile()
     .withId(UUID.randomUUID().toString())
     .withName("Update instance")
     .withAction(ActionProfile.Action.UPDATE)
     .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
 
-  private ProfileSnapshotWrapper updateInstanceJobProfileSnapshot = new ProfileSnapshotWrapper()
+  private final ProfileSnapshotWrapper updateInstanceJobProfileSnapshot = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withContentType(JOB_PROFILE)
     .withContent(jobProfile)
@@ -89,27 +88,27 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
         .withContentType(ACTION_PROFILE)
         .withContent(updateInstanceActionProfile)));
 
-  private MatchProfile matchProfileMarcBibToInstance =
+  private final MatchProfile matchProfileMarcBibToInstance =
     new MatchProfile().withMatchDetails(List.of(new MatchDetail()
       .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
       .withExistingRecordType(EntityType.INSTANCE)));
 
-  private MatchProfile matchProfileMarcBibToMarcBib =
+  private final MatchProfile matchProfileMarcBibToMarcBib =
     new MatchProfile().withMatchDetails(List.of(new MatchDetail()
       .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
       .withExistingRecordType(EntityType.MARC_BIBLIOGRAPHIC)));
 
-  private MappingProfile mappingProfileMarcBibToMarcBib = new MappingProfile()
+  private final MappingProfile mappingProfileMarcBibToMarcBib = new MappingProfile()
     .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
     .withExistingRecordType(EntityType.MARC_BIBLIOGRAPHIC);
 
-  private ActionProfile createAuthorityActionProfile = new ActionProfile()
+  private final ActionProfile createAuthorityActionProfile = new ActionProfile()
     .withId(UUID.randomUUID().toString())
     .withName("Create authority")
     .withAction(ActionProfile.Action.CREATE)
     .withFolioRecord(ActionProfile.FolioRecord.AUTHORITY);
 
-  private ProfileSnapshotWrapper marcBibUpdateUnsupportedSimpleJobProfileSnapshot = new ProfileSnapshotWrapper()
+  private final ProfileSnapshotWrapper marcBibUpdateUnsupportedSimpleJobProfileSnapshot = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withContentType(JOB_PROFILE)
     .withContent(jobProfile)
@@ -121,7 +120,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
               new ProfileSnapshotWrapper().withContentType(MAPPING_PROFILE).withContent(mappingProfileMarcBibToMarcBib))
             )))));
 
-  private ProfileSnapshotWrapper marcBibUpdateUnsupportedJobProfileSnapshot = new ProfileSnapshotWrapper()
+  private final ProfileSnapshotWrapper marcBibUpdateUnsupportedJobProfileSnapshot = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withContentType(JOB_PROFILE)
     .withContent(jobProfile)
@@ -152,12 +151,12 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotFillInInstanceIdAndInstanceHridWhenRecordContains999FieldWithInstanceId() throws InterruptedException {
+  public void shouldNotFillInInstanceIdAndInstanceHridWhenRecordContains999FieldWithInstanceId() throws InterruptedException, ExecutionException {
     // given
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
@@ -169,16 +168,16 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldParseAndPublishChunkWithEdifactRecord() throws InterruptedException {
+  public void shouldParseAndPublishChunkWithEdifactRecord() throws InterruptedException, ExecutionException {
     // given
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.created().withBody(Json.encode(createInvoiceProfileSnapshotWrapperResponse))));
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.ok().withBody(Json.encode(createInvoiceProfileSnapshotWrapperResponse))));
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.EDIFACT, RecordsMetadata.ContentType.EDIFACT_RAW, rawEdifactContent);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.EDIFACT, RecordsMetadata.ContentType.EDIFACT_RAW, rawEdifactContent);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_INCOMING_EDIFACT_RECORD_PARSED);
@@ -188,13 +187,13 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotObserveValuesWhenEventPayloadNotParsed() throws InterruptedException {
+  public void shouldNotObserveValuesWhenEventPayloadNotParsed() throws InterruptedException, ExecutionException {
     // given
-    SendKeyValues<String, String> request = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, "errorPayload");
-    String jobExecutionId = getJobExecutionId(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, "errorPayload");
+    String jobExecutionId = getJobExecutionId(producerRecord);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     checkEventWithTypeWasNotSend(jobExecutionId, DI_RAW_RECORDS_CHUNK_PARSED);
@@ -202,12 +201,12 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldCreateErrorRecordsWhenRecordNotParsed() throws InterruptedException {
+  public void shouldCreateErrorRecordsWhenRecordNotParsed() throws InterruptedException, ExecutionException {
     // given
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, "errorPayload");
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, "errorPayload");
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
@@ -217,16 +216,16 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldGetUnsupportedProfileExceptionSimpleProfile() throws InterruptedException {
+  public void shouldGetUnsupportedProfileExceptionSimpleProfile() throws InterruptedException, ExecutionException {
     // given
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.created().withBody(Json.encode(marcBibUpdateUnsupportedSimpleJobProfileSnapshot))));
 
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
@@ -235,16 +234,16 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldGetUnsupportedProfileException() throws InterruptedException {
+  public void shouldGetUnsupportedProfileException() throws InterruptedException, ExecutionException {
     // given
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.created().withBody(Json.encode(marcBibUpdateUnsupportedJobProfileSnapshot))));
 
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
@@ -253,22 +252,23 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotObserveValuesWhenJobExecutionIdNotCreated() throws InterruptedException {
+  public void shouldNotObserveValuesWhenJobExecutionIdNotCreated() throws InterruptedException, ExecutionException {
     RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
     String jobExecutionId = UUID.randomUUID().toString();
 
     Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
+    ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
+      formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value()),
+      "key",
+      Json.encode(event)
+    );
 
-    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, singletonList(kafkaRecord))
-      .useDefaults();
+    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(OKAPI_URL_HEADER, snapshotMockServer.baseUrl().getBytes(UTF_8));
+    producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionId.getBytes(UTF_8));
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     checkEventWithTypeWasNotSend(jobExecutionId, DI_RAW_RECORDS_CHUNK_PARSED);
@@ -276,7 +276,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotSendAnyEventsForDuplicates() throws InterruptedException {
+  public void shouldNotSendAnyEventsForDuplicates() throws InterruptedException, ExecutionException {
     // given
     RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, CORRECT_RAW_RECORD);
     JobExecutionSourceChunkDao jobExecutionSourceChunkDao = getBeanFromSpringContext(vertx, org.folio.dao.JobExecutionSourceChunkDao.class);
@@ -284,11 +284,11 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .withId(chunk.getId())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS), TENANT_ID);
 
-    SendKeyValues<String, String> request = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, Json.encode(chunk));
-    String jobExecutionId = getJobExecutionId(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, Json.encode(chunk));
+    String jobExecutionId = getJobExecutionId(producerRecord);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     checkEventWithTypeWasNotSend(jobExecutionId, DI_RAW_RECORDS_CHUNK_PARSED);
@@ -296,15 +296,15 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotSendDIErrorWhenReceiveDuplicateEvent() throws InterruptedException {
+  public void shouldNotSendDIErrorWhenReceiveDuplicateEvent() throws InterruptedException, ExecutionException {
     // given
     RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, CORRECT_RAW_RECORD);
-    SendKeyValues<String, String> request = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, Json.encode(chunk));
-    String jobExecutionId = getJobExecutionId(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, Json.encode(chunk));
+    String jobExecutionId = getJobExecutionId(producerRecord);
 
     // when
-    kafkaCluster.send(request);
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
+    sendEvent(producerRecord);
 
     // then
     checkEventWithTypeSent(DI_INCOMING_MARC_BIB_RECORD_PARSED);
@@ -312,16 +312,16 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSendEventDiMarcForUpdateReceivedWhenProfileSnapshotContainsUpdateInstanceActionProfile() throws InterruptedException {
+  public void shouldSendEventDiMarcForUpdateReceivedWhenProfileSnapshotContainsUpdateInstanceActionProfile() throws InterruptedException, ExecutionException {
     // given
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.created().withBody(Json.encode(updateInstanceJobProfileSnapshot))));
 
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_MARC_FOR_UPDATE_RECEIVED);
@@ -331,7 +331,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSendDIErrorWhenJobProfileIncompatibleWithMarcRecordSubtype() throws InterruptedException {
+  public void shouldSendDIErrorWhenJobProfileIncompatibleWithMarcRecordSubtype() throws InterruptedException, ExecutionException {
     // given
     ProfileSnapshotWrapper createAuthorityJobProfileSnapshot = new ProfileSnapshotWrapper()
       .withId(UUID.randomUUID().toString())
@@ -345,11 +345,11 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.created().withBody(Json.encode(createAuthorityJobProfileSnapshot))));
 
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
@@ -359,16 +359,16 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSendEventDiErrorWhenParsingFailedForUpdateScenarios() throws InterruptedException {
+  public void shouldSendEventDiErrorWhenParsingFailedForUpdateScenarios() throws InterruptedException, ExecutionException {
     // given
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
             .willReturn(WireMock.created().withBody(Json.encode(updateInstanceJobProfileSnapshot))));
 
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
             RecordsMetadata.ContentType.MARC_RAW, INVALID_RECORD);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
@@ -378,7 +378,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSendDIErrorWhenJobProfileSnapshotHasNoChildWrappers() throws InterruptedException {
+  public void shouldSendDIErrorWhenJobProfileSnapshotHasNoChildWrappers() throws InterruptedException, ExecutionException {
     // given
     String expectedError = String.format("The '%s' job profile does not have any linked action or matching profiles", jobProfile.getName());
     ProfileSnapshotWrapper jobProfileWithoutChildWrappers = new ProfileSnapshotWrapper()
@@ -390,11 +390,11 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.created().withBody(Json.encode(jobProfileWithoutChildWrappers))));
 
-    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, CORRECT_RAW_RECORD);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
@@ -403,27 +403,29 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     assertEquals(expectedError, eventPayload.getContext().get(ERROR_KEY));
   }
 
-  private SendKeyValues<String, String> prepareWithSpecifiedRecord(JobProfileInfo.DataType dataType,
-                                                                   RecordsMetadata.ContentType contentType,
-                                                                   String record) {
+  private ProducerRecord<String, String> prepareWithSpecifiedRecord(JobProfileInfo.DataType dataType,
+                                                                    RecordsMetadata.ContentType contentType,
+                                                                    String record) {
     RawRecordsDto chunk = getChunk(contentType, record);
-
     return prepareWithSpecifiedEventPayload(dataType, Json.encode(chunk));
   }
 
-  private SendKeyValues<String, String> prepareWithSpecifiedEventPayload(JobProfileInfo.DataType dataType,
-                                                                         String eventPayload) {
+  private ProducerRecord<String, String> prepareWithSpecifiedEventPayload(JobProfileInfo.DataType dataType,
+                                                                          String eventPayload) {
     String jobExecutionId = emulateJobExecutionIdRequest(dataType);
 
     Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(eventPayload);
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
+    ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
+      formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value()),
+      "key",
+      Json.encode(event)
+    );
 
-    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    return SendKeyValues.to(topic, singletonList(kafkaRecord))
-      .useDefaults();
+    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(OKAPI_URL_HEADER, snapshotMockServer.baseUrl().getBytes(UTF_8));
+    producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionId.getBytes(UTF_8));
+
+    return producerRecord;
   }
 
   private RawRecordsDto getChunk(RecordsMetadata.ContentType contentType, String record) {
@@ -441,7 +443,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExecution = createdJobExecutions.get(0);
+    JobExecution jobExecution = createdJobExecutions.getFirst();
 
     RestAssured.given()
       .spec(spec)
@@ -457,41 +459,29 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     return jobExecution.getId();
   }
 
-  private String getJobExecutionId(SendKeyValues<String, String> request) {
-    return new String(request.getRecords().stream()
-      .findFirst()
-      .get()
-      .getHeaders()
-      .lastHeader(JOB_EXECUTION_ID_HEADER).value());
+  private String getJobExecutionId(ProducerRecord<String, String> request) {
+    return new String(request.headers().lastHeader(JOB_EXECUTION_ID_HEADER).value());
   }
 
-  private Event checkEventWithTypeSent(DataImportEventTypes eventType) throws InterruptedException {
+  private Event checkEventWithTypeSent(DataImportEventTypes eventType) {
     String topicToObserve = formatToKafkaTopicName(eventType.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .with(GROUP_ID_CONFIG, GROUP_ID)
-      .observeFor(60, TimeUnit.SECONDS)
-      .build());
-    return Json.decodeValue(observedValues.get(0), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1, 60, TimeUnit.SECONDS));
+
+    return Json.decodeValue(observedValues.getFirst(), Event.class);
   }
 
-  private void checkEventWithTypeWasNotSend(String jobExecutionId, DataImportEventTypes eventType) throws InterruptedException {
+  private void checkEventWithTypeWasNotSend(String jobExecutionId, DataImportEventTypes eventType) {
     String topicToObserve = formatToKafkaTopicName(eventType.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 0)
-      .with(GROUP_ID_CONFIG, GROUP_ID)
-      .observeFor(10, TimeUnit.SECONDS)
-      .build());
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 0, 10, TimeUnit.SECONDS));
 
     List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
 
     assertEquals(0, testedEventsPayLoads.size());
   }
 
-  private void checkDiErrorEventsSent(String jobExecutionId, String errorMessage) throws InterruptedException {
+  private void checkDiErrorEventsSent(String jobExecutionId, String errorMessage) {
     String observeTopic = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
-      .with(GROUP_ID_CONFIG, GROUP_ID)
-      .observeFor(60, TimeUnit.SECONDS)
-      .build());
+    List<String> observedValues = getValues(checkKafkaEventSent(observeTopic, 1, 60, TimeUnit.SECONDS));
 
     List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
 

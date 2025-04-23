@@ -3,8 +3,6 @@ package org.folio.rest.impl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
-import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
 import static org.folio.KafkaUtil.getKafkaHostAndPort;
 import static org.folio.KafkaUtil.startKafka;
 import static org.folio.KafkaUtil.stopKafka;

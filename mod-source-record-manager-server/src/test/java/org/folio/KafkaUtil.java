@@ -3,7 +3,6 @@ package org.folio;
 import com.google.common.collect.Lists;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -17,14 +16,11 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static java.time.Duration.ofMinutes;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
@@ -71,8 +67,8 @@ public final class KafkaUtil {
     }
   }
 
-  public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String eventType, int amountOfEvents) throws InterruptedException {
-    return checkKafkaEventSent(eventType, amountOfEvents,3, TimeUnit.SECONDS);
+  public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve, int amountOfEvents) {
+    return checkKafkaEventSent(topicToObserve, amountOfEvents,3, TimeUnit.SECONDS);
   }
 
   /**
@@ -83,10 +79,10 @@ public final class KafkaUtil {
    * @param timeout        The maximum time to wait for the events.
    * @param timeUnit       The unit of time for the timeout (e.g., seconds, milliseconds).
    * @return A list of ConsumerRecord objects containing the events retrieved from the topic.
-   * @throws InterruptedException If the expected number of events are not found within the given timeout.
+   * @throws AssertionError If the expected number of events are not found within the given timeout.
    */
   public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve, int amountOfEvents,
-                                                                         long timeout, TimeUnit timeUnit) throws InterruptedException {
+                                                                         long timeout, TimeUnit timeUnit) {
     Properties consumerProperties = getConsumerProperties();
     List<ConsumerRecord<String, String>> allRecords = Lists.newArrayList();
 
@@ -96,26 +92,17 @@ public final class KafkaUtil {
       while (allRecords.size() < amountOfEvents) {
         var records = kafkaConsumer.poll(Duration.of(timeout, timeUnit.toChronoUnit()));
         logger.info("Found {} records in the topic {}", records.count(), topicToObserve);
-        if (records.isEmpty()) {
-          throw new InterruptedException("%s records not found in the given time".formatted(amountOfEvents - allRecords.size()));
-        }
+        assert !records.isEmpty() : "Expected " + amountOfEvents + " events, but found " + allRecords.size();
+
         records.forEach(allRecords::add);
       }
     }
     return allRecords;
   }
 
-  public static RecordMetadata sendEvent(Map<String, String> kafkaHeaders,
-                                         String topic, String key, String value) throws ExecutionException, InterruptedException {
+  public static RecordMetadata sendEvent(ProducerRecord<String, String> producerRecord) throws ExecutionException, InterruptedException {
     var producerProperties = getProducerProperties();
     try (KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(producerProperties)) {
-      var producerRecord = new ProducerRecord<>(topic, key, value);
-      kafkaHeaders.forEach((k, v) -> {
-        if (v != null) {
-          producerRecord.headers().add(k, v.getBytes());
-        }
-      });
-
       return kafkaProducer.send(producerRecord).get();
     }
   }

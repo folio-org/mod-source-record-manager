@@ -2189,8 +2189,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 2, 30, TimeUnit.SECONDS));
-    Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     assertEquals(DI_ERROR.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
 
@@ -2244,8 +2244,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
-    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 57, 30, TimeUnit.SECONDS));
-    Event obtainedEvent = Json.decodeValue(observedValues.get(56), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 54));
+    Event obtainedEvent = Json.decodeValue(observedValues.get(53), Event.class);
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
@@ -2390,9 +2390,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 2, 30, TimeUnit.SECONDS));
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertNull(recordCollection.getRecords().get(0).getMatchedId());
