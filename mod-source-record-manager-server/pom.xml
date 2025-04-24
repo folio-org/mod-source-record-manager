@@ -85,22 +85,6 @@
       <version>${raml-module-builder.version}</version>
     </dependency>
     <dependency>
-      <groupId>net.mguenther.kafka</groupId>
-      <artifactId>kafka-junit</artifactId>
-      <version>3.6.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.folio</groupId>
       <artifactId>domain-models-runtime</artifactId>
       <version>${raml-module-builder.version}</version>

@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.KafkaUtil;
@@ -345,8 +344,6 @@ public abstract class AbstractRestTest {
       .notifier(new ConsoleNotifier(true))
       .extensions(new RequestToResponseTransformer())
   );
-
-  public static EmbeddedKafkaCluster kafkaCluster;
   protected static KafkaConfig kafkaConfig;
 
   @BeforeClass
@@ -354,7 +351,6 @@ public abstract class AbstractRestTest {
     vertx = Vertx.vertx();
     startKafka();
     SharedDataUtil.setIsTesting(vertx);
-    kafkaCluster = null;
 
     String[] hostAndPort = getKafkaHostAndPort();
 

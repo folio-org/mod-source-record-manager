@@ -4,13 +4,9 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import net.mguenther.kafka.junit.KeyValue;
-import net.mguenther.kafka.junit.ObserveKeyValues;
-import net.mguenther.kafka.junit.ReadKeyValues;
-import net.mguenther.kafka.junit.SendKeyValues;
 import org.apache.commons.collections.ListUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpStatus;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
@@ -28,18 +24,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.folio.KafkaUtil.checkKafkaEventSent;
+import static org.folio.KafkaUtil.getValues;
+import static org.folio.KafkaUtil.sendEvent;
+import static org.folio.dataimport.util.RestUtil.OKAPI_TOKEN_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -53,6 +52,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
   private static final String JOB_PROFILE_PATH = "/jobProfile";
   private static final String JOB_PROFILE_SNAPSHOT_ID = "JOB_PROFILE_SNAPSHOT_ID";
   private JobExecution jobExec;
+  private final String DI_PARSED_RECORDS_CHUNK_SAVED_TOPIC = formatToKafkaTopicName(DI_PARSED_RECORDS_CHUNK_SAVED.value());
 
   @Before
   public void setUp() {
@@ -62,24 +62,24 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    jobExec = createdJobExecutions.get(0);
+    jobExec = createdJobExecutions.getFirst();
   }
 
   @Test
-  public void shouldPublishDiErrorWhenLeaderRecordTypeValueIsInvalid() throws InterruptedException {
+  public void shouldPublishDiErrorWhenLeaderRecordTypeValueIsInvalid() throws InterruptedException, ExecutionException {
     linkJobProfileToJobExecution();
     // given
     String parsedContentWithInvalidRecordTypeValue = "{\"leader\": \"13112c7m a2200553Ii 3900\"}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContentWithInvalidRecordTypeValue, 1);
 
-    SendKeyValues<String, String> request = getRequest(jobExec.getId(), recordsBatch);
+    ProducerRecord<String, String> producerRecord = getRequest(jobExec.getId(), recordsBatch);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     List<String> obtainedValues = observeValuesAndFilterByLeader("13112c7m a2200553Ii 3900", DI_ERROR, 1);
-    Event obtainedEvent = Json.decodeValue(obtainedValues.get(0), Event.class);
+    Event obtainedEvent = Json.decodeValue(obtainedValues.getFirst(), Event.class);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_ERROR.value(), eventPayload.getEventType());
     assertEquals(TENANT_ID, eventPayload.getTenant());
@@ -88,15 +88,15 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldPublishCoupleDiErrorsWhenWrongPayload() throws InterruptedException {
+  public void shouldPublishCoupleDiErrorsWhenWrongPayload() throws InterruptedException, ExecutionException {
     linkJobProfileToJobExecution();
     String wrongPayload = "{\"leader\": \"13112c7m a2200553Ii 4300\"}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(wrongPayload, 7);
 
-    SendKeyValues<String, String> request = getRequest(jobExec.getId(), recordsBatch);
+    ProducerRecord<String, String> producerRecord = getRequest(jobExec.getId(), recordsBatch);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     List<String> diErrorValues = observeValuesAndFilterByLeader("13112c7m a2200553Ii 4300", DI_ERROR, 7);
@@ -104,7 +104,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldPublishCoupleOfSuccessEventsAndCoupleOfDiErrorEvents() throws InterruptedException {
+  public void shouldPublishCoupleOfSuccessEventsAndCoupleOfDiErrorEvents() throws InterruptedException, ExecutionException {
     linkJobProfileToJobExecution();
     String correctContent = "{\"leader\":\"00116nam  22000731a 4700\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     String wrongContent = "{\"leader\": \"13113c7m a2200553Ii 4800\"}";
@@ -115,10 +115,10 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     RecordsBatchResponse allRecords = new RecordsBatchResponse().withTotalRecords(10)
       .withRecords(ListUtils.union(correctRecords.getRecords(), wrongRecords.getRecords()));
 
-    SendKeyValues<String, String> request = getRequest(jobExec.getId(), allRecords);
+    ProducerRecord<String, String> producerRecord = getRequest(jobExec.getId(), allRecords);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     List<String> successValues = observeValuesAndFilterByLeader("00116nam  22000731a 4700", DI_INCOMING_MARC_BIB_RECORD_PARSED, 3);
@@ -129,20 +129,20 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSendEventsWithRecords() throws InterruptedException {
+  public void shouldSendEventsWithRecords() throws InterruptedException, ExecutionException {
     linkJobProfileToJobExecution();
     // given
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContent, 1);
 
-    SendKeyValues<String, String> request = getRequest(jobExec.getId(), recordsBatch);
+    ProducerRecord<String, String> producerRecord = getRequest(jobExec.getId(), recordsBatch);
 
     // when
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
 
     // then
     List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_INCOMING_MARC_BIB_RECORD_PARSED, 1);
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventPayload.getEventType());
     assertEquals(TENANT_ID, eventPayload.getTenant());
@@ -151,21 +151,21 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldObserveOnlySingleEventInCaseOfDuplicates() throws InterruptedException {
+  public void shouldObserveOnlySingleEventInCaseOfDuplicates() throws InterruptedException, ExecutionException {
     linkJobProfileToJobExecution();
     // given
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContent, 1);
 
-    SendKeyValues<String, String> request = getRequest(jobExec.getId(), recordsBatch);
+    ProducerRecord<String, String> producerRecord = getRequest(jobExec.getId(), recordsBatch);
 
     // when
-    kafkaCluster.send(request);
-    kafkaCluster.send(request);
+    sendEvent(producerRecord);
+    sendEvent(producerRecord);
 
     // then
     List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_INCOMING_MARC_BIB_RECORD_PARSED, 1);
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventPayload.getEventType());
   }
@@ -184,26 +184,26 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
       .withRecords(records);
   }
 
-  private SendKeyValues<String, String> getRequest(String jobExecutionId, RecordsBatchResponse recordsBatch) {
+  private ProducerRecord<String, String> getRequest(String jobExecutionId, RecordsBatchResponse recordsBatch) {
     Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(recordsBatch));
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("42", (Json.encode(event)));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_TOKEN_HEADER, TOKEN, UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
 
-    String topic = formatToKafkaTopicName(DI_PARSED_RECORDS_CHUNK_SAVED.value());
-    return SendKeyValues.to(topic, Collections.singletonList(kafkaRecord)).useDefaults();
+    ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
+      DI_PARSED_RECORDS_CHUNK_SAVED_TOPIC,
+      "42",
+      Json.encode(event)
+    );
+
+    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(OKAPI_TOKEN_HEADER, TOKEN.getBytes(UTF_8));
+    producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionId.getBytes(UTF_8));
+
+    return producerRecord;
   }
 
-  private List<String> observeValuesAndFilterByLeader(String leader, DataImportEventTypes eventType, Integer countToObserve) throws InterruptedException {
+  private List<String> observeValuesAndFilterByLeader(String leader, DataImportEventTypes eventType, Integer countToObserve) {
     String topicToObserve = formatToKafkaTopicName(eventType.value());
     List<String> result = new ArrayList<>();
-    List<String> observedValues = kafkaCluster.readValues(ReadKeyValues.from(topicToObserve).build());
-    if (CollectionUtils.isEmpty(observedValues)) {
-      observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, countToObserve)
-        .observeFor(30, TimeUnit.SECONDS)
-        .build());
-    }
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, countToObserve, 30, TimeUnit.SECONDS));
     for (String observedValue : observedValues) {
       if (observedValue.contains(leader)) {
         result.add(observedValue);

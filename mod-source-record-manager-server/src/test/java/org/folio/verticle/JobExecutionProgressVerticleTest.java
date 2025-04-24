@@ -7,7 +7,6 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.impl.AbstractRestTest;
@@ -35,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.folio.KafkaUtil.checkKafkaEventSent;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_COMPLETED;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
@@ -159,9 +159,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> verify(jobExecutionProgressDao)
                 .updateCompletionCounts(any(), eq(2), eq(1), eq(tenantId)));
-            kafkaCluster.observeValues(ObserveKeyValues.on(topic, 1)
-              .observeFor(30, TimeUnit.SECONDS)
-              .build());
+            checkKafkaEventSent(topic, 1);
           } catch (Exception e) {
             context.fail(e);
           }
@@ -313,9 +311,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
               .atMost(AWAIT_TIME, TimeUnit.SECONDS)
               .untilAsserted(() -> verify(jobExecutionProgressDao)
                 .updateCompletionCounts(any(), eq(2), eq(1), eq(tenantId)));
-            kafkaCluster.observeValues(ObserveKeyValues.on(topic, 1)
-              .observeFor(30, TimeUnit.SECONDS)
-              .build());
+            checkKafkaEventSent(topic, 1);
           } catch (Exception e) {
             context.fail(e);
           }

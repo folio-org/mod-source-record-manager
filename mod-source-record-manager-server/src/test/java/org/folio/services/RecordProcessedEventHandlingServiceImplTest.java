@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Collections.emptyList;
+import static org.folio.KafkaUtil.getKafkaHostAndPort;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
@@ -178,7 +179,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
   @Before
   public void setUp() throws IOException {
-    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
+    String[] hostAndPort = getKafkaHostAndPort();
     KafkaConfig kafkaConfig = KafkaConfig.builder()
       .kafkaHost(hostAndPort[0])
       .kafkaPort(hostAndPort[1])
