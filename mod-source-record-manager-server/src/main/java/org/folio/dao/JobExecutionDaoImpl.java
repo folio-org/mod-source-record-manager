@@ -38,6 +38,7 @@ import org.folio.rest.persist.SQLConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -255,38 +256,61 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   @Override
   public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId) {
     Promise<JobExecution> promise = Promise.promise();
-    String rollbackMessage = "Rollback transaction. Error during jobExecution update. jobExecutionId" + jobExecutionId;
     Promise<SQLConnection> connection = Promise.promise();
     Promise<JobExecution> jobExecutionPromise = Promise.promise();
     Future.succeededFuture()
       .compose(v -> {
+        LOGGER.debug("updateBlocking:: Starting transaction for jobExecutionId={}", jobExecutionId);
         pgClientFactory.createInstance(tenantId).startTx(connection);
         return connection.future();
       }).compose(v -> {
+        LOGGER.debug("updateBlocking:: Transaction started for jobExecutionId={}", jobExecutionId);
         String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 AND is_deleted = false LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
         Promise<RowSet<Row>> selectResult = Promise.promise();
         pgClientFactory.createInstance(tenantId).execute(connection.future(), selectForUpdate, Tuple.of(jobExecutionId), selectResult);
         return selectResult.future();
       }).compose(rowSet -> {
         if (rowSet.rowCount() != 1) {
-          throw new NotFoundException(rollbackMessage);
+          String errorMessage = String.format("updateBlocking:: JobExecution not found for id %s", jobExecutionId);
+          LOGGER.error(errorMessage);
+          throw new NotFoundException(errorMessage);
+        }
+        JobExecution existingJobExecution = mapRowToJobExecution(rowSet.iterator().next());
+        LOGGER.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={}", jobExecutionId);
+        if (existingJobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT
+          && existingJobExecution.getStatus() == JobExecution.Status.COMMITTED) {
+          String errorMessage = String.format("updateBlocking:: JobExecution is COMPOSITE_PARENT and already with COMMITTED status, skipping update, jobExecutionId=%s", jobExecutionId);
+          LOGGER.warn(errorMessage);
+          promise.fail(new BadRequestException(errorMessage));
+          return Future.failedFuture(new BadRequestException(errorMessage));
         }
         return mutator.mutate(mapRowToJobExecution(rowSet.iterator().next())).onComplete(jobExecutionPromise);
       }).compose(jobExecution -> {
+        LOGGER.debug("updateBlocking:: Mutated JobExecution, jobExecutionId={}", jobExecutionId);
         Promise<RowSet<Row>> updateHandler = Promise.promise();
         String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
         Tuple queryParams = mapToTuple(jobExecution);
         pgClientFactory.createInstance(tenantId).execute(connection.future(), preparedQuery, queryParams, updateHandler);
         return updateHandler.future();
       }).compose(updateHandler -> {
+        LOGGER.debug("updateBlocking:: Updated JobExecution in DB, jobExecutionId={}", jobExecutionId);
         Promise<Void> endTxFuture = Promise.promise();
         pgClientFactory.createInstance(tenantId).endTx(connection.future(), endTxFuture);
         return endTxFuture.future();
       }).onComplete(ar -> {
         if (ar.failed()) {
-          pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> promise.fail(ar.cause()));
+          LOGGER.error("updateBlocking:: Error updating jobExecution, jobExecutionId={}, error: {}", jobExecutionId, ar.cause().getMessage());
+          pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> {
+            if (rollback.failed()) {
+              LOGGER.error("updateBlocking:: Rollback failed for jobExecutionId={}", jobExecutionId, rollback.cause());
+            } else {
+              LOGGER.warn("updateBlocking:: Transaction rolled back for jobExecutionId={}", jobExecutionId);
+            }
+            promise.fail(ar.cause());
+          });
           return;
         }
+        LOGGER.debug("updateBlocking:: Transaction completed successfully for jobExecutionId={}", jobExecutionId);
         promise.complete(jobExecutionPromise.future().result());
       });
     return promise.future();
@@ -302,7 +326,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       data.put(SET_FIELD_NAME, IS_DELETED);
       data.put(SET_FIELD_VALUE, TRUE);
       data.put(SET_CONDITIONAL_FIELD_NAME, ID);
-      data.put(SET_CONDITIONAL_FIELD_VALUES, ids.stream().collect(Collectors.joining("','")));
+      data.put(SET_CONDITIONAL_FIELD_VALUES, String.join("','", ids));
       data.put(RETURNING_FIELD_NAMES, ID + "," + IS_DELETED);
       String query = StrSubstitutor.replace(UPDATE_BY_IDS_SQL, data);
       pgClientFactory.createInstance(tenantId).execute(query, promise);
