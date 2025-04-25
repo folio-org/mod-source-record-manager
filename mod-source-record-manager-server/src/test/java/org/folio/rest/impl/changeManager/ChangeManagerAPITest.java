@@ -53,19 +53,15 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.apache.http.HttpStatus;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.folio.KafkaUtil;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
@@ -141,7 +137,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution.SubordinationType.PARENT_MULTIPLE
   );
 
-  private JobExecution jobExecution = new JobExecution()
+  private JobExecution generalJobExecution = new JobExecution()
     .withId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
     .withHrId(1000)
     .withParentJobId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
@@ -443,9 +439,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void shouldReturnNotFoundOnPutWhenRecordDoesNotExist() {
     RestAssured.given()
       .spec(spec)
-      .body(JsonObject.mapFrom(jobExecution).toString())
+      .body(JsonObject.mapFrom(generalJobExecution).toString())
       .when()
-      .put(JOB_EXECUTION_PATH + jobExecution.getId())
+      .put(JOB_EXECUTION_PATH + generalJobExecution.getId())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -477,7 +473,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(JOB_EXECUTION_PATH + jobExecution.getId())
+      .get(JOB_EXECUTION_PATH + generalJobExecution.getId())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -2101,7 +2097,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws InterruptedException {
+  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2155,7 +2151,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateInstanceActionProfile(TestContext testContext) throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateInstanceActionProfile(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2203,7 +2199,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIsNullIf999ffsFieldExistsAndCreateInstanceActionProfileWithNonMatch(TestContext testContext) throws InterruptedException {
+  public void shouldHaveErrorRecordIsNullIf999ffsFieldExistsAndCreateInstanceActionProfileWithNonMatch(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
@@ -2254,7 +2250,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcAuthorityActionProfile(TestContext testContext) throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcAuthorityActionProfile(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2306,7 +2302,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSetErrorToRecordWithInvalidLeaderLine(TestContext testContext) throws InterruptedException {
+  public void shouldSetErrorToRecordWithInvalidLeaderLine(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2349,7 +2345,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
