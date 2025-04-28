@@ -276,7 +276,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
           throw new NotFoundException(errorMessage);
         }
         JobExecution existingJobExecution = mapRowToJobExecution(rowSet.iterator().next());
-        LOGGER.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={}", jobExecutionId);
+        LOGGER.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={} with subordinationType={} and status={}",
+          jobExecutionId, existingJobExecution.getSubordinationType().value(), existingJobExecution.getStatus().value());
         if (existingJobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT
           && existingJobExecution.getStatus() == JobExecution.Status.COMMITTED) {
           String errorMessage = String.format("updateBlocking:: JobExecution is COMPOSITE_PARENT and already with COMMITTED status, skipping update, jobExecutionId=%s", jobExecutionId);
