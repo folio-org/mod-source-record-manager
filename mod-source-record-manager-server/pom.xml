@@ -15,12 +15,12 @@
     <sonar.exclusions>**/org/folio/rest/impl/ModTenantAPI.java</sonar.exclusions>
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
     <aspectj.version>1.9.22.1</aspectj.version>
-    <lombok.version>1.18.30</lombok.version>
-    <testcontainers.version>1.20.4</testcontainers.version>
-    <kafkaclients.version>3.7.1</kafkaclients.version>
-    <kafkajunit.version>3.5.1</kafkajunit.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
+    <lombok.version>1.18.38</lombok.version>
+    <testcontainers.version>1.20.6</testcontainers.version>
+    <kafkaclients.version>3.9.0</kafkaclients.version>
+    <commons-lang3.version>3.17.0</commons-lang3.version>
     <jsonassert.version>1.5.3</jsonassert.version>
+    <mockito.version>5.2.0</mockito.version>
   </properties>
 
   <dependencies>
@@ -45,12 +45,12 @@
     <dependency>
       <groupId>io.xlate</groupId>
       <artifactId>staedi</artifactId>
-      <version>1.16.0</version>
+      <version>1.25.3</version>
     </dependency>
     <dependency>
       <groupId>org.marc4j</groupId>
       <artifactId>marc4j</artifactId>
-      <version>2.9.2</version>
+      <version>2.9.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-source-record-storage-client</artifactId>
-      <version>5.10.0</version>
+      <version>5.10.1</version>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -86,49 +86,6 @@
       <version>${raml-module-builder.version}</version>
     </dependency>
     <dependency>
-      <groupId>net.mguenther.kafka</groupId>
-      <artifactId>kafka-junit</artifactId>
-      <version>${kafkajunit.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka-clients</artifactId>
-      <version>${kafkaclients.version}</version>
-      <classifier>test</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.13</artifactId>
-      <version>${kafkaclients.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.13</artifactId>
-      <version>${kafkaclients.version}</version>
-      <classifier>test</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka-tools</artifactId>
-      <version>${kafkaclients.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.folio</groupId>
       <artifactId>domain-models-runtime</artifactId>
       <version>${raml-module-builder.version}</version>
@@ -140,8 +97,8 @@
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
-      <artifactId>java-hamcrest</artifactId>
-      <version>2.0.0.0</version>
+      <artifactId>hamcrest</artifactId>
+      <version>3.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -155,6 +112,10 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-rx-java3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-kafka-client</artifactId>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
@@ -191,7 +152,7 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>com.github.tomakehurst</groupId>
+      <groupId>org.wiremock</groupId>
       <artifactId>wiremock</artifactId>
       <version>${wiremock.version}</version>
       <scope>test</scope>
@@ -199,7 +160,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.2.0</version>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -220,7 +181,7 @@
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
       <artifactId>caffeine</artifactId>
-      <version>3.1.2</version>
+      <version>3.2.0</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -244,23 +205,18 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
-      <version>4.4.0</version>
+      <version>4.5.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>util</artifactId>
-      <version>35.0.4</version>
+      <version>${raml-module-builder.version}</version>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.24.2</version>
+      <version>3.27.3</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -286,7 +242,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
+        <version>3.14.0</version>
         <configuration>
           <release>21</release>
           <encoding>UTF-8</encoding>
@@ -302,7 +258,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <id>add_generated_sources_folder</id>
@@ -322,7 +278,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.16.2</version>
+        <version>2.18.0</version>
         <configuration>
           <generateBackupPoms>false</generateBackupPoms>
         </configuration>
@@ -345,7 +301,7 @@
       <plugin>
         <groupId>dev.aspectj</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.14</version>
+        <version>1.14.1</version>
         <configuration>
           <verbose>true</verbose>
           <release>21</release>
@@ -387,7 +343,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>properties-maven-plugin</artifactId>
-        <version>1.0.0</version>
+        <version>1.2.1</version>
         <executions>
           <execution>
             <id>set-system-properties</id>
@@ -454,7 +410,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.5.2</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -489,7 +445,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>3.0.1</version>
+        <version>3.1.1</version>
         <configuration>
           <preparationGoals>clean verify</preparationGoals>
           <tagNameFormat>v@{project.version}</tagNameFormat>
@@ -501,7 +457,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.2.2</version>
+        <version>3.5.3</version>
         <configuration>
           <useSystemClassLoader>false</useSystemClassLoader>
         </configuration>

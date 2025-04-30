@@ -8,8 +8,8 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -32,7 +32,6 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.persist.PostgresClient;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -305,9 +304,9 @@ public class JournalRecordDaoTest extends AbstractRestTest {
     Async async = testContext.async();
     updatedFuture.onComplete(ar -> {
       testContext.verify(v -> {
-        Assert.assertTrue(ar.succeeded());
+        assertTrue(ar.succeeded());
           int updatedCount = ar.result();
-          Assert.assertEquals(2, updatedCount);
+          assertEquals(2, updatedCount);
       });
       async.complete();
     });

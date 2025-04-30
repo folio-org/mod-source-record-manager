@@ -7,8 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import net.mguenther.kafka.junit.KeyValue;
-import net.mguenther.kafka.junit.SendKeyValues;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.ActionProfile;
@@ -34,13 +33,14 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.folio.KafkaUtil.sendEvent;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
@@ -50,8 +50,6 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
-import static org.folio.verticle.consumers.DataImportKafkaHandler.JOB_EXECUTION_ID_HEADER;
-
 
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
@@ -132,20 +130,20 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
           async.complete();
         }
         catch (java.lang.AssertionError e) {
-          LOGGER.warn("Assertion was not successful");
+          LOGGER.warn("Assertion was not successful", e);
         }
       });
     });
   }
 
   @Test
-  public void testJournalInventoryInstanceCreatedAction(TestContext context) throws InterruptedException {
+  public void testJournalInventoryInstanceCreatedAction(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
     // given
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
       .withProfileSnapshot(profileSnapshotWrapperResponse)
-      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().getFirst())
       .withJobExecutionId(jobExecution.getId())
       .withContext(dataImportEventPayloadContext)
       .withOkapiUrl(OKAPI_URL)
@@ -158,13 +156,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_INVENTORY_INSTANCE_CREATED.value());
 
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
 
     // then
     assertJournalRecord(context, jobExecution.getId());
@@ -172,14 +165,14 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalMarcBibRecordUpdatedAction(TestContext context) throws InterruptedException {
+  public void testJournalMarcBibRecordUpdatedAction(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
 
     // given
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
       .withProfileSnapshot(profileSnapshotWrapperResponse)
-      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().getFirst())
       .withJobExecutionId(jobExecution.getId())
       .withContext(dataImportEventPayloadContext)
       .withOkapiUrl(OKAPI_URL)
@@ -191,13 +184,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_SRS_MARC_BIB_RECORD_UPDATED.value());
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
 
     // then
     assertJournalRecord(context, jobExecution.getId());
@@ -205,14 +193,14 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) throws InterruptedException {
+  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
 
     // given
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_SRS_MARC_HOLDING_RECORD_CREATED.value())
       .withProfileSnapshot(profileSnapshotWrapperResponse)
-      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().getFirst())
       .withJobExecutionId(jobExecution.getId())
       .withContext(dataImportEventPayloadContext)
       .withOkapiUrl(OKAPI_URL)
@@ -224,13 +212,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventType(DI_SRS_MARC_HOLDING_RECORD_CREATED.value())
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_SRS_MARC_HOLDING_RECORD_CREATED.value());
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
 
     // then
     assertJournalRecord(context, jobExecution.getId());
@@ -238,7 +221,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalCompletedAction(TestContext context) throws InterruptedException {
+  public void testJournalCompletedAction(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
 
     // given
@@ -267,13 +250,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventType(DI_COMPLETED.value())
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_COMPLETED.value());
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
 
     // then
     assertJournalRecord(context, jobExecution.getId());
@@ -281,7 +259,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalErrorAction(TestContext context) throws InterruptedException {
+  public void testJournalErrorAction(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
 
     // given
@@ -311,13 +289,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventType(DI_ERROR.value())
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_ERROR.value());
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
 
     // then
     assertJournalRecord(context, jobExecution.getId());
@@ -325,7 +298,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testShouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents(TestContext context) throws InterruptedException {
+  public void testShouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
 
     // given
@@ -349,13 +322,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventType(DI_ERROR.value())
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_ERROR.value());
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
 
     // then
     assertJournalRecord(context, jobExecution.getId(), journalRecords -> journalRecords.stream().anyMatch(journalRecord -> {
@@ -370,7 +338,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testShouldFillTitleOnRecordModifiedEventProcessing(TestContext context) throws InterruptedException, IOException {
+  public void testShouldFillTitleOnRecordModifiedEventProcessing(TestContext context) throws InterruptedException, ExecutionException, IOException {
     Async async = context.async();
 
     // given
@@ -390,13 +358,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventType(DI_ERROR.value())
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_SRS_MARC_BIB_RECORD_MODIFIED.value());
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
 
     // then
     assertJournalRecord(context, jobExecution.getId(), journalRecords -> journalRecords.stream().anyMatch(journalRecord -> {
@@ -410,7 +373,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotProcessEventWhenItAlreadyProcessed(TestContext context) throws InterruptedException {
+  public void shouldNotProcessEventWhenItAlreadyProcessed(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
     // given
     String incomingRecordId = UUID.randomUUID().toString();
@@ -431,14 +394,9 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
       .withId(UUID.randomUUID().toString());
     String topic = formatToKafkaTopicName(DI_INVENTORY_INSTANCE_CREATED.value());
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-    kafkaCluster.send(request);
-    kafkaCluster.send(request);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
+    sendEvent(producerRecord);
 
 
     vertx.setTimer(2000, timerId -> {
@@ -446,5 +404,20 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       assertJournalRecord(context, jobExecution.getId(), journalRecords -> (long) journalRecords.size() == 1);
       async.complete();
     });
+  }
+
+  private ProducerRecord<String, String> prepareWithSpecifiedEventPayload(String topic,
+                                                                          String event) {
+    ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
+      topic,
+      "key",
+      event
+    );
+
+    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(OKAPI_URL_HEADER, snapshotMockServer.baseUrl().getBytes(UTF_8));
+    producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionUUID.getBytes(UTF_8));
+
+    return producerRecord;
   }
 }

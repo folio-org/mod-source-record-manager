@@ -3,8 +3,9 @@ package org.folio.rest.impl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
-import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
+import static org.folio.KafkaUtil.getKafkaHostAndPort;
+import static org.folio.KafkaUtil.startKafka;
+import static org.folio.KafkaUtil.stopKafka;
 import static org.folio.dao.IncomingRecordDaoImpl.INCOMING_RECORDS_TABLE;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
@@ -51,9 +52,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.folio.KafkaUtil;
 import org.folio.MappingProfile;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
@@ -68,6 +69,7 @@ import org.folio.rest.tools.utils.Envs;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.SharedDataUtil;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -342,17 +344,15 @@ public abstract class AbstractRestTest {
       .notifier(new ConsoleNotifier(true))
       .extensions(new RequestToResponseTransformer())
   );
-
-  public static EmbeddedKafkaCluster kafkaCluster;
   protected static KafkaConfig kafkaConfig;
 
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
     vertx = Vertx.vertx();
+    startKafka();
     SharedDataUtil.setIsTesting(vertx);
-    kafkaCluster = provisionWith(defaultClusterConfig());
-    kafkaCluster.start();
-    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
+
+    String[] hostAndPort = getKafkaHostAndPort();
 
     System.setProperty(KAFKA_HOST, hostAndPort[0]);
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
@@ -367,6 +367,11 @@ public abstract class AbstractRestTest {
     deployVerticle(context);
   }
 
+  @After
+  public void clearKafkaTopics() {
+    KafkaUtil.clearAllTopics();
+  }
+
   @AfterClass
   public static void tearDownClass(final TestContext context) {
     Async async = context.async();
@@ -374,7 +379,7 @@ public abstract class AbstractRestTest {
       if (useExternalDatabase.equals("embedded")) {
         PostgresClient.stopPostgresTester();
       }
-      kafkaCluster.stop();
+      stopKafka();
       async.complete();
     }));
   }
