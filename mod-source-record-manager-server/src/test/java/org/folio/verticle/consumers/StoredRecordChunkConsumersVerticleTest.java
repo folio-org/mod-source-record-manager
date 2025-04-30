@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.apache.commons.collections.ListUtils;
 import org.apache.http.HttpStatus;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.folio.DataImportEventPayload;
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.KafkaUtil.checkKafkaEventSent;
@@ -113,7 +113,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     RecordsBatchResponse wrongRecords = getRecordsBatchResponse(wrongContent, 7);
 
     RecordsBatchResponse allRecords = new RecordsBatchResponse().withTotalRecords(10)
-      .withRecords(ListUtils.union(correctRecords.getRecords(), wrongRecords.getRecords()));
+      .withRecords(Stream.concat(correctRecords.getRecords().stream(), wrongRecords.getRecords().stream()).toList());
 
     ProducerRecord<String, String> producerRecord = getRequest(jobExec.getId(), allRecords);
 
