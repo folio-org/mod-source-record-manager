@@ -12,6 +12,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.folio.KafkaUtil.checkKafkaEventSent;
+import static org.folio.KafkaUtil.getValues;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
@@ -51,7 +53,6 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -60,7 +61,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
@@ -137,7 +137,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution.SubordinationType.PARENT_MULTIPLE
   );
 
-  private JobExecution jobExecution = new JobExecution()
+  private JobExecution generalJobExecution = new JobExecution()
     .withId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
     .withHrId(1000)
     .withParentJobId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
@@ -251,7 +251,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(actualParentJobExecutionId);
     assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
 
-    JobExecution parentSingle = actualJobExecutions.get(0);
+    JobExecution parentSingle = actualJobExecutions.getFirst();
     assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
     assertParent(parentSingle);
   }
@@ -283,7 +283,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(actualParentJobExecutionId);
     assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
 
-    JobExecution parentSingle = actualJobExecutions.get(0);
+    JobExecution parentSingle = actualJobExecutions.getFirst();
     Assert.assertNotNull(parentSingle);
     assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
     Assert.assertNotNull(parentSingle.getId());
@@ -319,7 +319,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(actualParentJobExecutionId);
     assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
 
-    JobExecution parentSingle = actualJobExecutions.get(0);
+    JobExecution parentSingle = actualJobExecutions.getFirst();
     Assert.assertNotNull(parentSingle);
     assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
     Assert.assertNotNull(parentSingle.getId());
@@ -439,9 +439,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void shouldReturnNotFoundOnPutWhenRecordDoesNotExist() {
     RestAssured.given()
       .spec(spec)
-      .body(JsonObject.mapFrom(jobExecution).toString())
+      .body(JsonObject.mapFrom(generalJobExecution).toString())
       .when()
-      .put(JOB_EXECUTION_PATH + jobExecution.getId())
+      .put(JOB_EXECUTION_PATH + generalJobExecution.getId())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -452,7 +452,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution singleParent = createdJobExecutions.get(0);
+    JobExecution singleParent = createdJobExecutions.getFirst();
     assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
 
     singleParent.setJobProfileInfo(
@@ -473,7 +473,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(JOB_EXECUTION_PATH + jobExecution.getId())
+      .get(JOB_EXECUTION_PATH + generalJobExecution.getId())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -488,10 +488,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(JOB_EXECUTION_PATH + createdJobExecutions.get(0).getId())
+      .get(JOB_EXECUTION_PATH + createdJobExecutions.getFirst().getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("id", is(createdJobExecutions.get(0).getId()))
+      .body("id", is(createdJobExecutions.getFirst().getId()))
       .body("hrId", greaterThanOrEqualTo(0))
       .body("runBy.firstName", notNullValue())
       .body("runBy.lastName", notNullValue());
@@ -556,7 +556,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     RestAssured.given()
       .spec(spec)
@@ -628,7 +628,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
     RestAssured.given()
@@ -685,7 +685,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void shouldUpdateStatusOfCompositeParent() {
     List<JobExecution> executions = constructAndPostCompositeInitJobExecutionRqDto("test", 1);
     assertThat(executions.size(), is(2));
-    JobExecution parent = executions.get(0);
+    JobExecution parent = executions.getFirst();
     JobExecution child = executions.get(1);
 
     // update child to a non-completion state; should NOT update parent
@@ -731,7 +731,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void shouldUpdateStatusOfCompositeParentMultipleChildren() {
     List<JobExecution> executions = constructAndPostCompositeInitJobExecutionRqDto("test", 2);
     assertThat(executions.size(), is(3));
-    JobExecution parent = executions.get(0);
+    JobExecution parent = executions.getFirst();
     JobExecution child1 = executions.get(1);
     JobExecution child2 = executions.get(2);
 
@@ -787,7 +787,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .body(JsonObject.mapFrom(childRequestDto).toString())
-        .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0);
+        .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().getFirst();
 
     // update child to a completion state; should now attempt to update parent
     // the parent does not exist, though, so it should throw a 500
@@ -807,7 +807,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExecution = createdJobExecutions.get(0);
+    JobExecution jobExecution = createdJobExecutions.getFirst();
     assertThat(jobExecution.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
     Assert.assertNotNull(jobExecution.getRunBy().getFirstName());
     Assert.assertNotNull(jobExecution.getRunBy().getLastName());
@@ -843,7 +843,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExecution = createdJobExecutions.get(0);
+    JobExecution jobExecution = createdJobExecutions.getFirst();
     assertThat(jobExecution.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
     Assert.assertNotNull(jobExecution.getRunBy().getFirstName());
     Assert.assertNotNull(jobExecution.getRunBy().getLastName());
@@ -880,7 +880,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARENT);
     RestAssured.given()
@@ -996,7 +996,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     jobExec.setStatus(JobExecution.Status.PARENT);
     RestAssured.given()
@@ -1047,7 +1047,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     JobProfileInfo jobProfile = new JobProfileInfo().withId(DEFAULT_INSTANCE_JOB_PROFILE_ID).withName("marc");
     RestAssured.given()
@@ -1073,7 +1073,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(serverError()));
@@ -1103,7 +1103,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     JobProfileInfo jobProfile =
       new JobProfileInfo().withId(DEFAULT_INSTANCE_JOB_PROFILE_ID).withName("Default job profile");
@@ -1157,7 +1157,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -1205,7 +1205,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -1240,7 +1240,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -1287,7 +1287,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
     WireMock.stubFor(
       post(RECORDS_SERVICE_URL).willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
@@ -1378,7 +1378,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
     WireMock.stubFor(
       post(RECORDS_SERVICE_URL).willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
@@ -1458,7 +1458,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(WireMock.put(PARSED_RECORDS_COLLECTION_URL)
       .willReturn(WireMock.serverError()));
@@ -1509,7 +1509,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -1544,7 +1544,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
     jobExec.setRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"));
     jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
     jobExec.setStartedDate(new Date());
@@ -1635,7 +1635,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution singleParent = createdJobExecutions.get(0);
+    JobExecution singleParent = createdJobExecutions.getFirst();
     assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
 
     singleParent.setJobProfileInfo(
@@ -1677,7 +1677,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     MatchProfile matchProfile = new MatchProfile()
       .withName("match 999ff $s to 999ff $s");
@@ -1745,21 +1745,21 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(TestContext testContext, String rawRecord) throws InterruptedException {
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(TestContext testContext, String rawRecord) {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()
@@ -1774,7 +1774,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     Async async = testContext.async();
     RestAssured.given()
@@ -1803,8 +1803,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     final AtomicReference<DataImportEventPayload> eventPayloadRef = new AtomicReference<>();
 
     await().forever().pollInterval(1, TimeUnit.SECONDS).until(() -> {
-      List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
-        .build());
+      List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 3));
       return observedValues.stream()
         .anyMatch(value -> {
           Event event = Json.decodeValue(value, Event.class);
@@ -1832,7 +1831,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -1901,7 +1900,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
       .willReturn(WireMock.noContent()));
@@ -1945,7 +1944,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -1992,7 +1991,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -2057,7 +2056,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -2098,12 +2097,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws InterruptedException {
+  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(WireMock.created().withBody(Json.encode(matchProfileSnapshotWrapperResponse))));
@@ -2139,11 +2138,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_MARC_FOR_UPDATE_RECEIVED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .observeFor(2000, TimeUnit.SECONDS)
-      .build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     assertEquals(DI_MARC_FOR_UPDATE_RECEIVED.value(), obtainedEvent.getEventType());
     DataImportEventPayload dataImportEventPayload = Json
       .decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
@@ -2155,13 +2151,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateInstanceActionProfile(TestContext testContext)
-    throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateInstanceActionProfile(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -2190,11 +2185,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 2)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     assertEquals(DI_ERROR.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
 
@@ -2207,11 +2199,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIsNullIf999ffsFieldExistsAndCreateInstanceActionProfileWithNonMatch(TestContext testContext) throws InterruptedException {
+  public void shouldHaveErrorRecordIsNullIf999ffsFieldExistsAndCreateInstanceActionProfileWithNonMatch(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_INSTANCE_JOB_PROFILE_ID + "?withRelations=false&")
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_INSTANCE_JOB_PROFILE_ID)
@@ -2248,10 +2240,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(
-      ObserveKeyValues.on(topicToObserve, 57).observeFor(30, TimeUnit.SECONDS).build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(56), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
@@ -2260,13 +2250,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcAuthorityActionProfile(TestContext testContext)
-    throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcAuthorityActionProfile(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_MARC_AUTHORITY_JOB_PROFILE_ID + "?withRelations=false&")
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_AUTHORITY_JOB_PROFILE_ID).withName("Default - Create SRS MARC Authority")))));
@@ -2302,26 +2291,23 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertNull(recordCollection.getRecords().get(0).getMatchedId());
-    assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
+    assertNull(recordCollection.getRecords().getFirst().getMatchedId());
+    assertNotNull(recordCollection.getRecords().getFirst().getErrorRecord());
     assertEquals("{\"error\":\"A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
-      recordCollection.getRecords().get(0).getErrorRecord().getDescription());
+      recordCollection.getRecords().getFirst().getErrorRecord().getDescription());
   }
 
   @Test
-  public void shouldSetErrorToRecordWithInvalidLeaderLine(TestContext testContext) throws InterruptedException {
+  public void shouldSetErrorToRecordWithInvalidLeaderLine(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -2350,10 +2336,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .observeFor(30, TimeUnit.SECONDS).build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     assertEquals(DI_ERROR.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     MatcherAssert.assertThat(new JsonObject(eventPayload.getContext().get("ERROR")).getString("message"),
@@ -2361,13 +2345,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext)
-    throws InterruptedException {
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID + "?withRelations=false&")
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID).withName("Default - Create Holdings and SRS MARC Holdings")))));
@@ -2403,17 +2386,15 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 2)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertNull(recordCollection.getRecords().get(0).getMatchedId());
-    assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
+    assertNull(recordCollection.getRecords().getFirst().getMatchedId());
+    assertNotNull(recordCollection.getRecords().getFirst().getErrorRecord());
     assertEquals("{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
-      recordCollection.getRecords().get(0).getErrorRecord().getDescription());
+      recordCollection.getRecords().getFirst().getErrorRecord().getDescription());
   }
 
   @Test
@@ -2446,7 +2427,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .extract().path("parentJobExecutionId");
 
     DeleteJobExecutionsReq deleteJobExecutionsReq =
-      new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
+      new DeleteJobExecutionsReq().withIds(asList(parentJobExecutionId));
     RestAssured.given()
       .spec(spec)
       .body(deleteJobExecutionsReq)
@@ -2454,8 +2435,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .delete(JOB_EXECUTION_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDetails.isDeleted.get(0)", is(true))
-      .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId));
+      .body("jobExecutionDetails.isDeleted.getFirst()", is(true))
+      .body("jobExecutionDetails.jobExecutionId.getFirst()", is(parentJobExecutionId));
   }
 
   @Test
@@ -2496,7 +2477,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .extract().path("parentJobExecutionId");
 
     DeleteJobExecutionsReq deleteJobExecutionsReq =
-      new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId, parentJobExecutionId_2));
+      new DeleteJobExecutionsReq().withIds(asList(parentJobExecutionId, parentJobExecutionId_2));
     RestAssured.given()
       .spec(spec)
       .body(deleteJobExecutionsReq)
@@ -2504,8 +2485,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .delete(JOB_EXECUTION_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId))
-      .body("jobExecutionDetails.isDeleted.get(0)", is(true))
+      .body("jobExecutionDetails.jobExecutionId.getFirst()", is(parentJobExecutionId))
+      .body("jobExecutionDetails.isDeleted.getFirst()", is(true))
       .body("jobExecutionDetails.jobExecutionId.get(1)", is(parentJobExecutionId_2))
       .body("jobExecutionDetails.isDeleted.get(1)", is(true));
   }
@@ -2538,8 +2519,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String parentJobExecutionId_2 = constructAndPostInitJobExecutionRqDto(1).getParentJobExecutionId();
     DeleteJobExecutionsResp deleteJobExecutionsResp =
       returnDeletedJobExecutionResponse(new String[] {parentJobExecutionId});
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(parentJobExecutionId));
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getJobExecutionId(), is(parentJobExecutionId));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getIsDeleted(), is(true));
 
     RestAssured.given()
       .spec(spec)
@@ -2558,7 +2539,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   public static DeleteJobExecutionsResp returnDeletedJobExecutionResponse(String[] parentJobExecutionId) {
     DeleteJobExecutionsReq deleteJobExecutionsReq =
-      new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
+      new DeleteJobExecutionsReq().withIds(asList(parentJobExecutionId));
     return RestAssured.given()
       .spec(spec)
       .body(deleteJobExecutionsReq)
@@ -2581,8 +2562,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     DeleteJobExecutionsResp deleteJobExecutionsResp =
       returnDeletedJobExecutionResponse(new String[] {multipleParent.getId()});
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(multipleParent.getId()));
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getJobExecutionId(), is(multipleParent.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getIsDeleted(), is(true));
 
     RestAssured.given()
       .spec(spec)
@@ -2602,8 +2583,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).findFirst().get();
 
     DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[] {child.getId()});
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(child.getId()));
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getJobExecutionId(), is(child.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getIsDeleted(), is(true));
 
     StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
     RestAssured.given()
@@ -2621,11 +2602,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[] {jobExec.getId()});
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getIsDeleted(), is(true));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -2647,11 +2628,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[] {jobExec.getId()});
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getIsDeleted(), is(true));
 
     RestAssured.given()
       .spec(spec)

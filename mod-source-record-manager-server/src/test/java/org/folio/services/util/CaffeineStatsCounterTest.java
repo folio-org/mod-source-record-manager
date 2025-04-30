@@ -7,7 +7,6 @@ import io.vertx.core.VertxOptions;
 import org.folio.okapi.common.MetricsUtil;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Order;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -32,7 +31,6 @@ public class CaffeineStatsCounterTest {
   }
 
   @Test(expected = RuntimeException.class)
-  @Order(1)
   public void constructor_MetricsNotEnabled_ShouldThrowException() {
     try (MockedStatic<MetricsUtil> mockedStatic = Mockito.mockStatic(MetricsUtil.class)) {
       mockedStatic.when(MetricsUtil::isEnabled).thenReturn(false);

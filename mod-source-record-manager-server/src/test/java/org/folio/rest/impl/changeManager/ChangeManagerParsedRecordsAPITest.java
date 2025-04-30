@@ -5,6 +5,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static java.util.Collections.emptyList;
+import static org.folio.KafkaUtil.checkKafkaEventSent;
+import static org.folio.KafkaUtil.getKafkaHostAndPort;
 import static org.hamcrest.Matchers.is;
 
 import static org.folio.kafka.KafkaTopicNameHelper.formatTopicName;
@@ -12,7 +14,6 @@ import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 
 import io.vertx.core.json.Json;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
@@ -22,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
 
   @Before
   public void setUp() {
-    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
+    String[] hostAndPort = getKafkaHostAndPort();
     System.setProperty(KAFKA_HOST, hostAndPort[0]);
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(KAFKA_ENV, KAFKA_ENV_ID);
@@ -154,7 +154,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldUpdateParsedRecordOnPut(TestContext testContext) throws InterruptedException {
+  public void shouldUpdateParsedRecordOnPut(TestContext testContext) {
     Async async = testContext.async();
 
     WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
@@ -178,9 +178,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
 
     String observeTopic =
       formatTopicName(kafkaConfig.getEnvId(), getDefaultNameSpace(), TENANT_ID, QMEventTypes.QM_RECORD_UPDATED.name());
-    kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
+    checkKafkaEventSent(observeTopic, 1);
 
     async.complete();
   }
