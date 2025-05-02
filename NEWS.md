@@ -1,4 +1,7 @@
 ## 2025-04-29 v3.10.3
+* [MODSOURMAN-1308](https://folio-org.atlassian.net/browse/MODSOURMAN-1308) Upgrade all dependencies for Sunflower fixing vulnerabilities
+
+## 2025-04-29 v3.10.3
 * [MODSOURMAN-1287](https://folio-org.atlassian.net/browse/MODSOURMAN-1287) DI completion event is produced more than once
 
 ## 2025-04-15 v3.10.2
