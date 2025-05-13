@@ -1,4 +1,5 @@
-## 2025-05-02 v3.10.5
+## 2025-05-13 v3.10.5
+* [MODSOURMAN-1238](https://folio-org.atlassian.net/browse/MODSOURMAN-1238) Fix display of the error message when LINKED_DATA Instance fails to update via DI
 * [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
 
 ## 2025-05-02 v3.10.4
