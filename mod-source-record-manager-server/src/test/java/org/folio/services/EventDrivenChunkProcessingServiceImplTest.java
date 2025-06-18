@@ -118,6 +118,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   @Spy
   private IncomingRecordServiceImpl incomingRecordService;
+  @Spy
+  @InjectMocks
+  private ConsortiumDataCache consortiumDataCache;
   @InjectMocks
   @Spy
   private IncomingRecordDaoImpl incomingRecordDao;
@@ -197,7 +200,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList());
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, new JobProfileSnapshotValidationServiceImpl(), kafkaConfig,
-      fieldModificationService, incomingRecordService, vertx);
+      fieldModificationService, incomingRecordService, consortiumDataCache, vertx);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     ReflectionTestUtils.setField(recordsPublishingService, "maxDistributionNum", 100);

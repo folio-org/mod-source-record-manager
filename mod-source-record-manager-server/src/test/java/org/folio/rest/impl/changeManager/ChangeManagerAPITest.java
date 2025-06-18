@@ -233,6 +233,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
     WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
       .willReturn(WireMock.ok().withBody(Json.encode(emptyList()))));
+    WireMock.stubFor(WireMock.get("/user-tenants?limit=1")
+      .willReturn(WireMock.ok().withBody("{\"userTenants\":[{\"centralTenantId\":\"consortium\"}]}")));
   }
 
   @Test
@@ -1755,7 +1757,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcHoldingsRecordHasNoOrder(TestContext testContext) {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
