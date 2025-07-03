@@ -22,7 +22,6 @@ import org.folio.services.exceptions.RecordsPublishingException;
 import static org.folio.services.util.RecordConversionUtil.RECORDS;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class EventHandlingUtil {
@@ -127,20 +126,18 @@ public final class EventHandlingUtil {
   }
 
   private static Throwable wrapKafkaException(String eventPayload, Throwable cause) {
-    Optional<JsonObject> payloadOptional = tryConvertToJsonObject(eventPayload);
-    if (payloadOptional.isEmpty() || !payloadOptional.get().containsKey(RECORDS)) {
+    if (!isJsonStringContainsField(eventPayload, RECORDS)) {
       return cause;
     }
     RecordCollection recordCollection = Json.decodeValue(eventPayload, RecordCollection.class);
     return new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords());
   }
 
-  private static Optional<JsonObject> tryConvertToJsonObject(String eventPayload) {
+  private static boolean isJsonStringContainsField(String eventPayload, String fieldName) {
     try {
-      return Optional.of(new JsonObject(eventPayload));
+      return new JsonObject(eventPayload).containsKey(fieldName);
     } catch (Exception e) {
-      return Optional.empty();
+      return false;
     }
-
   }
 }
