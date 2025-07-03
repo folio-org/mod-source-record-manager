@@ -22,6 +22,7 @@ import org.folio.services.exceptions.RecordsPublishingException;
 import static org.folio.services.util.RecordConversionUtil.RECORDS;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class EventHandlingUtil {
@@ -57,10 +58,10 @@ public final class EventHandlingUtil {
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
     return producer.send(record)
-        .eventually(x -> producer.close())
-        .map(true)
-        .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
-        .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
+      .eventually(() -> producer.close())
+      .map(true)
+      .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
+      .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
   }
 
   private static void logSendingSucceeded(String eventType, String jobExecutionId, String chunkId, String recordId) {
@@ -126,10 +127,20 @@ public final class EventHandlingUtil {
   }
 
   private static Throwable wrapKafkaException(String eventPayload, Throwable cause) {
-    if (! new JsonObject(eventPayload).containsKey(RECORDS)) {
+    Optional<JsonObject> payloadOptional = tryConvertToJsonObject(eventPayload);
+    if (payloadOptional.isEmpty() || !payloadOptional.get().containsKey(RECORDS)) {
       return cause;
     }
     RecordCollection recordCollection = Json.decodeValue(eventPayload, RecordCollection.class);
     return new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords());
+  }
+
+  private static Optional<JsonObject> tryConvertToJsonObject(String eventPayload) {
+    try {
+      return Optional.of(new JsonObject(eventPayload));
+    } catch (Exception e) {
+      return Optional.empty();
+    }
+
   }
 }
