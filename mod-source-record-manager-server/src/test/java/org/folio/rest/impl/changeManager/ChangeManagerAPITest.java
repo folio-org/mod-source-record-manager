@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -14,6 +15,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.folio.KafkaUtil.checkKafkaEventSent;
 import static org.folio.KafkaUtil.getValues;
+import static org.folio.KafkaUtil.pauseKafkaContainer;
+import static org.folio.KafkaUtil.resumeKafkaContainer;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
@@ -24,6 +27,7 @@ import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.NEW;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -1837,8 +1841,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
-      .willReturn(WireMock.noContent()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -1882,6 +1884,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("status", is(CANCELLED.value()))
       .body("completedDate", notNullValue(Date.class));
     async.complete();
+
+    List<String> events = getValues(checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 1));
+    Event event = Json.decodeValue(events.getFirst(), Event.class);
+    assertEquals(jobExec.getId(), event.getEventPayload());
+    assertEquals("DI_JOB_CANCELLED", event.getEventType());
   }
 
   @Test
@@ -1903,9 +1910,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.getFirst();
-
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
-      .willReturn(WireMock.noContent()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -1939,6 +1943,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("status", is(CANCELLED.value()))
       .body("completedDate", notNullValue(Date.class));
     async.complete();
+
+    List<String> events = getValues(checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 1));
+    Event event = Json.decodeValue(events.getFirst(), Event.class);
+    assertEquals(jobExec.getId(), event.getEventPayload());
+    assertEquals("DI_JOB_CANCELLED", event.getEventType());
   }
 
   @Test
@@ -1988,7 +1997,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturn204OkEventIfRemoveJobExecutionWithCommittedStatus(TestContext testContext) {
-
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1997,8 +2005,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
-      .willReturn(WireMock.noContent()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -2050,6 +2056,51 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(COMMITTED.value()));
     async.complete();
+    checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 0);
+  }
+
+  @Test
+  public void shouldReturnInternalErrorOnDeleteJobRecordsIfFailedToPublishEventAboutJobCancellation() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.getFirst();
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("Create instance")
+        .withId(DEFAULT_INSTANCE_JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    // pause Kafka container to cause failure of the event publishing to Kafka
+    pauseKafkaContainer();
+
+    try {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    } finally {
+      resumeKafkaContainer();
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(NEW.value()));
+
+    verify(0, putRequestedFor(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true)));
+    checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 0);
   }
 
   @Test
