@@ -238,6 +238,22 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
+  public Future<JobExecution> updateJobExecution(AsyncResult<SQLConnection> connection, JobExecution jobExecution, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());
+    try {
+      String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
+      Tuple queryParams = mapToTuple(jobExecution);
+      pgClientFactory.createInstance(tenantId).execute(connection, preparedQuery, queryParams, promise);
+    } catch (Exception e) {
+      LOGGER.warn("updateJobExecution:: Error updating jobExecution", e);
+      promise.fail(e);
+    }
+    return promise.future().compose(rowSet -> rowSet.rowCount() != 1
+      ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture(jobExecution));
+  }
+
+  @Override
   public Future<Void> updateJobExecutionProgress(AsyncResult<SQLConnection> connection, Progress progress, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     String errorMessage = String.format("JobExecution with id '%s' was not found during progress update", progress.getJobExecutionId());

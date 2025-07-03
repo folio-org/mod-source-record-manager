@@ -53,6 +53,16 @@ public interface JobExecutionDao {
   Future<JobExecution> updateJobExecution(JobExecution jobExecution, String tenantId);
 
   /**
+   * Updates {@link JobExecution} within transaction of the specified {@code connection}
+   *
+   * @param connection   transaction connection
+   * @param jobExecution entity to update
+   * @param tenantId     tenant id
+   * @return Future with updated entity
+   */
+  Future<JobExecution> updateJobExecution(AsyncResult<SQLConnection> connection, JobExecution jobExecution, String tenantId);
+
+  /**
    * Searches for {@link JobExecution} by parent id
    *
    * @param parentId parent id

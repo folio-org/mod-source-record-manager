@@ -124,8 +124,7 @@ public interface JobExecutionService {
    * @param params         connection parameters
    * @return future with true if succeeded
    */
-  Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params);
-
+  Future<Boolean> completeJobExecutionWithCancelledStatus(String jobExecutionId, OkapiConnectionParams params);
 
   /**
    *

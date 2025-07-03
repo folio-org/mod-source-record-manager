@@ -229,7 +229,7 @@ public class ChangeManagerImpl implements ChangeManager {
       try {
         LOGGER.debug("deleteChangeManagerJobExecutionsRecordsById:: jobExecutionId {}", id);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        jobExecutionService.completeJobExecutionWithError(id, params)
+        jobExecutionService.completeJobExecutionWithCancelledStatus(id, params)
           .map(deleted -> DeleteChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

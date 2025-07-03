@@ -86,7 +86,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   @InjectMocks
   JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
   @InjectMocks
-  JobExecutionService jobExecutionService = new JobExecutionServiceImpl(new JobExecutionDaoImpl());
+  JobExecutionService jobExecutionService = new JobExecutionServiceImpl(new JobExecutionDaoImpl(), kafkaConfig);
   @InjectMocks
   private JobExecutionProgressDao jobExecutionProgressDao = new JobExecutionProgressDaoImpl();
 
