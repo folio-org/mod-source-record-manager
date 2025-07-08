@@ -30,10 +30,11 @@ public interface JobExecutionService {
   /**
    * Returns JobExecutionCollectionDto by the input filter
    *
-   * @param filter filter containing conditions by which jobExecutions should be filtered
+   * @param filter     filter containing conditions by which jobExecutions should be filtered
    * @param sortFields fields to sort jobExecutions
-   * @param offset starting index in a list of results
-   * @param limit  maximum number of results to return
+   * @param offset     starting index in a list of results
+   * @param limit      maximum number of results to return
+   * @param tenantId   tenant id
    * @return future with JobExecutionCollectionDto
    */
   Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId);
@@ -118,7 +119,7 @@ public interface JobExecutionService {
   Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params);
 
   /**
-   * Sets JobExecution status to ERROR and deletes all associated records from SRS
+   * Sets JobExecution status to CANCELLED and sends a Kafka event to notify that the jobExecution has been cancelled
    *
    * @param jobExecutionId JobExecution id
    * @param params         connection parameters
@@ -128,8 +129,8 @@ public interface JobExecutionService {
 
   /**
    *
-   * @param ids JobExecutions to be deleted using Ids
-   * @param tenantId
+   * @param ids      JobExecutions to be deleted using Ids
+   * @param tenantId tenant id
    * @return future of boolean depending upon success and failure
    */
   Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId);

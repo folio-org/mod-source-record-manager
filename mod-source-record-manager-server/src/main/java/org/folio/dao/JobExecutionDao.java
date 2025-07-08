@@ -28,10 +28,11 @@ public interface JobExecutionDao {
    * Searches for {@link JobExecution} in the db which do not have subordinationType=PARENT_MULTIPLE
    * (only CHILD and PARENT_SINGLE allowed).
    *
-   * @param filter filter containing conditions by which jobExecutions should be filtered
+   * @param filter     filter containing conditions by which jobExecutions should be filtered
    * @param sortFields fields to sort jobExecutions
-   * @param offset starting index in a list of results
-   * @param limit  maximum number of results to return
+   * @param offset     starting index in a list of results
+   * @param limit      maximum number of results to return
+   * @param tenantId   tenant id
    * @return future with {@link org.folio.rest.jaxrs.model.JobExecutionDtoCollection}
    */
   Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId);
@@ -40,6 +41,7 @@ public interface JobExecutionDao {
    * Saves {@link JobExecution} to database
    *
    * @param jobExecution {@link JobExecution} to save
+   * @param tenantId     tenant id
    * @return future
    */
   Future<String> save(JobExecution jobExecution, String tenantId);
@@ -48,6 +50,7 @@ public interface JobExecutionDao {
    * Updates {@link JobExecution}
    *
    * @param jobExecution entity to update
+   * @param tenantId     tenant id
    * @return updated entity
    */
   Future<JobExecution> updateJobExecution(JobExecution jobExecution, String tenantId);
@@ -68,14 +71,16 @@ public interface JobExecutionDao {
    * @param parentId parent id
    * @param offset   starting index in a list of results
    * @param limit    maximum number of results to return
-   * @return collection of JobExecutionCollection dtos with specified parent id
+   * @param tenantId tenant id
+   * @return collection of JobExecutionCollection DTOs with specified parent id
    */
   Future<JobExecutionDtoCollection> getChildrenJobExecutionsByParentId(String parentId, int offset, int limit, String tenantId);
 
   /**
    * Searches for {@link JobExecution} by id
    *
-   * @param id jobExecution id
+   * @param id       jobExecution id
+   * @param tenantId tenant id
    * @return optional of JobExecution
    */
   Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId);

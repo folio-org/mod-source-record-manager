@@ -92,8 +92,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       JobExecution.UiStatus.RUNNING_COMPLETE
     ));
 
-  private JobExecutionDao jobExecutionDao;
-  private KafkaConfig kafkaConfig;
+  private final JobExecutionDao jobExecutionDao;
+  private final KafkaConfig kafkaConfig;
 
   @Autowired
   public JobExecutionServiceImpl(JobExecutionDao jobExecutionDao, KafkaConfig kafkaConfig) {
@@ -353,11 +353,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
       .compose(jobExec -> updateJobExecutionWithCancelledStatus(jobExec, params))
       .map(true)
-      .recover(
-        throwable -> throwable instanceof JobDuplicateUpdateException ?
-          Future.succeededFuture(true) :
-          Future.failedFuture(throwable)
-      );
+      .recover(throwable -> throwable instanceof JobDuplicateUpdateException
+        ? Future.succeededFuture(true)
+        : Future.failedFuture(throwable));
   }
 
   private Future<Void> updateJobExecutionWithCancelledStatus(JobExecution jobExecution, OkapiConnectionParams params) {
