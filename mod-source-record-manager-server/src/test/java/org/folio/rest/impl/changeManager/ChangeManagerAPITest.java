@@ -19,6 +19,7 @@ import static org.folio.KafkaUtil.pauseKafkaContainer;
 import static org.folio.KafkaUtil.resumeKafkaContainer;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_CANCELLED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
@@ -74,6 +75,7 @@ import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.Event;
@@ -1832,7 +1834,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldMarkJobExecutionAsErrorAndDeleteAllAssociatedRecords(TestContext testContext) {
+  public void shouldMarkJobExecutionAsErrorAndDeleteAllAssociatedRecords() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1842,7 +1844,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
-    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -1853,9 +1854,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
@@ -1863,18 +1862,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -1883,35 +1878,31 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(CANCELLED.value()))
       .body("completedDate", notNullValue(Date.class));
-    async.complete();
 
-    List<String> events = getValues(checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 1));
+    List<String> events = getValues(checkKafkaEventSent(formatToKafkaTopicName(DI_JOB_CANCELLED.value()), 1));
     Event event = Json.decodeValue(events.getFirst(), Event.class);
     assertEquals(jobExec.getId(), event.getEventPayload());
-    assertEquals("DI_JOB_CANCELLED", event.getEventType());
+    assertEquals(DI_JOB_CANCELLED.value(), event.getEventType());
   }
 
   @Test
-  public void shouldReturnNotFoundOnDeleteRecordsIfJobExecutionDoesNotExist(TestContext testContext) {
-    Async async = testContext.async();
+  public void shouldReturnNotFoundOnDeleteRecordsIfJobExecutionDoesNotExist() {
     RestAssured.given()
       .spec(spec)
       .when()
       .delete(JOB_EXECUTION_PATH + UUID.randomUUID() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
-    async.complete();
   }
 
   @Test
-  public void shouldMarkJobExecutionAsErrorIfNoSourceChunksExist(TestContext testContext) {
+  public void shouldMarkJobExecutionAsErrorIfNoSourceChunksExist() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.getFirst();
 
-    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -1922,18 +1913,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -1942,16 +1929,15 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(CANCELLED.value()))
       .body("completedDate", notNullValue(Date.class));
-    async.complete();
 
-    List<String> events = getValues(checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 1));
+    List<String> events = getValues(checkKafkaEventSent(formatToKafkaTopicName(DI_JOB_CANCELLED.value()), 1));
     Event event = Json.decodeValue(events.getFirst(), Event.class);
     assertEquals(jobExec.getId(), event.getEventPayload());
-    assertEquals("DI_JOB_CANCELLED", event.getEventType());
+    assertEquals(DI_JOB_CANCELLED.value(), event.getEventType());
   }
 
   @Test
-  public void shouldReturn204OkEventIfRemoveJobExecutionWithCommittedStatus(TestContext testContext) {
+  public void shouldReturn204OkEventIfRemoveJobExecutionWithCommittedStatus() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1961,7 +1947,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
-    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -1972,9 +1957,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
@@ -1982,7 +1965,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
 
     StatusDto status = new StatusDto().withStatus(COMMITTED);
     RestAssured.given()
@@ -1993,16 +1975,13 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK);
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -2010,8 +1989,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(COMMITTED.value()));
-    async.complete();
-    checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 0);
+    checkKafkaEventSent(formatToKafkaTopicName(DI_JOB_CANCELLED.value()), 0);
   }
 
   @Test
@@ -2055,7 +2033,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("status", is(NEW.value()));
 
     verify(0, putRequestedFor(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true)));
-    checkKafkaEventSent(formatToKafkaTopicName("DI_JOB_CANCELLED"), 0);
+    checkKafkaEventSent(formatToKafkaTopicName(DI_JOB_CANCELLED.value()), 0);
   }
 
   @Test
