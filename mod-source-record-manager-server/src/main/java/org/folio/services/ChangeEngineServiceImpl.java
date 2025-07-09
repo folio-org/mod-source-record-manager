@@ -64,6 +64,8 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.okapi.common.XOkapiHeaders;
+import org.folio.services.entity.ConsortiumConfiguration;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalUtil;
@@ -142,6 +144,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final KafkaConfig kafkaConfig;
   private final FieldModificationService fieldModificationService;
   private final IncomingRecordService incomingRecordService;
+  private final ConsortiumDataCache consortiumDataCache;
+  private final Vertx vertx;
   private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
@@ -160,6 +164,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired KafkaConfig kafkaConfig,
                                  @Autowired FieldModificationService fieldModificationService,
                                  @Autowired IncomingRecordService incomingRecordService,
+                                 @Autowired ConsortiumDataCache consortiumDataCache,
                                  @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
@@ -171,7 +176,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.kafkaConfig = kafkaConfig;
     this.fieldModificationService = fieldModificationService;
     this.incomingRecordService = incomingRecordService;
+    this.consortiumDataCache = consortiumDataCache;
     this.journalRecordProducer = getJournalMessageProducer(vertx);
+    this.vertx = vertx;
   }
 
   @Override
@@ -204,7 +211,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, OkapiConnectionParams params, List<Record> parsedRecords) {
     Promise<List<Record>> promiseFilteredRecords = Promise.promise();
 
-    List<Future<List<String>>> listFuture = executeInBatches(parsedRecords, batch -> verifyMarcHoldings004Field(batch, params));
+    List<Future<List<String>>> listFuture = executeInBatches(parsedRecords, batch -> getInvalidMarcBibIdsForConsortium(batch, params));
     filterMarcHoldingsBy004Field(parsedRecords, listFuture, params, jobExecution, promiseFilteredRecords);
     return promiseFilteredRecords.future();
   }
@@ -673,6 +680,45 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           promise.complete(records);
         }
       });
+  }
+
+  private Future<List<String>> getInvalidMarcBibIdsForConsortium(List<String> marcBibIds,
+                                                                 OkapiConnectionParams okapiParams) {
+    if (CollectionUtils.isEmpty(marcBibIds)) {
+      return Future.succeededFuture(Collections.emptyList());
+    }
+    return verifyMarcHoldings004Field(marcBibIds, okapiParams)
+      .compose(invalidIdsInMember -> {
+        if (invalidIdsInMember.isEmpty()) {
+          return Future.succeededFuture(Collections.emptyList());
+        } else {
+          return consortiumDataCache.getConsortiumData(okapiParams)
+            .compose(consortiumConfiguration ->
+              getCentralTenantInvalidIds(okapiParams, invalidIdsInMember, consortiumConfiguration));
+        }
+      });
+  }
+
+  private Future<List<String>> getCentralTenantInvalidIds(OkapiConnectionParams okapiParams,
+                                                          List<String> invalidIdsInMember,
+                                                          Optional<ConsortiumConfiguration> consortiumConfiguration) {
+    if (consortiumConfiguration.isPresent()) {
+      var headers = prepareCentralTenantConnectionParams(okapiParams, consortiumConfiguration.get());
+      var params = new OkapiConnectionParams(headers, vertx);
+      return verifyMarcHoldings004Field(invalidIdsInMember, params);
+    }
+    return Future.succeededFuture(invalidIdsInMember);
+  }
+
+  private Map<String, String> prepareCentralTenantConnectionParams(OkapiConnectionParams okapiParams,
+                                                                   ConsortiumConfiguration consortiumConfiguration) {
+    var headers = new HashMap<String, String>();
+    okapiParams.getHeaders().forEach(headers::put);
+    headers.keySet().stream()
+      .filter(key -> key.equalsIgnoreCase(XOkapiHeaders.TENANT))
+      .findFirst()
+      .ifPresent(key -> headers.put(key, consortiumConfiguration.centralTenantId()));
+    return headers;
   }
 
   private Future<List<String>> verifyMarcHoldings004Field(List<String> marcBibIds, OkapiConnectionParams okapiParams) {
