@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.HttpStatus.HTTP_OK;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
@@ -92,8 +93,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       JobExecution.UiStatus.RUNNING_COMPLETE
     ));
 
-  private final JobExecutionDao jobExecutionDao;
-  private final KafkaConfig kafkaConfig;
+  private JobExecutionDao jobExecutionDao;
+  private KafkaConfig kafkaConfig;
 
   @Autowired
   public JobExecutionServiceImpl(JobExecutionDao jobExecutionDao, KafkaConfig kafkaConfig) {
@@ -370,7 +371,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private Future<Void> sendDiJobCancelledEvent(JobExecution jobExecution, OkapiConnectionParams params) {
     List<KafkaHeader> kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
-    return EventHandlingUtil.sendEventToKafka(params.getTenantId(), jobExecution.getId(), "DI_JOB_CANCELLED", kafkaHeaders, kafkaConfig, jobExecution.getId())
+    return EventHandlingUtil.sendEventToKafka(params.getTenantId(), jobExecution.getId(), DI_JOB_CANCELLED.value(), kafkaHeaders, kafkaConfig, jobExecution.getId())
       .mapEmpty();
   }
 

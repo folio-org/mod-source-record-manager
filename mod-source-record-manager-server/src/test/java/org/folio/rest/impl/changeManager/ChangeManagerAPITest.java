@@ -1,7 +1,6 @@
 package org.folio.rest.impl.changeManager;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
@@ -75,7 +74,6 @@ import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.Event;
