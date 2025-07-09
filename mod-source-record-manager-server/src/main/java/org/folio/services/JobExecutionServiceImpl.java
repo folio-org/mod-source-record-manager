@@ -92,8 +92,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       JobExecution.UiStatus.RUNNING_COMPLETE
     ));
 
-  private final JobExecutionDao jobExecutionDao;
-  private final KafkaConfig kafkaConfig;
+  private JobExecutionDao jobExecutionDao;
+  private KafkaConfig kafkaConfig;
 
   @Autowired
   public JobExecutionServiceImpl(JobExecutionDao jobExecutionDao, KafkaConfig kafkaConfig) {

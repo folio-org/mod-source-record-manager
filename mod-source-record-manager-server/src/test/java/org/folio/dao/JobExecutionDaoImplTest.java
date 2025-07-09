@@ -85,8 +85,8 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   @Spy
   @InjectMocks
   JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
-  @InjectMocks
-  JobExecutionService jobExecutionService = new JobExecutionServiceImpl(new JobExecutionDaoImpl(), kafkaConfig);
+//  @InjectMocks
+  JobExecutionService jobExecutionService;
   @InjectMocks
   private JobExecutionProgressDao jobExecutionProgressDao = new JobExecutionProgressDaoImpl();
 
@@ -102,6 +102,8 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
+    this.jobExecutionService = new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig);
+
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
