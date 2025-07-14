@@ -361,12 +361,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private Future<Void> updateJobExecutionWithCancelledStatus(JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.debug("updateJobExecutionWithCancelledStatus:: Trying to update job execution with CANCELLED status, jobExecutionId: '{}'", jobExecution.getId());
-    PostgresClient pgClient = PostgresClient.getInstance(Vertx.vertx(), params.getTenantId());
-    return DbUtil.executeInTransaction(pgClient, connectionAr ->
-      jobExecutionDao.updateJobExecution(connectionAr, jobExecution, params.getTenantId())
-        .compose(updatedJob -> sendDiJobCancelledEvent(jobExecution, params))
-    ).compose(v -> updateSnapshotStatus(jobExecution, params))
+
+    return updateJobExecutionWithSnapshotStatus(jobExecution, params)
+      .compose(updatedJob -> sendDiJobCancelledEvent(jobExecution, params))
       .mapEmpty();
+
+//    PostgresClient pgClient = PostgresClient.getInstance(Vertx.vertx(), params.getTenantId());
+//    return DbUtil.executeInTransaction(pgClient, connectionAr ->
+//      jobExecutionDao.updateJobExecution(connectionAr, jobExecution, params.getTenantId())
+//        .compose(updatedJob -> sendDiJobCancelledEvent(jobExecution, params))
+//    ).compose(v -> updateSnapshotStatus(jobExecution, params))
+//      .mapEmpty();
   }
 
   private Future<Void> sendDiJobCancelledEvent(JobExecution jobExecution, OkapiConnectionParams params) {
