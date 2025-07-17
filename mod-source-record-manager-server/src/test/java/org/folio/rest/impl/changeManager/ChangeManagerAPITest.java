@@ -1832,7 +1832,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldMarkJobExecutionAsErrorAndDeleteAllAssociatedRecords() {
+  public void shouldMarkJobExecutionAsCancelled() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1894,7 +1894,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldMarkJobExecutionAsErrorIfNoSourceChunksExist() {
+  public void shouldMarkJobExecutionAsCancelledIfNoSourceChunksExist() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
