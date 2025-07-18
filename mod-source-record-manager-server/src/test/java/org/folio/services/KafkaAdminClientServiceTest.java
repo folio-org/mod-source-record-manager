@@ -61,7 +61,8 @@ public class KafkaAdminClientServiceTest {
       new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED", 10),
       new SRMKafkaTopic("DI_INCOMING_MARC_BIB_RECORD_PARSED", 10),
       new SRMKafkaTopic("DI_INCOMING_EDIFACT_RECORD_PARSED", 10),
-      new SRMKafkaTopic("DI_JOB_COMPLETED", 10)
+      new SRMKafkaTopic("DI_JOB_COMPLETED", 10),
+      new SRMKafkaTopic("DI_JOB_CANCELLED", 10)
     };
 
     when(srmKafkaTopicService.createTopicObjects()).thenReturn(topicObjects);
@@ -159,6 +160,7 @@ public class KafkaAdminClientServiceTest {
     env + ".Default.foo-tenant.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
     env + ".Default.foo-tenant.DI_INCOMING_MARC_BIB_RECORD_PARSED",
     env + ".Default.foo-tenant.DI_INCOMING_EDIFACT_RECORD_PARSED",
-    env + ".Default.foo-tenant.DI_JOB_COMPLETED"
+    env + ".Default.foo-tenant.DI_JOB_COMPLETED",
+    env + ".Default.foo-tenant.DI_JOB_CANCELLED"
   );
 }

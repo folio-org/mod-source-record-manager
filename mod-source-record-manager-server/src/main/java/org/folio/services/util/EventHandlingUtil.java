@@ -57,10 +57,10 @@ public final class EventHandlingUtil {
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
     return producer.send(record)
-        .eventually(x -> producer.close())
-        .map(true)
-        .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
-        .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
+      .eventually(() -> producer.close())
+      .map(true)
+      .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
+      .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
   }
 
   private static void logSendingSucceeded(String eventType, String jobExecutionId, String chunkId, String recordId) {
@@ -126,10 +126,18 @@ public final class EventHandlingUtil {
   }
 
   private static Throwable wrapKafkaException(String eventPayload, Throwable cause) {
-    if (! new JsonObject(eventPayload).containsKey(RECORDS)) {
+    if (!isJsonStringContainsField(eventPayload, RECORDS)) {
       return cause;
     }
     RecordCollection recordCollection = Json.decodeValue(eventPayload, RecordCollection.class);
     return new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords());
+  }
+
+  private static boolean isJsonStringContainsField(String eventPayload, String fieldName) {
+    try {
+      return new JsonObject(eventPayload).containsKey(fieldName);
+    } catch (Exception e) {
+      return false;
+    }
   }
 }
