@@ -371,6 +371,7 @@
             "source-storage.records.put"
           ],
           "permissionsDesired": [
+            "consortia.data-import.central-record-update.execute",
             "invoices.acquisitions-units-assignments.assign",
             "orders.acquisitions-units-assignments.assign",
             "orders.acquisitions-units-assignments.manage",
