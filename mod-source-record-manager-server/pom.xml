@@ -17,8 +17,8 @@
     <aspectj.version>1.9.22.1</aspectj.version>
     <lombok.version>1.18.38</lombok.version>
     <testcontainers.version>1.20.6</testcontainers.version>
-    <kafkaclients.version>3.9.0</kafkaclients.version>
-    <commons-lang3.version>3.17.0</commons-lang3.version>
+    <kafkaclients.version>3.9.1</kafkaclients.version>
+    <commons-lang3.version>3.18.0</commons-lang3.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <mockito.version>5.2.0</mockito.version>
   </properties>
