@@ -2,7 +2,6 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.HttpException;
@@ -14,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
-import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
@@ -43,7 +41,6 @@ import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
-import org.folio.rest.persist.PostgresClient;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.folio.services.util.EventHandlingUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -361,11 +358,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private Future<Void> updateJobExecutionWithCancelledStatus(JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.debug("updateJobExecutionWithCancelledStatus:: Trying to update job execution with CANCELLED status, jobExecutionId: '{}'", jobExecution.getId());
-    PostgresClient pgClient = PostgresClient.getInstance(Vertx.vertx(), params.getTenantId());
-    return DbUtil.executeInTransaction(pgClient, connectionAr ->
-      jobExecutionDao.updateJobExecution(connectionAr, jobExecution, params.getTenantId())
-        .compose(updatedJob -> sendDiJobCancelledEvent(jobExecution, params))
-    ).compose(v -> updateSnapshotStatus(jobExecution, params))
+    return jobExecutionDao.updateJobExecution(jobExecution, params.getTenantId())
+      .compose(updatedJob -> Future.all(
+        sendDiJobCancelledEvent(jobExecution, params),
+        updateSnapshotStatus(jobExecution, params)
+      ))
       .mapEmpty();
   }
 

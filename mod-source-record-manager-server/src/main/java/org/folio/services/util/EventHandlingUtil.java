@@ -133,9 +133,9 @@ public final class EventHandlingUtil {
     return new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords());
   }
 
-  private static boolean isJsonStringContainsField(String eventPayload, String fieldName) {
+  private static boolean isJsonStringContainsField(String jsonString, String fieldName) {
     try {
-      return new JsonObject(eventPayload).containsKey(fieldName);
+      return new JsonObject(jsonString).containsKey(fieldName);
     } catch (Exception e) {
       return false;
     }
