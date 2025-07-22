@@ -23,6 +23,7 @@ import static org.folio.services.util.RecordConversionUtil.RECORDS;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public final class EventHandlingUtil {
 
@@ -57,7 +58,7 @@ public final class EventHandlingUtil {
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
     return producer.send(record)
-      .eventually(() -> producer.close())
+      .eventually((Supplier<Future<Void>>) producer::close)
       .map(true)
       .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
       .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
