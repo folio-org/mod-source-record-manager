@@ -14,8 +14,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.folio.KafkaUtil.checkKafkaEventSent;
 import static org.folio.KafkaUtil.getValues;
-import static org.folio.KafkaUtil.pauseKafkaContainer;
-import static org.folio.KafkaUtil.resumeKafkaContainer;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_CANCELLED;
@@ -1991,11 +1989,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnInternalErrorOnDeleteJobRecordsIfFailedToPublishEventAboutJobCancellation() {
+  public void shouldPublishJobCancelledEventOnDeleteRecordsIfSnapshotUpdateFailed() {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.getFirst();
+
+    WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.serverError()));
 
     RestAssured.given()
       .spec(spec)
@@ -2008,19 +2009,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK);
 
-    // pause Kafka container to cause failure of the event publishing to Kafka
-    pauseKafkaContainer();
-
-    try {
-      RestAssured.given()
-        .spec(spec)
-        .when()
-        .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-        .then()
-        .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    } finally {
-      resumeKafkaContainer();
-    }
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
     RestAssured.given()
       .spec(spec)
@@ -2028,10 +2022,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(NEW.value()));
+      // verifies that job execution status has been set to ERROR because
+      // currently job status is set to ERROR if snapshot status update fails
+      .body("status", is(ERROR.value()))
+      .body("errorStatus", is(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR.value()))
+      .body("completedDate", notNullValue(Date.class));
 
-    verify(0, putRequestedFor(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true)));
-    checkKafkaEventSent(formatToKafkaTopicName(DI_JOB_CANCELLED.value()), 0);
+    List<String> events = getValues(checkKafkaEventSent(formatToKafkaTopicName(DI_JOB_CANCELLED.value()), 1));
+    Event event = Json.decodeValue(events.getFirst(), Event.class);
+    assertEquals(jobExec.getId(), event.getEventPayload());
+    assertEquals(DI_JOB_CANCELLED.value(), event.getEventType());
   }
 
   @Test

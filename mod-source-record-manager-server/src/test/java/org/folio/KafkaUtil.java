@@ -132,14 +132,6 @@ public final class KafkaUtil {
       .toList();
   }
 
-  public static void pauseKafkaContainer() {
-    KAFKA_CONTAINER.getDockerClient().pauseContainerCmd(KAFKA_CONTAINER.getContainerId()).exec();
-  }
-
-  public static void resumeKafkaContainer() {
-    KAFKA_CONTAINER.getDockerClient().unpauseContainerCmd(KAFKA_CONTAINER.getContainerId()).exec();
-  }
-
   private static Properties getConsumerProperties() {
     Properties consumerProperties = new Properties();
     consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_CONTAINER.getBootstrapServers());
