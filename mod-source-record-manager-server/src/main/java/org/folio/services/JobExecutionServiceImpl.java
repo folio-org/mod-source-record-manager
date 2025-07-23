@@ -66,6 +66,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.folio.services.util.EventHandlingUtil.JOB_EXECUTION_ID_HEADER;
 import static org.folio.verticle.JobExecutionProgressVerticle.COMPLETED_STATUSES;
 
 /**
@@ -353,7 +354,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(true)
       .recover(throwable -> throwable instanceof JobDuplicateUpdateException
         ? Future.succeededFuture(true)
-        : Future.failedFuture(throwable));
+        : Future.failedFuture(throwable))
+      .onSuccess(v -> LOGGER.info("completeJobExecutionWithCancelledStatus:: Job execution was cancelled successfully, jobExecutionId: '{}'",
+        jobExecutionId))
+      .onFailure(e -> LOGGER.warn("completeJobExecutionWithCancelledStatus:: Failed to complete job execution with CANCELLED status, jobExecutionId: '{}'",
+        jobExecutionId, e));
   }
 
   private Future<Void> updateJobExecutionWithCancelledStatus(JobExecution jobExecution, OkapiConnectionParams params) {
@@ -367,7 +372,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private Future<Void> sendDiJobCancelledEvent(JobExecution jobExecution, OkapiConnectionParams params) {
-    List<KafkaHeader> kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+    List<KafkaHeader> kafkaHeaders = new ArrayList<>(KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()));
+    kafkaHeaders.add(KafkaHeader.header(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     return EventHandlingUtil.sendEventToKafka(params.getTenantId(), jobExecution.getId(), DI_JOB_CANCELLED.value(), kafkaHeaders, kafkaConfig, jobExecution.getId())
       .mapEmpty();
   }
