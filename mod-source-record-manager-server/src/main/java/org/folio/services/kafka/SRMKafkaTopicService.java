@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 @PropertySource(value = "kafka.properties")
 public class SRMKafkaTopicService {
 
+  // only one partition is needed for DI_JOB_CANCELLED topic
+  private static final Integer DI_JOB_CANCELLED_NUM_PARTITIONS = 1;
+
   @Value("${di_completed.partitions}")
   private Integer diCompletedNumPartitions;
 
@@ -56,6 +59,7 @@ public class SRMKafkaTopicService {
       new SRMKafkaTopic("DI_INCOMING_MARC_BIB_RECORD_PARSED", diMarcBibRecordParsedNumPartitions),
       new SRMKafkaTopic("DI_INCOMING_EDIFACT_RECORD_PARSED", diEdifactRecordParsedNumPartitions),
       new SRMKafkaTopic("DI_JOB_COMPLETED", diJobCompletedNumPartitions),
+      new SRMKafkaTopic("DI_JOB_CANCELLED", DI_JOB_CANCELLED_NUM_PARTITIONS)
     };
   }
 }

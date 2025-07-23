@@ -5,6 +5,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,14 +17,18 @@ import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto.SourceType;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
@@ -36,9 +41,8 @@ import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto.SourceType;
-import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
+import org.folio.services.util.EventHandlingUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,10 +61,12 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.HttpStatus.HTTP_OK;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.folio.services.util.EventHandlingUtil.JOB_EXECUTION_ID_HEADER;
 import static org.folio.verticle.JobExecutionProgressVerticle.COMPLETED_STATUSES;
 
 /**
@@ -85,11 +91,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       JobExecution.UiStatus.RUNNING_COMPLETE
     ));
 
-  @Autowired
   private JobExecutionDao jobExecutionDao;
+  private KafkaConfig kafkaConfig;
 
-  public JobExecutionServiceImpl(@Autowired JobExecutionDao jobExecutionDao) {
+  @Autowired
+  public JobExecutionServiceImpl(JobExecutionDao jobExecutionDao, KafkaConfig kafkaConfig) {
     this.jobExecutionDao = jobExecutionDao;
+    this.kafkaConfig = kafkaConfig;
   }
 
   @Override
@@ -336,19 +344,38 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params) {
+  public Future<Boolean> completeJobExecutionWithCancelledStatus(String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
       .map(this::verifyJobExecution)
       .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
-      .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
+      .compose(jobExec -> updateJobExecutionWithCancelledStatus(jobExec, params))
       .map(true)
-      .recover(
-        throwable -> throwable instanceof JobDuplicateUpdateException ?
-          Future.succeededFuture(true) :
-          Future.failedFuture(throwable)
-      );
+      .recover(throwable -> throwable instanceof JobDuplicateUpdateException
+        ? Future.succeededFuture(true)
+        : Future.failedFuture(throwable))
+      .onSuccess(v -> LOGGER.info("completeJobExecutionWithCancelledStatus:: Job execution was cancelled successfully, jobExecutionId: '{}'",
+        jobExecutionId))
+      .onFailure(e -> LOGGER.warn("completeJobExecutionWithCancelledStatus:: Failed to complete job execution with CANCELLED status, jobExecutionId: '{}'",
+        jobExecutionId, e));
+  }
+
+  private Future<Void> updateJobExecutionWithCancelledStatus(JobExecution jobExecution, OkapiConnectionParams params) {
+    LOGGER.debug("updateJobExecutionWithCancelledStatus:: Trying to update job execution with CANCELLED status, jobExecutionId: '{}'", jobExecution.getId());
+    return jobExecutionDao.updateJobExecution(jobExecution, params.getTenantId())
+      .compose(updatedJob -> Future.all(
+        sendDiJobCancelledEvent(jobExecution, params),
+        updateSnapshotStatus(jobExecution, params)
+      ))
+      .mapEmpty();
+  }
+
+  private Future<Void> sendDiJobCancelledEvent(JobExecution jobExecution, OkapiConnectionParams params) {
+    List<KafkaHeader> kafkaHeaders = new ArrayList<>(KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()));
+    kafkaHeaders.add(KafkaHeader.header(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
+    return EventHandlingUtil.sendEventToKafka(params.getTenantId(), jobExecution.getId(), DI_JOB_CANCELLED.value(), kafkaHeaders, kafkaConfig, jobExecution.getId())
+      .mapEmpty();
   }
 
   @Override

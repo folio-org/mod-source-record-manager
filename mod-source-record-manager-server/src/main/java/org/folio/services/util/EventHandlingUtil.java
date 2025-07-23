@@ -23,8 +23,13 @@ import static org.folio.services.util.RecordConversionUtil.RECORDS;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public final class EventHandlingUtil {
+
+  public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
+  public static final String RECORD_ID_HEADER = "recordId";
+  public static final String CHUNK_ID_HEADER = "chunkId";
 
   private EventHandlingUtil() {
   }
@@ -47,9 +52,9 @@ public final class EventHandlingUtil {
     String topicName = createTopicName(eventType, tenantId, kafkaConfig);
     KafkaProducerRecord<String, String> record = createProducerRecord(event, key, topicName, kafkaHeaders);
 
-    String chunkId = extractHeader(kafkaHeaders, "chunkId");
-    String recordId = extractHeader(kafkaHeaders, "recordId");
-    String jobExecutionId = extractHeader(kafkaHeaders, "jobExecutionId");
+    String chunkId = extractHeader(kafkaHeaders, CHUNK_ID_HEADER);
+    String recordId = extractHeader(kafkaHeaders, RECORD_ID_HEADER);
+    String jobExecutionId = extractHeader(kafkaHeaders, JOB_EXECUTION_ID_HEADER);
 
     String producerName = eventType + "_Producer";
     LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {}, jobExecutionId: {}, recordId: {} and chunkId: {}",
@@ -57,10 +62,10 @@ public final class EventHandlingUtil {
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
     return producer.send(record)
-        .eventually(x -> producer.close())
-        .map(true)
-        .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
-        .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
+      .eventually((Supplier<Future<Void>>) producer::close)
+      .map(true)
+      .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
+      .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
   }
 
   private static void logSendingSucceeded(String eventType, String jobExecutionId, String chunkId, String recordId) {
@@ -126,10 +131,18 @@ public final class EventHandlingUtil {
   }
 
   private static Throwable wrapKafkaException(String eventPayload, Throwable cause) {
-    if (! new JsonObject(eventPayload).containsKey(RECORDS)) {
+    if (!isJsonStringContainsField(eventPayload, RECORDS)) {
       return cause;
     }
     RecordCollection recordCollection = Json.decodeValue(eventPayload, RecordCollection.class);
     return new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords());
+  }
+
+  private static boolean isJsonStringContainsField(String jsonString, String fieldName) {
+    try {
+      return new JsonObject(jsonString).containsKey(fieldName);
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

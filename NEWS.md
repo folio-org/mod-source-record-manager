@@ -1,7 +1,8 @@
-## XXXX-XX-XX v3.1X.X
+## XXXX-XX-XX v3.11.0-SNAPSHOT
 * [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
 * [MODSOURMAN-1323](https://folio-org.atlassian.net/browse/MODSOURMAN-1323) Ensure holdings validation to check central ECS tenant
 * [MODDATAIMP-1214](https://folio-org.atlassian.net/browse/MODDATAIMP-1214) Ensure permission that allows update of shared instance and MARC
+* [MODSOURMAN-1136](https://folio-org.atlassian.net/browse/MODSOURMAN-1136) Send Kafka event when JobExecution is cancelled
 
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
