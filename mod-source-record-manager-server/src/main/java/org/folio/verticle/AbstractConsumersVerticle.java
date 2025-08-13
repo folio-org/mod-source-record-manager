@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
@@ -60,6 +61,7 @@ public abstract class AbstractConsumersVerticle<K, V> extends AbstractVerticle {
         .subscriptionDefinition(subscriptionDefinition)
         .processRecordErrorHandler(getErrorHandler())
         .backPressureGauge(getBackPressureGauge())
+        .groupInstanceId(getClass().getSimpleName() + "-" + UUID.randomUUID())
         .build();
       kafkaConsumersStorage.addConsumer(event, consumerWrapper);
 

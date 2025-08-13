@@ -228,6 +228,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     consumerProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "20000");
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaTopicNameHelper.formatGroupName("DATA_IMPORT_JOURNAL_BATCH",
       environment() + "_" + constructModuleName() + "_" + getClass().getSimpleName()));
+    consumerProps.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, getClass().getSimpleName() + "-" + UUID.randomUUID());
     if(SharedDataUtil.getIsTesting(vertx.getDelegate())) {
       // this will allow the consumer to retrieve messages faster during tests
       consumerProps.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, "1000");
