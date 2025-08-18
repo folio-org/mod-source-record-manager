@@ -1,3 +1,6 @@
+## 2025-08-18 v3.10.7
+* [MODSOURMAN-1341](https://folio-org.atlassian.net/browse/MODSOURMAN-1341) Configure consumer groupInstanceId
+
 ## 2025-06-30 v3.10.6
 * [MODSOURMAN-1323](https://folio-org.atlassian.net/browse/MODSOURMAN-1323) Ensure holdings validation to check central ECS tenant
 
