@@ -3,6 +3,7 @@
 * [MODSOURMAN-1323](https://folio-org.atlassian.net/browse/MODSOURMAN-1323) Ensure holdings validation to check central ECS tenant
 * [MODDATAIMP-1214](https://folio-org.atlassian.net/browse/MODDATAIMP-1214) Ensure permission that allows update of shared instance and MARC
 * [MODSOURMAN-1136](https://folio-org.atlassian.net/browse/MODSOURMAN-1136) Send Kafka event when JobExecution is cancelled
+* [MODSOURMAN-1353](https://folio-org.atlassian.net/browse/MODSOURMAN-1353) Remove relatedRecordVersion from quickMarc flow
 
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
