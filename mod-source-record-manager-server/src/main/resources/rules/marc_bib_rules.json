@@ -2229,8 +2229,19 @@
       "target": "instanceFormatIds",
       "description": "Instance Format ID",
       "ignoreSubsequentSubfields": true,
+      "applyRulesOnConcatenatedData": true,
       "subfield": [
+        "a",
         "b"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": "~",
+          "subfields": [
+            "a",
+            "b"
+          ]
+        }
       ],
       "rules": [
         {
