@@ -242,24 +242,6 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void getChangeManagerParsedRecords(String externalId, Map<String, String> okapiHeaders,
-                                            Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    vertxContext.runOnContext(v -> {
-      try {
-        LOGGER.debug("getChangeManagerParsedRecords:: externalId {}", externalId);
-        parsedRecordService.getRecordByExternalId(externalId, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
-          .map(GetChangeManagerParsedRecordsResponse::respond200WithApplicationJson)
-          .map(Response.class::cast)
-          .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .onComplete(asyncResultHandler);
-      } catch (Exception e) {
-        LOGGER.warn(getMessage("getChangeManagerParsedRecords:: Failed to retrieve parsed record by externalId {}", e, externalId));
-        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
-      }
-    });
-  }
-
-  @Override
   public void putChangeManagerParsedRecordsById(String id, ParsedRecordDto entity, Map<String, String> okapiHeaders,
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {

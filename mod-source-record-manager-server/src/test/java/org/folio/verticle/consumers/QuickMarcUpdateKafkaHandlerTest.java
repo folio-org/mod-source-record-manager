@@ -3,7 +3,6 @@ package org.folio.verticle.consumers;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,9 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.services.QuickMarcEventProducerService;
-import org.folio.services.SourceRecordStateService;
 import org.folio.verticle.consumers.util.QMEventTypes;
 import org.folio.verticle.consumers.util.QmCompletedEventPayload;
 
@@ -44,8 +41,6 @@ public class QuickMarcUpdateKafkaHandlerTest {
 
   private static final String TENANT_ID = "test";
 
-  @Mock
-  private SourceRecordStateService sourceRecordStateService;
   @Mock
   private QuickMarcEventProducerService producerService;
   @Mock
@@ -59,8 +54,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
 
   @Before
   public void setUp() throws Exception {
-    quickMarcHandler =
-      new QuickMarcUpdateKafkaHandler(sourceRecordStateService, producerService, vertx);
+    quickMarcHandler = new QuickMarcUpdateKafkaHandler(producerService, vertx);
   }
 
   @Test
@@ -82,17 +76,12 @@ public class QuickMarcUpdateKafkaHandlerTest {
     when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
     when(producerService.sendEvent(anyString(), anyString(), isNull(), anyString(), anyList()))
       .thenReturn(Future.succeededFuture(true));
-    when(sourceRecordStateService.updateState(anyString(), any(SourceRecordState.RecordState.class), anyString()))
-      .thenReturn(Future.succeededFuture(new SourceRecordState()));
 
     var future = quickMarcHandler.handle(kafkaRecord);
     assertTrue(future.succeeded());
     verify(producerService, times(1))
       .sendEvent(qmCompletedEventCaptor.capture(), eq(QMEventTypes.QM_COMPLETED.name()), isNull(), eq(TENANT_ID),
         eq(kafkaHeaders));
-
-    verify(sourceRecordStateService, times(1))
-      .updateState(recordDtoId, SourceRecordState.RecordState.ACTUAL, TENANT_ID);
 
     var actualEventPayload = Json.decodeValue(qmCompletedEventCaptor.getValue(), QmCompletedEventPayload.class);
     assertEquals(recordId, actualEventPayload.getRecordId());
@@ -120,17 +109,12 @@ public class QuickMarcUpdateKafkaHandlerTest {
     when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
     when(producerService.sendEvent(anyString(), anyString(), isNull(), anyString(), anyList()))
       .thenReturn(Future.succeededFuture(true));
-    when(sourceRecordStateService.updateState(anyString(), any(SourceRecordState.RecordState.class), anyString()))
-      .thenReturn(Future.succeededFuture(new SourceRecordState()));
 
     var future = quickMarcHandler.handle(kafkaRecord);
     assertTrue(future.succeeded());
     verify(producerService, times(1))
       .sendEvent(qmCompletedEventCaptor.capture(), eq(QMEventTypes.QM_COMPLETED.name()), isNull(), eq(TENANT_ID),
         eq(kafkaHeaders));
-
-    verify(sourceRecordStateService, times(1))
-      .updateState(recordDtoId, SourceRecordState.RecordState.ERROR, TENANT_ID);
 
     var actualEventPayload = Json.decodeValue(qmCompletedEventCaptor.getValue(), QmCompletedEventPayload.class);
     assertEquals(recordId, actualEventPayload.getRecordId());

@@ -397,20 +397,8 @@
     },
     {
       "id": "source-manager-parsed-records",
-      "version": "3.0",
+      "version": "4.0",
       "handlers": [
-        {
-          "methods": [
-            "GET"
-          ],
-          "pathPattern": "/change-manager/parsedRecords",
-          "permissionsRequired": [
-            "change-manager.parsedrecords.get"
-          ],
-          "modulePermissions": [
-            "source-storage.source-records.item.get"
-          ]
-        },
         {
           "methods": [
             "PUT"
