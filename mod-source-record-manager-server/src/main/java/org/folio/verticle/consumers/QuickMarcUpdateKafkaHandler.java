@@ -1,8 +1,6 @@
 package org.folio.verticle.consumers;
 
 import static org.folio.kafka.KafkaHeaderUtils.kafkaHeadersToMap;
-import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ACTUAL;
-import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ERROR;
 import static org.folio.verticle.consumers.util.QMEventTypes.QM_COMPLETED;
 
 import java.util.HashMap;
@@ -22,10 +20,7 @@ import org.springframework.stereotype.Component;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.services.QuickMarcEventProducerService;
-import org.folio.services.SourceRecordStateService;
-import org.folio.verticle.consumers.util.QMEventTypes;
 import org.folio.verticle.consumers.util.QmCompletedEventPayload;
 
 @Component
@@ -35,10 +30,8 @@ import org.folio.verticle.consumers.util.QmCompletedEventPayload;
 public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, String> {
 
   private static final String RECORD_ID_KEY = "RECORD_ID";
-  private static final String RECORD_DTO_ID_KEY = "RECORD_DTO_ID";
   private static final String ERROR_KEY = "ERROR";
 
-  private final SourceRecordStateService sourceRecordStateService;
   private final QuickMarcEventProducerService producerService;
   private final Vertx vertx;
 
@@ -54,7 +47,6 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
 
     return getEventPayload(event)
       .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
-      .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
       .compose(s -> Future.succeededFuture(record.key()), th -> {
         log.warn("handle:: Update record state was failed while handle {} event", eventType);
         return Future.failedFuture(th);
@@ -68,17 +60,6 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
     var qmCompletedEventPayload = new QmCompletedEventPayload(recordId, errorMessage);
     return producerService.sendEvent(Json.encode(qmCompletedEventPayload), QM_COMPLETED.name(), null, tenantId, kafkaHeaders)
       .map(v -> eventPayload);
-  }
-
-  private Future<SourceRecordState> updateSourceState(Map<String, String> eventPayload, String eventType,
-                                                      String tenantId) {
-    log.debug("Event was received for {}: {}", eventType, eventPayload);
-    var recordId = eventPayload.get(RECORD_DTO_ID_KEY);
-    if (QMEventTypes.QM_ERROR.name().equals(eventType)) {
-      return sourceRecordStateService.updateState(recordId, ERROR, tenantId);
-    } else {
-      return sourceRecordStateService.updateState(recordId, ACTUAL, tenantId);
-    }
   }
 
   @SuppressWarnings("unchecked")
