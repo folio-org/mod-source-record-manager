@@ -4,6 +4,7 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,12 @@ public class AuthorityMappingChronTermCustomMigration extends BaseMappingRulesMi
   private static final String TAG_148 = "148";
   private static final String TAG_448 = "448";
   private static final String TAG_548 = "548";
-  private static final String FEATURE_VERSION = "3.10.0";
+  private static final int ORDER = 7;
+  private static final UUID MIGRATION_ID = UUID.fromString("f27072af-e322-4574-8667-81c066c41ac8");
   private static final String DESCRIPTION = "Authority mapping rules: add rules for chronological term fields";
 
   protected AuthorityMappingChronTermCustomMigration(MappingRuleService mappingRuleService) {
-    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
+    super(MARC_AUTHORITY, ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
   }
 
   @Override

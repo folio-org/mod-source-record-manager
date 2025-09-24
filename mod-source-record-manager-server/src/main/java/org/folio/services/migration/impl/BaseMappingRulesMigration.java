@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
+import java.util.UUID;
 import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.folio.services.migration.CustomMigration;
@@ -18,16 +19,18 @@ public abstract class BaseMappingRulesMigration implements CustomMigration {
   protected static final JsonArray EMPTY_RULES = new JsonArray();
 
   private final Record.RecordType recordType;
-  private final String featureVersion;
+  private final int order;
   private final String description;
+  private final UUID migrationId;
 
   protected final MappingRuleService mappingRuleService;
 
-  protected BaseMappingRulesMigration(Record.RecordType recordType, String featureVersion, String description,
-                                      MappingRuleService mappingRuleService) {
+  protected BaseMappingRulesMigration(Record.RecordType recordType, int order, String description,
+                                      UUID migrationId, MappingRuleService mappingRuleService) {
     this.recordType = recordType;
-    this.featureVersion = featureVersion;
+    this.order = order;
     this.description = description;
+    this.migrationId = migrationId;
     this.mappingRuleService = mappingRuleService;
   }
 
@@ -45,8 +48,18 @@ public abstract class BaseMappingRulesMigration implements CustomMigration {
   }
 
   @Override
-  public String getFeatureVersion() {
-    return featureVersion;
+  public int getOrder() {
+    return order;
+  }
+
+  @Override
+  public Record.RecordType getRecordType() {
+    return recordType;
+  }
+
+  @Override
+  public UUID getMigrationId() {
+    return migrationId;
   }
 
   @Override
