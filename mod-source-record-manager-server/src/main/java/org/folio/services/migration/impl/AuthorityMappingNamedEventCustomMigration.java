@@ -4,6 +4,7 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,12 @@ public class AuthorityMappingNamedEventCustomMigration extends BaseMappingRulesM
   private static final String TAG_147 = "147";
   private static final String TAG_447 = "447";
   private static final String TAG_547 = "547";
-  private static final String FEATURE_VERSION = "3.10.0";
+  private static final int ORDER = 12;
+  private static final UUID MIGRATION_ID = UUID.fromString("6d17fe92-39f3-494f-9e5f-e104fdabe78a");
   private static final String DESCRIPTION = "Authority mapping rules: add rules for named event fields";
 
   protected AuthorityMappingNamedEventCustomMigration(MappingRuleService mappingRuleService) {
-    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
+    super(MARC_AUTHORITY, ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
   }
 
   @Override

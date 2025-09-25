@@ -15,6 +15,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.junit.Assert;
@@ -29,12 +30,13 @@ public class BaseMappingRulesMigrationTest {
   private static final String UPDATED_RULES = "updated rules";
   private static final String TAG = "tag";
   private static final String TARGET = "target";
-  private static final String FEATURE_VERSION = "some-version";
+  private static final int ORDER = 1;
   private static final String DESCRIPTION = "some-description";
+  private static final UUID MIGRATION_ID = UUID.randomUUID();
 
   private final MappingRuleService mappingRuleService = mock(MappingRuleService.class);
   private final TestBaseMappingRulesMigration migration = new TestBaseMappingRulesMigration(MARC_AUTHORITY,
-    FEATURE_VERSION, DESCRIPTION, mappingRuleService);
+    ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
 
   @Test
   public void migrateShouldDoNothingIfNoRulesExist() {
@@ -61,8 +63,8 @@ public class BaseMappingRulesMigrationTest {
   }
 
   @Test
-  public void getFeatureVersionShouldReturnCorrectFeatureVersion() {
-    Assert.assertEquals(FEATURE_VERSION, migration.getFeatureVersion());
+  public void getOrderShouldReturnCorrectOrder() {
+    Assert.assertEquals(ORDER, migration.getOrder());
   }
 
   @Test
@@ -121,9 +123,9 @@ public class BaseMappingRulesMigrationTest {
 
   private static final class TestBaseMappingRulesMigration extends BaseMappingRulesMigration {
 
-    private TestBaseMappingRulesMigration(Record.RecordType recordType, String featureVersion, String description,
-                                          MappingRuleService mappingRuleService) {
-      super(recordType, featureVersion, description, mappingRuleService);
+    private TestBaseMappingRulesMigration(Record.RecordType recordType, int order, String description,
+                                          UUID migrationId, MappingRuleService mappingRuleService) {
+      super(recordType, order, description, migrationId, mappingRuleService);
     }
 
     @Override

@@ -4,6 +4,7 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,12 @@ public class AuthorityMappingGeneralSubdivisionCustomMigration extends BaseMappi
   private static final String TAG_180 = "180";
   private static final String TAG_480 = "480";
   private static final String TAG_580 = "580";
-  private static final String FEATURE_VERSION = "3.10.0";
+  private static final int ORDER = 9;
+  private static final UUID MIGRATION_ID = UUID.fromString("4f07c706-a740-4e8b-a6a3-1c53f46a314c");
   private static final String DESCRIPTION = "Authority mapping rules: add rules for general subdivision fields";
 
   protected AuthorityMappingGeneralSubdivisionCustomMigration(MappingRuleService mappingRuleService) {
-    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
+    super(MARC_AUTHORITY, ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
   }
 
   @Override

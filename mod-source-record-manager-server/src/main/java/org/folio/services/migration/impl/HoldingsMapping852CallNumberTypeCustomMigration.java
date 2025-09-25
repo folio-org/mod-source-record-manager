@@ -5,16 +5,23 @@ import static org.folio.Record.RecordType.MARC_HOLDING;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
+import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.folio.services.migration.CustomMigration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class HoldingsMapping852CallNumberTypeCustomMigration implements CustomMigration {
 
-  @Autowired
-  private MappingRuleService mappingRuleService;
+  private static final int ORDER = 1;
+  private static final UUID MIGRATION_ID = UUID.fromString("7a7a4270-7a9a-420e-a27e-1763ed03a57f");
+
+  private final MappingRuleService mappingRuleService;
+
+  public HoldingsMapping852CallNumberTypeCustomMigration(MappingRuleService mappingRuleService) {
+    this.mappingRuleService = mappingRuleService;
+  }
 
   @Override
   public Future<Void> migrate(String tenantId) {
@@ -30,8 +37,18 @@ public class HoldingsMapping852CallNumberTypeCustomMigration implements CustomMi
   }
 
   @Override
-  public String getFeatureVersion() {
-    return "3.7.0";
+  public UUID getMigrationId() {
+    return MIGRATION_ID;
+  }
+
+  @Override
+  public int getOrder() {
+    return ORDER;
+  }
+
+  @Override
+  public Record.RecordType getRecordType() {
+    return MARC_HOLDING;
   }
 
   @Override

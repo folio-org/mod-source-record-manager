@@ -5,13 +5,16 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
+import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.folio.services.migration.CustomMigration;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
-  private static final String FEATURE_VERSION = "3.9.0";
+  private static final int ORDER = 3;
+  private static final UUID MIGRATION_ID = UUID.fromString("cdfc50e7-0eb2-42cf-8987-9d78bc2b8032");
   private static final String DESCRIPTION = "Authority mapping rules: update rule for LCCN";
   private static final String SUBFIELD_A = "a";
   private static final String SUBFIELD_Z = "z";
@@ -42,13 +45,23 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
   }
 
   @Override
+  public UUID getMigrationId() {
+    return MIGRATION_ID;
+  }
+
+  @Override
   public String getDescription() {
     return DESCRIPTION;
   }
 
   @Override
-  public String getFeatureVersion() {
-    return FEATURE_VERSION;
+  public int getOrder() {
+    return ORDER;
+  }
+
+  @Override
+  public Record.RecordType getRecordType() {
+    return MARC_AUTHORITY;
   }
 
   private JsonObject updateRules(JsonObject rules) {
