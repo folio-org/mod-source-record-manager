@@ -65,8 +65,8 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
   @Override
   public Future<Void> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, OkapiConnectionParams params) {
     JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
-        .withCurrentlySucceeded(successCountDelta)
-          .withCurrentlyFailed(errorCountDelta);
+      .withCurrentlySucceeded(successCountDelta)
+      .withCurrentlyFailed(errorCountDelta);
     BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(params, jobExecutionProgress);
     return jobExecutionProgressMessageProducer.write(batchableJobExecutionProgress);
   }
