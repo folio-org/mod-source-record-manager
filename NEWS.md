@@ -1,4 +1,5 @@
 ## XXXX-XX-XX v4.0.0-SNAPSHOT
+* [MODSOURMAN-1355](https://folio-org.atlassian.net/browse/MODSOURMAN-1355) Replace advisory lock with consistent record ordering to prevent deadlocks in journal record insertions
 * [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
 * [MODSOURMAN-1323](https://folio-org.atlassian.net/browse/MODSOURMAN-1323) Ensure holdings validation to check central ECS tenant
 * [MODDATAIMP-1214](https://folio-org.atlassian.net/browse/MODDATAIMP-1214) Ensure permission that allows update of shared instance and MARC

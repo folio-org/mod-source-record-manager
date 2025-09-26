@@ -38,7 +38,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -187,9 +189,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     LOGGER.info("saveBatch:: Saving {} journal records", journalRecords.size());
 
     try {
-      List<Tuple> tupleList = journalRecords.stream()
-        .map(this::prepareInsertQueryParameters)
-        .toList();
+      List<Tuple> tupleList = prepareTupleList(journalRecords);
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
       LOGGER.trace("saveBatch:: query = {}; tuples = {}", query, tupleList);
 
@@ -199,6 +199,13 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       LOGGER.warn("saveBatch:: Error saving journal records", e);
       return Future.failedFuture(e);
     }
+  }
+
+  private List<Tuple> prepareTupleList(Collection<JournalRecord> journalRecords) {
+    return journalRecords.stream()
+      .sorted(Comparator.comparing(JournalRecord::getJobExecutionId))
+      .map(this::prepareInsertQueryParameters)
+      .toList();
   }
 
   private Future<RowSet<Row>> executeWithRetry(String query,
@@ -625,15 +632,25 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private static boolean ifNeedToMerge(List<RecordProcessingLogDto> entries) {
-    Map<String, Long> holdingsIncomingRecordIdCounts = entries.stream()
-      .filter(e -> e.getRelatedHoldingsInfo() != null && !e.getRelatedHoldingsInfo().isEmpty())
-      .collect(Collectors.groupingBy(RecordProcessingLogDto::getIncomingRecordId, Collectors.counting()));
+    if (entries.size() <= 1) {
+      return false;
+    }
 
-    Map<String, Long> itemIncomingRecordIdCounts = entries.stream()
-      .filter(e -> e.getRelatedItemInfo() != null && !e.getRelatedItemInfo().isEmpty())
-      .collect(Collectors.groupingBy(RecordProcessingLogDto::getIncomingRecordId, Collectors.counting()));
+    Set<String> seenIdsWithHoldings = new HashSet<>();
+    Set<String> seenIdsWithItems = new HashSet<>();
 
-    return holdingsIncomingRecordIdCounts.values().stream().anyMatch(count -> count > 1) ||
-      itemIncomingRecordIdCounts.values().stream().anyMatch(count -> count > 1);
+    for (RecordProcessingLogDto entry : entries) {
+      boolean hasHoldings = entry.getRelatedHoldingsInfo() != null && !entry.getRelatedHoldingsInfo().isEmpty();
+      if (hasHoldings && !seenIdsWithHoldings.add(entry.getIncomingRecordId())) {
+        return true;
+      }
+
+      boolean hasItems = entry.getRelatedItemInfo() != null && !entry.getRelatedItemInfo().isEmpty();
+      if (hasItems && !seenIdsWithItems.add(entry.getIncomingRecordId())) {
+        return true;
+      }
+    }
+    return false;
   }
+
 }
