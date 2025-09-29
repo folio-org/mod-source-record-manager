@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS rule_migration_change_log (
 );
 
 -- try to avoid the "unsafe use of new value "MARC_AUTHORITY" of enum type rule_type (55P04)" error.
-BEGIN;
 ALTER TYPE rule_type ADD VALUE IF NOT EXISTS 'MARC_AUTHORITY';
 COMMIT;
 
