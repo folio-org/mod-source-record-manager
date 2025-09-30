@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS rule_migration_change_log CASCADE;
 CREATE TABLE IF NOT EXISTS rule_migration_change_log (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
     migration_id uuid UNIQUE,
