@@ -4,6 +4,7 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,12 @@ public class AuthorityMappingFormSubdivisionCustomMigration extends BaseMappingR
   private static final String TAG_185 = "185";
   private static final String TAG_485 = "485";
   private static final String TAG_585 = "585";
-  private static final String FEATURE_VERSION = "3.10.0";
+  private static final int ORDER = 8;
+  private static final UUID MIGRATION_ID = UUID.fromString("c9c0805c-4a12-4ded-9771-44ff6abea785");
   private static final String DESCRIPTION = "Authority mapping rules: add rules for form subdivision fields";
 
   protected AuthorityMappingFormSubdivisionCustomMigration(MappingRuleService mappingRuleService) {
-    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
+    super(MARC_AUTHORITY, ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
   }
 
   @Override

@@ -4,6 +4,7 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,12 @@ public class AuthorityMappingMediumPerfTermCustomMigration extends BaseMappingRu
   private static final String TAG_162 = "162";
   private static final String TAG_462 = "462";
   private static final String TAG_562 = "562";
-  private static final String FEATURE_VERSION = "3.10.0";
+  private static final int ORDER = 11;
+  private static final UUID MIGRATION_ID = UUID.fromString("fa562314-18b1-4cc1-9585-a06530a25809");
   private static final String DESCRIPTION = "Authority mapping rules: add rules for medium of performance term fields";
 
   protected AuthorityMappingMediumPerfTermCustomMigration(MappingRuleService mappingRuleService) {
-    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
+    super(MARC_AUTHORITY, ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
   }
 
   @Override
