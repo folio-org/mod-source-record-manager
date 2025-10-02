@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS rule_migration_change_log (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-    migration_id uuid,
+    migration_id uuid UNIQUE,
     record_type rule_type,
     file_name text,
     description text,
@@ -38,4 +38,4 @@ VALUES
 'Authority mapping rules: add rules for medium of performance term fields'),
 ('6d17fe92-39f3-494f-9e5f-e104fdabe78a', 'MARC_AUTHORITY', 'AuthorityMappingNamedEventCustomMigration',
 'Authority mapping rules: add rules for named event fields')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (migration_id) DO NOTHING;
