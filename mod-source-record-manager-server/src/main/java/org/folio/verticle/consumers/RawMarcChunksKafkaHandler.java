@@ -63,6 +63,9 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
     String chunkNumber = okapiParams.getHeaders().get("chunkNumber");
     String jobExecutionId = okapiParams.getHeaders().get("jobExecutionId");
 
+    LOGGER.info("handle:: test:: Event was received, jobExecutionId: '{}', chunkNumber: '{}', topic: '{}'",
+      jobExecutionId, chunkNumber, record.topic());
+
     return jobExecutionService.getJobExecutionById(jobExecutionId, okapiParams.getTenantId())
       .compose(jobExecutionOptional -> jobExecutionOptional.map(jobExecution -> {
           if(isNeedToSkip(jobExecution)) {
