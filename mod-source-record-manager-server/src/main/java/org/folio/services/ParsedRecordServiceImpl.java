@@ -45,6 +45,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
 
   @Override
   public Future<Boolean> updateRecord(ParsedRecordDto parsedRecordDto, OkapiConnectionParams params) {
+    log.info("PARSED RECORD: {}", parsedRecordDto);
     String snapshotId = UUID.randomUUID().toString();
     MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(params.getTenantId(), parsedRecordDto.getRecordType());
     return mappingParametersProvider.get(snapshotId, params)
@@ -73,15 +74,17 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
 
   private String prepareEventPayload(ParsedRecordDto parsedRecordDto, JsonObject mappingRules,
                                      MappingParameters mappingParameters, String snapshotId) {
-    HashMap<String, String> eventPayload = new HashMap<>();
-    eventPayload.put("PARSED_RECORD_DTO", Json.encode(parsedRecordDto));
+    HashMap<String, Object> eventPayload = new HashMap<>();
+    eventPayload.put("PARSED_RECORD_DTO", parsedRecordDto);
     eventPayload.put("MAPPING_RULES", mappingRules.encode());
-    eventPayload.put("MAPPING_PARAMS", Json.encode(mappingParameters));
+    eventPayload.put("MAPPING_PARAMS", mappingParameters);
     eventPayload.put("SNAPSHOT_ID", snapshotId);
     eventPayload.put("RECORD_ID", parsedRecordDto.getParsedRecord().getId());
     eventPayload.put("RECORD_DTO_ID", parsedRecordDto.getId());
     eventPayload.put("RECORD_TYPE", parsedRecordDto.getRecordType().value());
-    return Json.encode(eventPayload);
+    var encode = Json.encode(eventPayload);
+    log.info("QM_RECORD_UPDATED payload: {}", encode);
+    return encode;
   }
 
 }
