@@ -77,7 +77,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     HashMap<String, Object> eventPayload = new HashMap<>();
     eventPayload.put("PARSED_RECORD_DTO", parsedRecordDto);
     eventPayload.put("MAPPING_RULES", mappingRules.encode());
-    eventPayload.put("MAPPING_PARAMS", mappingParameters);
+    eventPayload.put("MAPPING_PARAMS", Json.encode(mappingParameters));
     eventPayload.put("SNAPSHOT_ID", snapshotId);
     eventPayload.put("RECORD_ID", parsedRecordDto.getParsedRecord().getId());
     eventPayload.put("RECORD_DTO_ID", parsedRecordDto.getId());
