@@ -12,9 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.folio.Record.RecordType.MARC_BIB;
+import static org.folio.TestUtil.readFileFromPath;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -25,26 +27,21 @@ import static org.mockito.Mockito.when;
 public class MarcBibMapping338FormatCustomMigrationTest {
 
   private static final String TENANT_ID = "test";
+  private static final String EXISTING_RULE = "src/test/resources/org/folio/mapping/format/unmodified.json";
+  private static final String EXPECTED_RULE = "src/test/resources/org/folio/mapping/format/updated.json";
+
 
   private @Mock MappingRuleService mappingRuleService;
   private @InjectMocks MarcBibMapping338FormatCustomMigration migration;
   private @Captor ArgumentCaptor<String> rulesCaptor;
 
   @Test
-  public void shouldUpdateFormatRule() {
-    var existedRules = "{\"338\":[{\"target\":\"instanceFormatIds\"," +
-      "\"description\":\"Instance Format ID\",\"ignoreSubsequentSubfields\":true," +
-      "\"subfield\":[\"b\"]," +
-      "\"rules\":[{\"conditions\":[{\"type\":\"set_instance_format_id\"}]}]}]}";
-    var expectedRules = "{\"338\":[{\"target\":\"instanceFormatIds\"," +
-      "\"description\":\"Instance Format ID\",\"ignoreSubsequentSubfields\":true," +
-      "\"subfield\":[\"a\",\"b\"]," +
-      "\"rules\":[{\"conditions\":[{\"type\":\"set_instance_format_id\"}]}]," +
-      "\"applyRulesOnConcatenatedData\":true," +
-      "\"subFieldDelimiter\":[{\"value\":\"~\",\"subfields\":[\"a\",\"b\"]}]" +
-      "}]}";
+  public void shouldUpdateFormatRule() throws IOException {
+    var existingRule = readFileFromPath(EXISTING_RULE);
+    var expectedRule = new JsonObject(readFileFromPath(EXPECTED_RULE)).encode();
+
     when(mappingRuleService.get(eq(MARC_BIB), any())).thenReturn(Future.succeededFuture(
-      Optional.of(new JsonObject(existedRules))
+      Optional.of(new JsonObject(existingRule))
     ));
 
     when(mappingRuleService.update(any(), eq(MARC_BIB), any())).thenReturn(Future.succeededFuture());
@@ -52,7 +49,7 @@ public class MarcBibMapping338FormatCustomMigrationTest {
     migration.migrate(TENANT_ID).onComplete(ar -> {
       verify(mappingRuleService).update(rulesCaptor.capture(), eq(MARC_BIB), eq(TENANT_ID));
       Assert.assertTrue(ar.succeeded());
-      Assert.assertEquals(expectedRules, rulesCaptor.getValue());
+      Assert.assertEquals(expectedRule, rulesCaptor.getValue());
     });
   }
 
