@@ -4,6 +4,7 @@ import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.UUID;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,12 @@ public class AuthorityMappingChronSubdivisionCustomMigration extends BaseMapping
   private static final String TAG_182 = "182";
   private static final String TAG_482 = "482";
   private static final String TAG_582 = "582";
-  private static final String FEATURE_VERSION = "3.10.0";
+  private static final int ORDER = 6;
+  private static final UUID MIGRATION_ID = UUID.fromString("9e1d0eb6-4965-4e56-af56-45d0677c0ddc");
   private static final String DESCRIPTION = "Authority mapping rules: add rules for chronological subdivision fields";
 
   protected AuthorityMappingChronSubdivisionCustomMigration(MappingRuleService mappingRuleService) {
-    super(MARC_AUTHORITY, FEATURE_VERSION, DESCRIPTION, mappingRuleService);
+    super(MARC_AUTHORITY, ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
   }
 
   @Override

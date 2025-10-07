@@ -575,7 +575,7 @@ public abstract class AbstractRestTest {
     JobExecution parent = RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0);
+      .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().getFirst();
 
     List<JobExecution> result = new ArrayList<>();
     result.add(parent);
@@ -593,7 +593,7 @@ public abstract class AbstractRestTest {
         RestAssured.given()
           .spec(spec)
           .body(JsonObject.mapFrom(childRequestDto).toString())
-          .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0)
+          .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().getFirst()
       );
     }
 
@@ -657,7 +657,7 @@ public abstract class AbstractRestTest {
   }
 
   protected <V> ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
-    ConsumerRecord<java.lang.String, String> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event));
+    ConsumerRecord<java.lang.String, String> consumerRecord = new ConsumerRecord<>("folio", 0, 0, topic, Json.encode(event));
     consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
@@ -665,7 +665,7 @@ public abstract class AbstractRestTest {
   }
 
   protected <V> ConsumerRecord<String, byte[]> buildConsumerRecordAsByteArray(String topic, Event event) {
-    ConsumerRecord<java.lang.String, byte[]> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event).getBytes(StandardCharsets.UTF_8));
+    ConsumerRecord<java.lang.String, byte[]> consumerRecord = new ConsumerRecord<>("folio", 0, 0, topic, Json.encode(event).getBytes(StandardCharsets.UTF_8));
     consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
