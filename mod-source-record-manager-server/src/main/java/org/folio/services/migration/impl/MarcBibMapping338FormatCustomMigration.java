@@ -10,18 +10,21 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.folio.services.migration.CustomMigration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 @Component
 public class MarcBibMapping338FormatCustomMigration implements CustomMigration {
 
   private static final Logger LOGGER = LogManager.getLogger();
-
+  private static final int ORDER = 14;
+  private static final UUID MIGRATION_ID = UUID.fromString("a65b7666-bba8-4c5b-bad3-0410015250cd");
   private static final String UNMODIFIED_RULE = "migration/marc_bib/338/unmodified.json";
   private static final String UPDATED_RULE = "migration/marc_bib/338/updated.json";
   private static final String RULE_TAG = "338";
@@ -45,8 +48,18 @@ public class MarcBibMapping338FormatCustomMigration implements CustomMigration {
   }
 
   @Override
-  public String getFeatureVersion() {
-    return "4.0.0";
+  public UUID getMigrationId() {
+    return MIGRATION_ID;
+  }
+
+  @Override
+  public int getOrder() {
+    return ORDER;
+  }
+
+  @Override
+  public Record.RecordType getRecordType() {
+    return MARC_BIB;
   }
 
   @Override
