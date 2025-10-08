@@ -131,9 +131,7 @@ public abstract class AbstractRestTest {
   protected static final String SUBJECT_TYPES_URL = "/subject-types?limit=1000";
   protected static final String INSTANCE_DATE_TYPES_URL = "/instance-date-types?limit=1000";
 
-
-  protected static final String TENANT_CONFIGURATION_ZONE_SETTINGS_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
-
+  protected static final String TENANT_TIME_ZONE_SETTINGS_URL = "/settings/entries?query=" + URLEncoder.encode("(scope==stripes-core.prefs.manage and key==tenantLocaleSettings)", StandardCharsets.UTF_8);
 
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
@@ -522,8 +520,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(INSTANCE_DATE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceDateTypes", new JsonArray()).toString())));
 
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
-    WireMock.stubFor(get(TENANT_CONFIGURATION_ZONE_SETTINGS_URL).willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
-
+    WireMock.stubFor(get(TENANT_TIME_ZONE_SETTINGS_URL).willReturn(okJson(new JsonObject().put("items", new JsonArray()).toString())));
 
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
