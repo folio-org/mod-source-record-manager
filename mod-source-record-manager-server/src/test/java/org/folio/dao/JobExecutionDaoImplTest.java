@@ -107,7 +107,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
     headers.put(OKAPI_TOKEN_HEADER, "token");
     params = new OkapiConnectionParams(headers, vertx);
-    jobExecutionService = new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig);
+    jobExecutionService = new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig, null);
   }
 
   @Test

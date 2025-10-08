@@ -42,6 +42,8 @@ import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
+import org.folio.services.flowcontrol.RawRecordsFlowControlService;
+import org.folio.services.flowcontrol.RawRecordsFlowControlServiceImpl;
 import org.folio.services.util.EventHandlingUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -93,11 +95,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private JobExecutionDao jobExecutionDao;
   private KafkaConfig kafkaConfig;
+  private RawRecordsFlowControlServiceImpl flowControlService;
 
   @Autowired
-  public JobExecutionServiceImpl(JobExecutionDao jobExecutionDao, KafkaConfig kafkaConfig) {
+  public JobExecutionServiceImpl(JobExecutionDao jobExecutionDao, KafkaConfig kafkaConfig,
+                                 RawRecordsFlowControlServiceImpl flowControlService) {
     this.jobExecutionDao = jobExecutionDao;
     this.kafkaConfig = kafkaConfig;
+    this.flowControlService = flowControlService;
   }
 
   @Override
@@ -351,6 +356,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(this::verifyJobExecution)
       .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
       .compose(jobExec -> updateJobExecutionWithCancelledStatus(jobExec, params))
+      .map(v -> {
+        flowControlService.resetState();
+        return null;
+      })
       .map(true)
       .recover(throwable -> throwable instanceof JobDuplicateUpdateException
         ? Future.succeededFuture(true)
