@@ -5,73 +5,39 @@ import static org.folio.Record.RecordType.MARC_BIB;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.Record;
 import org.folio.services.MappingRuleService;
-import org.folio.services.migration.CustomMigration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Component
-public class MarcBibMapping338FormatCustomMigration implements CustomMigration {
+public class MarcBibMapping338FormatCustomMigration extends BaseMappingRulesMigration {
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int ORDER = 14;
   private static final UUID MIGRATION_ID = UUID.fromString("a65b7666-bba8-4c5b-bad3-0410015250cd");
+  private static final String DESCRIPTION = "MARC Bib mapping rules: update rule for formatId in 338 field";
   private static final String UNMODIFIED_RULE = "migration/marc_bib/338/unmodified.json";
   private static final String UPDATED_RULE = "migration/marc_bib/338/updated.json";
   private static final String RULE_TAG = "338";
-
-  @Autowired
-  private MappingRuleService mappingRuleService;
-
   private final ObjectMapper mapper = new ObjectMapper();
 
-  @Override
-  public Future<Void> migrate(String tenantId) {
-    return mappingRuleService.get(MARC_BIB, tenantId)
-      .compose(rules -> {
-        if (rules.isPresent()) {
-          var newRules = updateRules(rules.get());
-          return mappingRuleService.update(newRules.encode(), MARC_BIB, tenantId);
-        } else {
-          return Future.succeededFuture();
-        }
-      }).mapEmpty();
+  protected MarcBibMapping338FormatCustomMigration(MappingRuleService mappingRuleService) {
+    super(MARC_BIB, ORDER, DESCRIPTION, MIGRATION_ID, mappingRuleService);
   }
 
   @Override
-  public UUID getMigrationId() {
-    return MIGRATION_ID;
-  }
-
-  @Override
-  public int getOrder() {
-    return ORDER;
-  }
-
-  @Override
-  public Record.RecordType getRecordType() {
-    return MARC_BIB;
-  }
-
-  @Override
-  public String getDescription() {
-    return "MARC Bib mapping rules: update rule for formatId in 338 field";
-  }
-
-  private JsonObject updateRules(JsonObject rules) {
+  protected String updateRules(JsonObject rules) {
     try {
       var ruleArray = rules.getJsonArray(RULE_TAG);
       if (ruleArray == null) {
-        return rules;
+        return rules.encode();
       }
       JsonNode currentRule = mapper.readTree(ruleArray.encode());
       JsonNode unmodifiedRule = mapper.readTree(Resources.toByteArray(Resources.getResource(UNMODIFIED_RULE)));
@@ -86,6 +52,6 @@ public class MarcBibMapping338FormatCustomMigration implements CustomMigration {
       LOGGER.warn("Cannot update 338 rule in marc-bib mapping rules due to {}", e.getMessage());
     }
 
-    return rules;
+    return rules.encode();
   }
 }

@@ -18,6 +18,7 @@ import java.util.Optional;
 import static org.folio.Record.RecordType.MARC_BIB;
 import static org.folio.TestUtil.readFileFromPath;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -30,7 +31,6 @@ public class MarcBibMapping338FormatCustomMigrationTest {
   private static final String EXISTING_RULE = "src/test/resources/org/folio/mapping/format/unmodified.json";
   private static final String EXPECTED_RULE = "src/test/resources/org/folio/mapping/format/updated.json";
 
-
   private @Mock MappingRuleService mappingRuleService;
   private @InjectMocks MarcBibMapping338FormatCustomMigration migration;
   private @Captor ArgumentCaptor<String> rulesCaptor;
@@ -41,13 +41,12 @@ public class MarcBibMapping338FormatCustomMigrationTest {
     var expectedRule = new JsonObject(readFileFromPath(EXPECTED_RULE)).encode();
 
     when(mappingRuleService.get(eq(MARC_BIB), any())).thenReturn(Future.succeededFuture(
-      Optional.of(new JsonObject(existingRule))
-    ));
-
-    when(mappingRuleService.update(any(), eq(MARC_BIB), any())).thenReturn(Future.succeededFuture());
+      Optional.of(new JsonObject(existingRule))));
+    when(mappingRuleService.internalUpdate(anyString(), eq(MARC_BIB), eq(TENANT_ID)))
+      .thenReturn(Future.succeededFuture());
 
     migration.migrate(TENANT_ID).onComplete(ar -> {
-      verify(mappingRuleService).update(rulesCaptor.capture(), eq(MARC_BIB), eq(TENANT_ID));
+      verify(mappingRuleService).internalUpdate(rulesCaptor.capture(), eq(MARC_BIB), eq(TENANT_ID));
       Assert.assertTrue(ar.succeeded());
       Assert.assertEquals(expectedRule, rulesCaptor.getValue());
     });
