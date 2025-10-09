@@ -9,6 +9,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -517,7 +518,7 @@ public class MappingParametersProvider {
     RestUtil.doRequestWithSystemUser(params, TENANT_SETTINGS_TIME_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
-        if (ifConfigResponseIsValid(response)) {
+        if (responseContainsTimeZone(response)) {
           String timeZone = response.getJsonArray(SETTINGS_VALUE_RESPONSE).getJsonObject(0).getJsonObject(VALUE_RESPONSE).getString(TIMEZONE_RESPONSE);
           promise.complete(timeZone);
         } else {
@@ -583,14 +584,23 @@ public class MappingParametersProvider {
     return promise.future();
   }
 
-  private boolean ifConfigResponseIsValid(JsonObject response) {
-    return response != null && response.containsKey(SETTINGS_VALUE_RESPONSE)
-      && response.getJsonArray(SETTINGS_VALUE_RESPONSE) != null
-      && !response.getJsonArray(SETTINGS_VALUE_RESPONSE).isEmpty()
-      && response.getJsonArray(SETTINGS_VALUE_RESPONSE).getJsonObject(0) != null
-      && response.getJsonArray(SETTINGS_VALUE_RESPONSE).getJsonObject(0).containsKey(VALUE_RESPONSE)
-      && response.getJsonArray(SETTINGS_VALUE_RESPONSE).getJsonObject(0).getJsonObject(VALUE_RESPONSE) != null
-      && response.getJsonArray(SETTINGS_VALUE_RESPONSE).getJsonObject(0).getJsonObject(VALUE_RESPONSE).containsKey(TIMEZONE_RESPONSE);
+  private boolean responseContainsTimeZone(JsonObject response) {
+    if (response == null) {
+      return false;
+    }
+    JsonArray settingsArray = response.getJsonArray(SETTINGS_VALUE_RESPONSE);
+    if (settingsArray == null || settingsArray.isEmpty()) {
+      return false;
+    }
+    JsonObject firstItem = settingsArray.getJsonObject(0);
+    if (firstItem == null) {
+      return false;
+    }
+    JsonObject value = firstItem.getJsonObject(VALUE_RESPONSE);
+    if (value == null) {
+      return false;
+    }
+    return value.containsKey(TIMEZONE_RESPONSE);
   }
 
   /**
