@@ -31,6 +31,10 @@
       "version": "15.0 16.0"
     },
     {
+      "id": "user-tenants",
+      "version": "1.0"
+    },
+    {
       "id": "configuration",
       "version": "2.0"
     },
