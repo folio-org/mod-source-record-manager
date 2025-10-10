@@ -74,14 +74,6 @@
               <!-- Exclude unnecessary clients in the final client jar -->
               <exclusion>
                 <groupId>org.folio</groupId>
-                <artifactId>mod-configuration-client</artifactId>
-              </exclusion>
-              <exclusion>
-                <groupId>org.folio</groupId>
-                <artifactId>mod-pubsub-client</artifactId>
-              </exclusion>
-              <exclusion>
-                <groupId>org.folio</groupId>
                 <artifactId>mod-source-record-manager-client</artifactId>
               </exclusion>
               <exclusion>

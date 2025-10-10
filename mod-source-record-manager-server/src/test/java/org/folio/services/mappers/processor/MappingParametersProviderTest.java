@@ -73,10 +73,10 @@ public class MappingParametersProviderTest {
 
   protected static final String FIELD_PROTECTION_SETTINGS_URL =
     "/field-protection-settings/marc?limit=0";
-  protected static final String TENANT_CONFIGURATION_ZONE_SETTINGS_URL =
-    "/configurations/entries?query="
+  protected static final String TENANT_TIME_ZONE_SETTINGS_URL =
+    "/settings/entries?query="
       + URLEncoder.encode(
-      "(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
+      "(scope==stripes-core.prefs.manage and key==tenantLocaleSettings)", StandardCharsets.UTF_8);
   protected static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
   public static final String SYSTEM_USER_ENABLED = "SYSTEM_USER_ENABLED";
   private static final String TENANT = "diku";
@@ -230,8 +230,8 @@ public class MappingParametersProviderTest {
               .put("marcFieldProtectionSettings", new JsonArray())
               .toString())));
     WireMock.stubFor(
-      get(TENANT_CONFIGURATION_ZONE_SETTINGS_URL)
-        .willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
+      get(TENANT_TIME_ZONE_SETTINGS_URL)
+        .willReturn(okJson(new JsonObject().put("items", new JsonArray()).toString())));
     WireMock.stubFor(
       get(LINKING_RULES_URL)
         .willReturn(okJson(new JsonArray().add(new LinkingRuleDto()).toString())));
@@ -254,7 +254,7 @@ public class MappingParametersProviderTest {
             .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
             .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
 
-          verify(1, getRequestedFor(urlEqualTo(TENANT_CONFIGURATION_ZONE_SETTINGS_URL))
+          verify(1, getRequestedFor(urlEqualTo(TENANT_TIME_ZONE_SETTINGS_URL))
             .withHeader(OKAPI_URL_HEADER, equalTo(url))
             .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
             .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
@@ -285,7 +285,7 @@ public class MappingParametersProviderTest {
             .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
             .withoutHeader(OKAPI_TOKEN_HEADER));
 
-          verify(1, getRequestedFor(urlEqualTo(TENANT_CONFIGURATION_ZONE_SETTINGS_URL))
+          verify(1, getRequestedFor(urlEqualTo(TENANT_TIME_ZONE_SETTINGS_URL))
             .withHeader(OKAPI_URL_HEADER, equalTo(url))
             .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
             .withoutHeader(OKAPI_TOKEN_HEADER));
