@@ -520,7 +520,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(INSTANCE_DATE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceDateTypes", new JsonArray()).toString())));
 
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
-    WireMock.stubFor(get(TENANT_TIME_ZONE_SETTINGS_URL).willReturn(okJson(new JsonObject().put("items", new JsonArray()).toString())));
+    WireMock.stubFor(get(TENANT_TIME_ZONE_SETTINGS_URL).willReturn(okJson(new JsonObject().put("items", new JsonArray().add(0, new JsonObject().put("value", new JsonObject().put("timezone", "UTC")))).toString())));
 
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
