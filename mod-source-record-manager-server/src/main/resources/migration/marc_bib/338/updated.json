@@ -1,0 +1,30 @@
+[
+  {
+    "rules": [
+      {
+        "conditions": [
+          {
+            "type": "set_instance_format_id"
+          }
+        ]
+      }
+    ],
+    "target": "instanceFormatIds",
+    "subfield": [
+      "a",
+      "b"
+    ],
+    "description": "Instance Format ID",
+    "subFieldDelimiter": [
+      {
+        "value": "~",
+        "subfields": [
+          "a",
+          "b"
+        ]
+      }
+    ],
+    "ignoreSubsequentSubfields": true,
+    "applyRulesOnConcatenatedData": true
+  }
+]
