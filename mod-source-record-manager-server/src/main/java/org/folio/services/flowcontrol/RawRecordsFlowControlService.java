@@ -34,4 +34,6 @@ public interface RawRecordsFlowControlService {
    * @param actualCounterValue counter value from DB after complete event
    */
   void trackRecordCompleteEvent(String tenantId, Integer actualCounterValue);
+
+  void resumeConsumer(String tenantId);
 }

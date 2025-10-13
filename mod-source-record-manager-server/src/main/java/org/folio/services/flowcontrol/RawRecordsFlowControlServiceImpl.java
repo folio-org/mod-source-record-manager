@@ -115,6 +115,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
+  @Override
+  public void resumeConsumer(String tenantId) {
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+      .forEach(consumer -> {
+        LOGGER.info("resumeConsumer:: Starting to resume consumer, instanceId: {}. Demand: {}, Current state: {}",
+          instanceId, consumer.demand(), currentState.get(tenantId));
+        consumer.resume();
+      });
+  }
+
   private void decreaseState(String tenantId, Integer recordsCount) {
     initFetchMode(tenantId);
     decreaseCounterInDb(tenantId, recordsCount);
