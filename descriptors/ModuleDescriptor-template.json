@@ -31,12 +31,12 @@
       "version": "15.0 16.0"
     },
     {
-      "id": "user-tenants",
-      "version": "1.0"
+      "id": "settings",
+      "version": "1.2"
     },
     {
-      "id": "configuration",
-      "version": "2.0"
+      "id": "user-tenants",
+      "version": "1.0"
     },
     {
       "id": "identifier-types",
@@ -272,7 +272,7 @@
             "change-manager.records.post"
           ],
           "modulePermissions": [
-            "configuration.entries.collection.get",
+            "mod-settings.global.read.stripes-core.prefs.manage",
             "converter-storage.field-protection-settings.item.get",
             "converter-storage.field-protection-settings.collection.get",
             "converter-storage.jobprofilesnapshots.get",
@@ -412,7 +412,7 @@
             "change-manager.parsedrecords.put"
           ],
           "modulePermissions": [
-            "configuration.entries.collection.get",
+            "mod-settings.global.read.stripes-core.prefs.manage",
             "converter-storage.field-protection-settings.collection.get",
             "converter-storage.jobprofilesnapshots.get",
             "inventory-storage.alternative-title-types.collection.get",
@@ -591,7 +591,7 @@
             "mapping-metadata.type.item.get"
           ],
           "modulePermissions": [
-            "configuration.entries.collection.get",
+            "mod-settings.global.read.stripes-core.prefs.manage",
             "converter-storage.field-protection-settings.collection.get",
             "instance-authority.linking-rules.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
@@ -883,7 +883,7 @@
         "inventory-storage.subject-sources.collection.get",
         "inventory-storage.instance-date-types.collection.get",
         "converter-storage.field-protection-settings.collection.get",
-        "configuration.entries.collection.get",
+        "mod-settings.global.read.stripes-core.prefs.manage",
         "instance-authority.linking-rules.collection.get",
         "source-storage.snapshots.post"
       ]
