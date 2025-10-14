@@ -8,6 +8,7 @@
 * [MODSOURCE-747](https://folio-org.atlassian.net/browse/MODSOURCE-747) Ensure jobExecutionId in headers for import run through SRM API for skipping events using jobExecutionId from headers
 * [MODSOURMAN-1357](https://folio-org.atlassian.net/browse/MODSOURMAN-1357) Fix: Mapping rules migrations were not idempotent
 * [MODSOURMAN-1250](https://folio-org.atlassian.net/browse/MODSOURMAN-1250) Replace dependency on mod-configuration with mod-settings to get tenant timezone
+* [MODSOURMAN-1359](https://folio-org.atlassian.net/browse/MODSOURMAN-1359) Remove duplicate subfield "x" from 455 and 555 fields in the MARC authority mapping rules
 
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
