@@ -119,9 +119,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   public void resumeConsumer(String tenantId) {
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("resumeConsumer:: Starting to resume consumer, instanceId: {}. Demand: {}, Current state: {}",
+//        LOGGER.info("resumeConsumer:: Starting to resume consumer, instanceId: {}. Demand: {}, Current state: {}",
+//          instanceId, consumer.demand(), currentState.get(tenantId));
+//        consumer.resume();
+
+        LOGGER.info("resumeConsumer:: Starting to fetch next chunks, instanceId: {}. Demand: {}, Current state: {}",
           instanceId, consumer.demand(), currentState.get(tenantId));
-        consumer.resume();
+        consumer.pause();
+        consumer.fetch(maxSimultaneousChunks);
+        LOGGER.info("resumeConsumer:: After fetch next chunks, instanceId: {}. Demand: {}, Current state: {}",
+          instanceId, consumer.demand(), currentState.get(tenantId));
       });
   }
 
