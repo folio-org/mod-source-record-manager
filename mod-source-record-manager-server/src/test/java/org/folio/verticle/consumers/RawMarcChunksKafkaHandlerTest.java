@@ -4,11 +4,9 @@ import com.google.common.collect.Lists;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.lang.StringUtils;
-import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.rest.jaxrs.model.Event;
@@ -23,13 +21,11 @@ import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.folio.verticle.consumers.util.JobExecutionUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -50,10 +46,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RawMarcChunksKafkaHandlerTest {
   private static final String TENANT_ID = "diku";
-  private static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
   private static final String TOKEN = "token";
-
-  private static JsonObject mappingRules;
 
   @Mock
   private RecordsPublishingService recordsPublishingService;
@@ -72,10 +65,6 @@ public class RawMarcChunksKafkaHandlerTest {
 
   private Vertx vertx = Vertx.vertx();
   private AsyncRecordHandler<String, byte[]> rawMarcChunksKafkaHandler;
-  @BeforeClass
-  public static void setUpClass() throws IOException {
-    mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
-  }
 
   @Before
   public void setUp() {
@@ -97,6 +86,7 @@ public class RawMarcChunksKafkaHandlerTest {
 
     // then
     verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
+    verify(flowControlService).triggerNextChunkFetch(TENANT_ID);
     assertTrue(future.succeeded());
   }
 

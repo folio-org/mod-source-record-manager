@@ -34,4 +34,13 @@ public interface RawRecordsFlowControlService {
    * @param actualCounterValue counter value from DB after complete event
    */
   void trackRecordCompleteEvent(String tenantId, Integer actualCounterValue);
+
+  /**
+   * Triggers fetch of the next DI_RAW_RECORDS_CHUNK_READ events.
+   * This is used when the processing flow for a chunk is skipped (e.g., if chunk is related to a cancelled job),
+   * to ensure consumer continues reading subsequent events.
+   *
+   * @param tenantId tenant id
+   */
+  void triggerNextChunkFetch(String tenantId);
 }

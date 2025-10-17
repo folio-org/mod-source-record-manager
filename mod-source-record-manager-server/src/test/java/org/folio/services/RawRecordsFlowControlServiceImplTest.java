@@ -156,4 +156,18 @@ public class RawRecordsFlowControlServiceImplTest {
     verify(kafkaConsumersStorage, times(1)).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerBeforeResume).fetch(1L);
   }
+
+  @Test
+  public void shouldFetchNextChunkWhenChunkFetchIsTriggered() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 2);
+    KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
+    when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
+      .thenReturn(Collections.singletonList(consumerWrapper));
+
+    service.triggerNextChunkFetch(TENANT_ID);
+
+    verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
+    verify(consumerWrapper).pause();
+    verify(consumerWrapper).fetch(2);
+  }
 }
