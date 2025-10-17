@@ -18,6 +18,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_CANCELLED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
@@ -62,6 +63,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.apache.http.HttpStatus;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Header;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
@@ -1154,17 +1157,13 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessChunkOfRawRecords(TestContext testContext) {
+  public void shouldProcessChunkOfRawRecords() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.getFirst();
 
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-
-    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -1175,9 +1174,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto)
@@ -1185,9 +1182,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
 
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -1198,7 +1193,18 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("runBy.firstName", is("DIKU"))
       .body("progress.total", is(rawRecordsDto.getRecordsMetadata().getTotal()))
       .body("startedDate", notNullValue(Date.class)).log().all();
-    async.complete();
+
+    List<ConsumerRecord<String, String>> consumerRecords = checkKafkaEventSent(
+      formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value()), 1);
+    assertEquals(1, consumerRecords.size());
+    Event event = Json.decodeValue(consumerRecords.getFirst().value(), Event.class);
+    DataImportEventPayload eventPayload = Json.decodeValue(event.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventPayload.getEventType());
+    assertNotNull(eventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value()));
+
+    Header jobExecutionIdHeader = consumerRecords.getFirst().headers().lastHeader(JOB_EXECUTION_ID_HEADER);
+    assertNotNull(jobExecutionIdHeader);
+    assertEquals(jobExec.getId(), new String(jobExecutionIdHeader.value()));
   }
 
   @Test
@@ -1370,7 +1376,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     verify(1, getRequestedFor(urlEqualTo(SUBJECT_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(INSTANCE_DATE_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(FIELD_PROTECTION_SETTINGS_URL)));
-    verify(1, getRequestedFor(urlEqualTo(TENANT_CONFIGURATION_ZONE_SETTINGS_URL)));
+    verify(1, getRequestedFor(urlEqualTo(TENANT_TIME_ZONE_SETTINGS_URL)));
     async.complete();
   }
 
@@ -1412,7 +1418,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(get(AUTHORITY_NOTE_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(AUTHORITY_SOURCE_FILES_URL).willReturn(serverError()));
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(serverError()));
-    WireMock.stubFor(get(TENANT_CONFIGURATION_ZONE_SETTINGS_URL).willReturn(serverError()));
+    WireMock.stubFor(get(TENANT_TIME_ZONE_SETTINGS_URL).willReturn(serverError()));
 
     Async async = testContext.async();
     RestAssured.given()

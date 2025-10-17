@@ -131,9 +131,7 @@ public abstract class AbstractRestTest {
   protected static final String SUBJECT_TYPES_URL = "/subject-types?limit=1000";
   protected static final String INSTANCE_DATE_TYPES_URL = "/instance-date-types?limit=1000";
 
-
-  protected static final String TENANT_CONFIGURATION_ZONE_SETTINGS_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
-
+  protected static final String TENANT_TIME_ZONE_SETTINGS_URL = "/settings/entries?query=" + URLEncoder.encode("(scope==stripes-core.prefs.manage and key==tenantLocaleSettings)", StandardCharsets.UTF_8);
 
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
@@ -522,8 +520,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(INSTANCE_DATE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceDateTypes", new JsonArray()).toString())));
 
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
-    WireMock.stubFor(get(TENANT_CONFIGURATION_ZONE_SETTINGS_URL).willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
-
+    WireMock.stubFor(get(TENANT_TIME_ZONE_SETTINGS_URL).willReturn(okJson(new JsonObject().put("items", new JsonArray().add(0, new JsonObject().put("value", new JsonObject().put("timezone", "UTC")))).toString())));
 
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
@@ -575,7 +572,7 @@ public abstract class AbstractRestTest {
     JobExecution parent = RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0);
+      .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().getFirst();
 
     List<JobExecution> result = new ArrayList<>();
     result.add(parent);
@@ -593,7 +590,7 @@ public abstract class AbstractRestTest {
         RestAssured.given()
           .spec(spec)
           .body(JsonObject.mapFrom(childRequestDto).toString())
-          .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0)
+          .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().getFirst()
       );
     }
 
@@ -657,7 +654,7 @@ public abstract class AbstractRestTest {
   }
 
   protected <V> ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
-    ConsumerRecord<java.lang.String, String> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event));
+    ConsumerRecord<java.lang.String, String> consumerRecord = new ConsumerRecord<>("folio", 0, 0, topic, Json.encode(event));
     consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
@@ -665,7 +662,7 @@ public abstract class AbstractRestTest {
   }
 
   protected <V> ConsumerRecord<String, byte[]> buildConsumerRecordAsByteArray(String topic, Event event) {
-    ConsumerRecord<java.lang.String, byte[]> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event).getBytes(StandardCharsets.UTF_8));
+    ConsumerRecord<java.lang.String, byte[]> consumerRecord = new ConsumerRecord<>("folio", 0, 0, topic, Json.encode(event).getBytes(StandardCharsets.UTF_8));
     consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));

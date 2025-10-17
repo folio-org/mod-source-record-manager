@@ -9,6 +9,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -104,7 +105,7 @@ public class MappingParametersProvider {
   @Value("${srm.mapping.parameters.settings.limit:1000}")
   private int settingsLimit;
 
-  private static final String TENANT_CONFIGURATION_ZONE_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
+  private static final String TENANT_SETTINGS_TIME_ZONE_URL = "/settings/entries?query=" + URLEncoder.encode("(scope==stripes-core.prefs.manage and key==tenantLocaleSettings)", StandardCharsets.UTF_8);
   private static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
@@ -138,8 +139,9 @@ public class MappingParametersProvider {
   private static final String SUBJECTS_TYPES_RESPONSE_PARAM = "subjectTypes";
   private static final String INSTANCE_DATE_TYPES_RESPONSE_PARAM = "instanceDateTypes";
 
-  private static final String CONFIGS_VALUE_RESPONSE = "configs";
+  private static final String SETTINGS_VALUE_RESPONSE = "items";
   private static final String VALUE_RESPONSE = "value";
+  private static final String TIMEZONE_RESPONSE = "timezone";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
 
@@ -198,7 +200,7 @@ public class MappingParametersProvider {
     Future<List<SubjectType>> subjectTypesFuture = getSubjectTypes(okapiParams);
     Future<List<InstanceDateType>> instanceDateTypesFuture = getInstanceDateTypes(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
-    Future<String> tenantConfigurationZoneFuture = getTenantConfigurationZone(okapiParams);
+    Future<String> tenantSettingsTimeZoneFuture = getTenantSettingsTimeZone(okapiParams);
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
 
 
@@ -206,7 +208,7 @@ public class MappingParametersProvider {
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, instanceDateTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationZoneFuture,
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, instanceDateTypesFuture, marcFieldProtectionSettingsFuture, tenantSettingsTimeZoneFuture,
         linkingRulesFuture))
       .map(ar ->
         mappingParams
@@ -242,7 +244,7 @@ public class MappingParametersProvider {
           .withSubjectTypes(subjectTypesFuture.result())
           .withInstanceDateTypes(instanceDateTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
-          .withTenantConfigurationZone(tenantConfigurationZoneFuture.result())
+          .withTenantConfigurationZone(tenantSettingsTimeZoneFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
       ).onFailure(e -> LOGGER.error("initializeParameters:: Something happened while initializing mapping parameters", e));
   }
@@ -505,19 +507,19 @@ public class MappingParametersProvider {
   }
 
   /**
-   * Requests for tenant configuration from mod-configuration.
+   * Requests for tenant timezone from mod-settings.
    * *
    *
    * @param params Okapi connection parameters
-   * @return tenant configuration
+   * @return tenant timezone
    */
-  private Future<String> getTenantConfigurationZone(OkapiConnectionParams params) {
+  private Future<String> getTenantSettingsTimeZone(OkapiConnectionParams params) {
     Promise<String> promise = Promise.promise();
-    RestUtil.doRequestWithSystemUser(params, TENANT_CONFIGURATION_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
+    RestUtil.doRequestWithSystemUser(params, TENANT_SETTINGS_TIME_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
-        if (ifConfigResponseIsValid(response)) {
-          String timeZone = response.getJsonArray(CONFIGS_VALUE_RESPONSE).getJsonObject(0).getString(VALUE_RESPONSE);
+        if (responseContainsTimeZone(response)) {
+          String timeZone = response.getJsonArray(SETTINGS_VALUE_RESPONSE).getJsonObject(0).getJsonObject(VALUE_RESPONSE).getString(TIMEZONE_RESPONSE);
           promise.complete(timeZone);
         } else {
           promise.complete(StringUtils.EMPTY);
@@ -582,11 +584,23 @@ public class MappingParametersProvider {
     return promise.future();
   }
 
-  private boolean ifConfigResponseIsValid(JsonObject response) {
-    return response != null && response.containsKey(CONFIGS_VALUE_RESPONSE)
-      && response.getJsonArray(CONFIGS_VALUE_RESPONSE) != null
-      && !response.getJsonArray(CONFIGS_VALUE_RESPONSE).isEmpty()
-      && response.getJsonArray(CONFIGS_VALUE_RESPONSE).getJsonObject(0) != null;
+  private boolean responseContainsTimeZone(JsonObject response) {
+    if (response == null) {
+      return false;
+    }
+    JsonArray settingsArray = response.getJsonArray(SETTINGS_VALUE_RESPONSE);
+    if (settingsArray == null || settingsArray.isEmpty()) {
+      return false;
+    }
+    JsonObject firstItem = settingsArray.getJsonObject(0);
+    if (firstItem == null) {
+      return false;
+    }
+    JsonObject value = firstItem.getJsonObject(VALUE_RESPONSE);
+    if (value == null) {
+      return false;
+    }
+    return value.containsKey(TIMEZONE_RESPONSE);
   }
 
   /**

@@ -64,7 +64,7 @@ public class ModTenantAPI extends TenantAPI {
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_BIB, tenantId))
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_HOLDING, tenantId))
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_AUTHORITY, tenantId))
-        .compose(ar -> customMigrationService.doCustomMigrations(attributes, tenantId))
+        .compose(ar -> customMigrationService.doCustomMigrations(tenantId))
         .compose(ar -> saveTenantId(tenantId, context))
         .map(num));
   }

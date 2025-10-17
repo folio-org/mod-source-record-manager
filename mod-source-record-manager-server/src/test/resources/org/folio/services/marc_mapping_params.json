@@ -25,7 +25,7 @@
   "loanTypes": [],
   "itemNoteTypes": [],
   "marcFieldProtectionSettings": [],
-  "tenantConfigurationZone": "",
+  "tenantConfigurationZone": "UTC",
   "authorityNoteTypes": [],
   "authoritySourceFiles": [],
   "subjectSources": [],
