@@ -15,7 +15,7 @@ public interface RawRecordsFlowControlService {
    * @param tenantId     tenant id
    * @param recordsCount records count in the chunk
    */
-  void trackChunkReceivedEvent(String tenantId, Integer recordsCount);
+  void trackChunkReceivedEvent(String tenantId, Integer recordsCount, String jobExecutionId);
 
   /**
    * If chunks duplicate event comes - need to correct flow control internal state
@@ -33,5 +33,7 @@ public interface RawRecordsFlowControlService {
    * @param tenantId           tenant id
    * @param actualCounterValue counter value from DB after complete event
    */
-  void trackRecordCompleteEvent(String tenantId, Integer actualCounterValue);
+  void trackRecordCompleteEvent(String tenantId, Integer actualCounterValue, String jobExecutionId);
+
+  void trackJobCancellationEvent(String tenantId, String jobExecutionId);
 }

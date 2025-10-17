@@ -70,6 +70,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
       .compose(jobExecutionOptional -> jobExecutionOptional.map(jobExecution -> {
           if(isNeedToSkip(jobExecution)) {
             LOGGER.info("handle:: do not handle because jobExecution with id: {} was cancelled", jobExecutionId);
+            flowControlService.trackJobCancellationEvent(okapiParams.getTenantId(), jobExecutionId);
             return Future.succeededFuture(record.key());
           }
 
@@ -78,7 +79,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
             LOGGER.debug("handle:: Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
             RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
             if (!rawRecordsDto.getRecordsMetadata().getLast()) {
-              flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), rawRecordsDto.getInitialRecords().size());
+              flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), rawRecordsDto.getInitialRecords().size(), jobExecutionId);
             }
 
             LOGGER.debug("handle:: RawRecordsDto has been received, starting processing jobExecutionId: {} chunkId: {} chunkNumber: {} - {}",

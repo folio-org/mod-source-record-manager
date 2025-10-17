@@ -50,6 +50,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    */
   private final Map<String, Pair<Integer, Integer>> historyState = new ConcurrentHashMap<>();
 
+  /**
+   * Stores the number of records being processed for each job execution.
+   * The key is the jobExecutionId, and the value is the number of records.
+   */
+  private final Map<String, Integer> jobExecutionRecordsInProcess = new ConcurrentHashMap<>();
+
   @PostConstruct
   public void init() {
     LOGGER.info("init:: Flow control feature is {}, instanceId: {}", enableFlowControl ? "enabled" : "disabled", instanceId);
@@ -82,26 +88,30 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   @Override
-  public void trackChunkReceivedEvent(String tenantId, Integer recordsCount) {
+  public void trackChunkReceivedEvent(String tenantId, Integer recordsCount, String jobExecutionId) {
     if (!enableFlowControl) {
       return;
     }
 
     initFetchMode(tenantId);
     increaseCounterInDb(tenantId, recordsCount);
-    LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}], instanceId:{}. Chunk received. Record count: {}, Current state: {} ",
-      tenantId, instanceId, recordsCount, currentState.get(tenantId));
+    jobExecutionRecordsInProcess.compute(jobExecutionId, (k, v) -> v == null ? recordsCount : v + recordsCount);
+    LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}], JobExecutionId: [{}], instanceId:{}. Chunk received. Record count: {}, Current state: {}, In process: {}",
+      tenantId, jobExecutionId, instanceId, recordsCount, currentState.get(tenantId), jobExecutionRecordsInProcess.get(jobExecutionId));
   }
 
   @Override
-  public void trackRecordCompleteEvent(String tenantId, Integer recordsCount) {
+  public void trackRecordCompleteEvent(String tenantId, Integer recordsCount, String jobExecutionId) {
     if (!enableFlowControl) {
       return;
     }
 
     decreaseState(tenantId, recordsCount);
-    LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
-      tenantId, instanceId, recordsCount, currentState.get(tenantId));
+    if (jobExecutionId != null) {
+      jobExecutionRecordsInProcess.computeIfPresent(jobExecutionId, (k, v) -> v - recordsCount);
+    }
+    LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}], JobExecutionId: [{}], instanceId:{}. Record count: {}, Current state:{}, In process: {}",
+      tenantId, jobExecutionId, instanceId, recordsCount, currentState.get(tenantId), jobExecutionRecordsInProcess.get(jobExecutionId));
   }
 
   @Override
@@ -113,6 +123,19 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     decreaseState(tenantId, recordsCount);
     LOGGER.debug("trackChunkDuplicateEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
+  }
+
+  @Override
+  public void trackJobCancellationEvent(String tenantId, String jobExecutionId) {
+    if (!enableFlowControl) {
+      return;
+    }
+
+    Integer recordsToCancel = jobExecutionRecordsInProcess.remove(jobExecutionId);
+    if (recordsToCancel != null && recordsToCancel > 0) {
+      LOGGER.info("trackJobCancellationEvent:: Cancelling job [{}]. Decreasing flow control counter by {} records.", jobExecutionId, recordsToCancel);
+      decreaseState(tenantId, recordsToCancel);
+    }
   }
 
   private void decreaseState(String tenantId, Integer recordsCount) {
@@ -157,14 +180,22 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   private int isMoreThenZero(Pair<Integer, Integer> pair) {
+    if (pair == null) {
+      return 0;
+    }
     return pair.getKey() > 0 && pair.getValue() > 0 ? 1 : 0;
   }
 
   private void updatePreviousStateValue(String tenantId) {
     historyState.putIfAbsent(tenantId, Pair.of(0,0));
-    historyState.computeIfPresent(tenantId, (k, v) ->
-      v.getKey().equals(currentState.get(tenantId)) ? Pair.of(v.getKey(), v.getValue() + 1):
-        Pair.of(currentState.get(tenantId),0));
+    historyState.computeIfPresent(tenantId, (k, v) -> {
+      Integer currentVal = currentState.get(tenantId);
+      if (currentVal == null) {
+        return Pair.of(0, 0);
+      }
+      return v.getKey().equals(currentVal) ? Pair.of(v.getKey(), v.getValue() + 1)
+        : Pair.of(currentVal, 0);
+    });
   }
 
   private void initFetchMode(String tenantId) {

@@ -38,14 +38,10 @@ public class RawRecordsFlowControlServiceImplTest {
     ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
     ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
-    service.trackChunkReceivedEvent(TENANT_ID, 10);
+    service.trackChunkReceivedEvent(TENANT_ID, 10, "");
     service.trackChunkDuplicateEvent(TENANT_ID, 10);
-    service.trackRecordCompleteEvent(TENANT_ID, 0);
+    service.trackRecordCompleteEvent(TENANT_ID, 0, "");
 
-    // 1.firstly we receive 10 simultaneous records, so should pause consumers
-    // 2.after it we recognize that these 10 records were duplicates, so should resume consumers
-    // 3.after it receive 1 complete event that it less than 5 threshold, so should resume if not already resumed
-    // But flow control feature is disabled, so we should no do all these actions
     verifyNoInteractions(kafkaConsumersStorage);
   }
 
@@ -53,7 +49,7 @@ public class RawRecordsFlowControlServiceImplTest {
   public void shouldNotPauseWhenMaxSimultaneousChunksNotExceeded() {
     ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
     service.increaseCounterInDb(TENANT_ID, 25);
-    service.trackChunkReceivedEvent(TENANT_ID, 50);
+    service.trackChunkReceivedEvent(TENANT_ID, 50, "");
 
     verifyNoMoreInteractions(kafkaConsumersStorage);
   }
@@ -65,16 +61,15 @@ public class RawRecordsFlowControlServiceImplTest {
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
     when(consumerWrapper.getId()).thenReturn(1);
-    when(consumerWrapper.demand()).thenReturn(0L); // 0 means consumer already paused
+    when(consumerWrapper.demand()).thenReturn(0L);
 
-    service.trackChunkReceivedEvent(TENANT_ID, 50);
+    service.trackChunkReceivedEvent(TENANT_ID, 50, "");
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
 
-    service.trackRecordCompleteEvent(TENANT_ID, 26);
+    service.trackRecordCompleteEvent(TENANT_ID, 26, "");
 
-    // 24 low than threshold 25
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerWrapper).fetch(1L);
   }
@@ -84,10 +79,10 @@ public class RawRecordsFlowControlServiceImplTest {
     ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
     ReflectionTestUtils.setField(service, "recordsThreshold", 25);
 
-    service.trackChunkReceivedEvent(TENANT_ID, 50);
+    service.trackChunkReceivedEvent(TENANT_ID, 50, "");
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
-    when(consumerWrapper.demand()).thenReturn(1L); // > 0 means that consumer running
+    when(consumerWrapper.demand()).thenReturn(1L);
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
@@ -95,7 +90,6 @@ public class RawRecordsFlowControlServiceImplTest {
     service.resetState();
     service.resetState();
 
-    // 30 rec doesn't exceed max 50, after complete event 29 not less than 25 threshold, - so no any interaction with consumers storage
     verify(consumerWrapper).fetch(1L);
   }
 
@@ -105,15 +99,14 @@ public class RawRecordsFlowControlServiceImplTest {
     ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
-    when(consumerWrapper.demand()).thenReturn(1L); // > 0 means that consumer running
+    when(consumerWrapper.demand()).thenReturn(1L);
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
 
     service.increaseCounterInDb(TENANT_ID, 10);
-    service.trackRecordCompleteEvent(TENANT_ID, 6);
+    service.trackRecordCompleteEvent(TENANT_ID, 6, "");
 
-    // after record complete event, current value 4 less than resume threshold, need to resume if paused (in our case consumer running)
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerWrapper, never()).resume();
   }
@@ -124,15 +117,14 @@ public class RawRecordsFlowControlServiceImplTest {
     ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
-    when(consumerWrapper.demand()).thenReturn(0L); // 0 means consumer already paused
+    when(consumerWrapper.demand()).thenReturn(0L);
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
 
     service.increaseCounterInDb(TENANT_ID, 10);
-    service.trackRecordCompleteEvent(TENANT_ID, 6);
+    service.trackRecordCompleteEvent(TENANT_ID, 6, "");
 
-    // after record complete event, current value 4 less than resume threshold, need to resume consumer
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerWrapper).fetch(10L);
   }
@@ -144,16 +136,16 @@ public class RawRecordsFlowControlServiceImplTest {
 
     KafkaConsumerWrapper<String, String> consumerBeforeResume = mock(KafkaConsumerWrapper.class);
     when(consumerBeforeResume.getId()).thenReturn(1);
-    when(consumerBeforeResume.demand()).thenReturn(0L); // 0 means consumer is paused
+    when(consumerBeforeResume.demand()).thenReturn(0L);
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerBeforeResume));
 
-    service.trackChunkReceivedEvent(TENANT_ID, 50);
+    service.trackChunkReceivedEvent(TENANT_ID, 50, "");
     service.trackChunkDuplicateEvent(TENANT_ID, 46);
 
-    // 5 events comes and consumer paused, these events were duplicates and compensate 5 events came and after this consumer resumed
     verify(kafkaConsumersStorage, times(1)).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerBeforeResume).fetch(1L);
   }
 }
+
