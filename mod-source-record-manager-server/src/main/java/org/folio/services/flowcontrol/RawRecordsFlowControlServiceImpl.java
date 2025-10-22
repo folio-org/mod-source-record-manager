@@ -132,10 +132,10 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     Integer recordsToCancel = jobExecutionRecordsInProcess.remove(jobExecutionId);
-    if (recordsToCancel != null && recordsToCancel > 0) {
-      LOGGER.info("trackJobCancellationEvent:: Cancelling job [{}]. Decreasing flow control counter by {} records.", jobExecutionId, recordsToCancel);
-      decreaseState(tenantId, recordsToCancel);
-    }
+    recordsToCancel = recordsToCancel != null && recordsToCancel > 0 ? recordsToCancel : 0;
+
+    LOGGER.info("trackJobCancellationEvent:: Cancelling job [{}]. Decreasing flow control counter by {} records.", jobExecutionId, recordsToCancel);
+    decreaseState(tenantId, recordsToCancel);
   }
 
   private void decreaseState(String tenantId, Integer recordsCount) {
