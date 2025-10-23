@@ -119,11 +119,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   public void triggerNextChunkFetch(String tenantId) {
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("resumeConsumer:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+        LOGGER.info("triggerNextChunkFetch:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
         consumer.pause();
         consumer.fetch(maxSimultaneousChunks);
-        LOGGER.info("resumeConsumer:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+        LOGGER.info("triggerNextChunkFetch:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
       });
   }
