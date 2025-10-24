@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -92,6 +93,9 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key));
+          List<KafkaHeader> kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+          LOGGER.info("sendRecords:: Headers from params: {}", params.getHeaders());
+          LOGGER.info("sendRecords:: Extracted kafka headers: {}", kafkaHeaders);
         } else {
           String cause = record.getErrorRecord() == null
             ? format("Cannot send event for individual record with recordType: %s", record.getRecordType())
