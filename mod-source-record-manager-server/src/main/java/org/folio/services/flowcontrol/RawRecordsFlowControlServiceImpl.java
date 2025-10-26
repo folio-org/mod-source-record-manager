@@ -125,8 +125,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
         LOGGER.info("resumeConsumer:: Starting to fetch next chunks, instanceId: {}. Demand: {}, Current state: {}",
           instanceId, consumer.demand(), currentState.get(tenantId));
-        consumer.pause();
-        consumer.fetch(maxSimultaneousChunks);
+        if (consumer.demand() == 0) {
+          consumer.fetch(maxSimultaneousChunks);
+        }
         LOGGER.info("resumeConsumer:: After fetch next chunks, instanceId: {}. Demand: {}, Current state: {}",
           instanceId, consumer.demand(), currentState.get(tenantId));
       });
