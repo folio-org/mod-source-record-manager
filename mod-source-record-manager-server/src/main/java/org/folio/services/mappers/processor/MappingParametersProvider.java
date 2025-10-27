@@ -515,6 +515,7 @@ public class MappingParametersProvider {
    */
   private Future<String> getTenantSettingsTimeZone(OkapiConnectionParams params) {
     Promise<String> promise = Promise.promise();
+    System.setProperty("SYSTEM_USER_ENABLED", "false");
     RestUtil.doRequestWithSystemUser(params, TENANT_SETTINGS_TIME_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
