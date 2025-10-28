@@ -35,7 +35,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   private final MappingRuleService mappingRuleService;
   private final MappingRulesSnapshotDao mappingRulesSnapshotDao;
   private final MappingParamsSnapshotDao mappingParamsSnapshotDao;
-  private final AsyncCache<String, String> mappingParamsCache;
+  private final AsyncCache<String, MappingParameters> mappingParamsCache;
   private final AsyncCache<String, JsonObject> mappingRulesCache;
   private final Executor cacheExecutor = serviceExecutor -> {
     Context context = Vertx.currentContext();
@@ -71,7 +71,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    Future<String> mappingParamsFuture = Future.fromCompletionStage(
+    Future<MappingParameters> mappingParamsFuture = Future.fromCompletionStage(
       mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParams(key, okapiParams))
     );
 
@@ -80,15 +80,20 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
     );
 
     return Future.all(mappingParamsFuture, mappingRulesFuture)
-      .compose(res -> Future.succeededFuture(new MappingMetadataDto()
-        .withMappingParams(Json.encode(res.resultAt(0)))
-        .withMappingRules(((JsonObject) res.resultAt(1)).encode())));
+      .compose(res -> {
+        MappingParameters params = res.resultAt(0);
+        JsonObject rules = res.resultAt(1);
+
+        return Future.succeededFuture(new MappingMetadataDto()
+          .withJobExecutionId(jobExecutionId)
+          .withMappingParams(Json.encode(params))
+          .withMappingRules(rules.encode()));
+      });
   }
 
-  private CompletableFuture<String> loadMappingParams(String jobExecutionId, OkapiConnectionParams okapiParams) {
+  private CompletableFuture<MappingParameters> loadMappingParams(String jobExecutionId, OkapiConnectionParams okapiParams) {
     return retrieveMappingParameters(jobExecutionId, okapiParams)
-      .map(Json::encode)
-      .onFailure(throwable -> LOGGER.error("loadMappingParams:: Failed to load or encode mapping parameters for jobExecutionId: '{}'", jobExecutionId, throwable))
+      .onFailure(throwable -> LOGGER.error("loadMappingParams:: Failed to load mapping parameters for jobExecutionId: '{}'", jobExecutionId, throwable))
       .toCompletionStage()
       .toCompletableFuture();
   }
@@ -120,7 +125,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       .onSuccess(mappingParameters -> {
         if (mappingParameters != null) {
           LOGGER.info("Successfully saved MappingParameters snapshot to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
-          mappingParamsCache.put(jobExecutionId, CompletableFuture.completedFuture(Json.encode(mappingParameters)));
+          mappingParamsCache.put(jobExecutionId, CompletableFuture.completedFuture(mappingParameters));
         }
       }).onFailure(throwable -> LOGGER.error("Failed to save MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId, throwable));
   }
