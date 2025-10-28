@@ -393,7 +393,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
           mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
-            .onSuccess(ar -> promise.complete(true))
+            .onSuccess(ar -> {
+              LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}", jobExecutionId);
+              promise.complete(true);
+            })
             .onFailure(promise::fail);
           return;
         }
