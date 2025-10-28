@@ -115,6 +115,24 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
+  @Override
+  public void triggerNextChunksFetch(String tenantId) {
+    if (!enableFlowControl) {
+      return;
+    }
+
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+      .forEach(consumer -> {
+        LOGGER.info("triggerNextChunksFetch:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+          tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
+        if (consumer.demand() == 0) {
+          consumer.fetch(maxSimultaneousChunks);
+        }
+        LOGGER.info("triggerNextChunksFetch:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+          tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
+      });
+  }
+
   private void decreaseState(String tenantId, Integer recordsCount) {
     initFetchMode(tenantId);
     decreaseCounterInDb(tenantId, recordsCount);

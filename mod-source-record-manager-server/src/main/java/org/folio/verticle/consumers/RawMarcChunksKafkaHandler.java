@@ -67,6 +67,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
       .compose(jobExecutionOptional -> jobExecutionOptional.map(jobExecution -> {
           if(isNeedToSkip(jobExecution)) {
             LOGGER.info("handle:: do not handle because jobExecution with id: {} was cancelled", jobExecutionId);
+            flowControlService.triggerNextChunksFetch(okapiParams.getTenantId());
             return Future.succeededFuture(record.key());
           }
 
