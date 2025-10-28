@@ -401,7 +401,7 @@
     },
     {
       "id": "source-manager-parsed-records",
-      "version": "3.0",
+      "version": "4.0",
       "handlers": [
         {
           "methods": [
