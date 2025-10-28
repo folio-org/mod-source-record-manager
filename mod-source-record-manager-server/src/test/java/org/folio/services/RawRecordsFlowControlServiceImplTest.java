@@ -14,7 +14,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Collections;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RawRecordsFlowControlServiceImplTest {
@@ -41,6 +48,7 @@ public class RawRecordsFlowControlServiceImplTest {
     service.trackChunkReceivedEvent(TENANT_ID, 10);
     service.trackChunkDuplicateEvent(TENANT_ID, 10);
     service.trackRecordCompleteEvent(TENANT_ID, 0);
+    service.triggerNextChunksFetch(TENANT_ID);
 
     // 1.firstly we receive 10 simultaneous records, so should pause consumers
     // 2.after it we recognize that these 10 records were duplicates, so should resume consumers
@@ -155,5 +163,33 @@ public class RawRecordsFlowControlServiceImplTest {
     // 5 events comes and consumer paused, these events were duplicates and compensate 5 events came and after this consumer resumed
     verify(kafkaConsumersStorage, times(1)).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerBeforeResume).fetch(1L);
+  }
+
+  @Test
+  public void shouldFetchNextChunkWhenChunkFetchIsTriggeredAndConsumerIsPaused() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 2);
+    KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
+    when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
+      .thenReturn(Collections.singletonList(consumerWrapper));
+    when(consumerWrapper.demand()).thenReturn(0L); // 0 means consumer is paused
+
+    service.triggerNextChunksFetch(TENANT_ID);
+
+    verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
+    verify(consumerWrapper).fetch(2);
+  }
+
+  @Test
+  public void shouldNotFetchNextChunkWhenChunkFetchIsTriggeredAndConsumerIsNotPaused() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 2);
+    KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
+    when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
+      .thenReturn(Collections.singletonList(consumerWrapper));
+    when(consumerWrapper.demand()).thenReturn(1L); // > 0 means consumer keeps reading chunks
+
+    service.triggerNextChunksFetch(TENANT_ID);
+
+    verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
+    verify(consumerWrapper, never()).fetch(anyLong());
   }
 }
