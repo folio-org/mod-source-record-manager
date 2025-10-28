@@ -14,7 +14,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Collections;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RawRecordsFlowControlServiceImplTest {
@@ -158,16 +165,30 @@ public class RawRecordsFlowControlServiceImplTest {
   }
 
   @Test
-  public void shouldFetchNextChunkWhenChunkFetchIsTriggered() {
+  public void shouldFetchNextChunkWhenChunkFetchIsTriggeredAndConsumerIsPaused() {
     ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 2);
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
+    when(consumerWrapper.demand()).thenReturn(0L); // 0 means consumer is paused
 
     service.triggerNextChunkFetch(TENANT_ID);
 
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-    verify(consumerWrapper).pause();
     verify(consumerWrapper).fetch(2);
+  }
+
+  @Test
+  public void shouldNotFetchNextChunkWhenChunkFetchIsTriggeredAndConsumerIsNotPaused() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 2);
+    KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
+    when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
+      .thenReturn(Collections.singletonList(consumerWrapper));
+    when(consumerWrapper.demand()).thenReturn(1L); // > 0 means consumer keeps reading chunks
+
+    service.triggerNextChunkFetch(TENANT_ID);
+
+    verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
+    verify(consumerWrapper, never()).fetch(anyLong());
   }
 }

@@ -125,8 +125,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       .forEach(consumer -> {
         LOGGER.info("triggerNextChunkFetch:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
-        consumer.pause();
-        consumer.fetch(maxSimultaneousChunks);
+        if (consumer.demand() == 0) {
+          consumer.fetch(maxSimultaneousChunks);
+        }
         LOGGER.info("triggerNextChunkFetch:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
       });
