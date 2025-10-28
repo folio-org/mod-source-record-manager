@@ -384,25 +384,29 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
-    Promise<Boolean> promise = Promise.promise();
-    mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
-      .onSuccess(v -> promise.complete(false))
-      .onFailure(e -> {
-        if (e instanceof NotFoundException) {
-          RecordType recordType = recordsList.get(0).getRecordType();
+
+    return mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
+      .map(dto -> {
+        LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}", jobExecutionId);
+        return false;
+      })
+      .recover(throwable -> {
+        if (throwable instanceof NotFoundException) {
+          LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", jobExecutionId);
+          RecordType recordType = recordsList.getFirst().getRecordType();
           recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
-          mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
+
+          return mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
-            .onSuccess(ar -> {
+            .map(ar -> {
               LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}", jobExecutionId);
-              promise.complete(true);
-            })
-            .onFailure(promise::fail);
-          return;
+              return true;
+            });
+        } else {
+          LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", jobExecutionId, throwable);
+          return Future.failedFuture(throwable);
         }
-        promise.fail(e);
       });
-    return promise.future();
   }
 
   private boolean updateMarcActionExists(JobExecution jobExecution) {

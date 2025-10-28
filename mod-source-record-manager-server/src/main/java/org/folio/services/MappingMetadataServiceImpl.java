@@ -118,13 +118,13 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   public Future<MappingParameters> saveMappingParametersSnapshot(String jobExecutionId, OkapiConnectionParams okapiParams) {
     return mappingParametersProvider.get(jobExecutionId, okapiParams)
       .compose(mappingParameters -> {
-        LOGGER.info("Attempting to save MappingParameters snapshot to DB for jobExecutionId: '{}'", jobExecutionId);
+        LOGGER.debug("Attempting to save MappingParameters snapshot to DB for jobExecutionId: '{}'", jobExecutionId);
         return mappingParamsSnapshotDao.save(mappingParameters, jobExecutionId, okapiParams.getTenantId())
           .map(mappingParameters);
       })
       .onSuccess(mappingParameters -> {
         if (mappingParameters != null) {
-          LOGGER.info("Successfully saved MappingParameters snapshot to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
+          LOGGER.debug("Successfully saved MappingParameters snapshot to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
           mappingParamsCache.put(jobExecutionId, CompletableFuture.completedFuture(mappingParameters));
         }
       }).onFailure(throwable -> LOGGER.error("Failed to save MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId, throwable));
@@ -136,12 +136,12 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       .map(rulesOptional -> rulesOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping rules are not found for tenant id '%s'", tenantId))))
       .compose(rules -> {
-        LOGGER.info("Attempting to save MappingRules to DB for jobExecutionId: '{}'", jobExecutionId);
+        LOGGER.debug("Attempting to save MappingRules to DB for jobExecutionId: '{}'", jobExecutionId);
         return mappingRulesSnapshotDao.save(rules, jobExecutionId, tenantId)
           .map(rules);
       }).onSuccess(mappingRules -> {
         if (mappingRules != null) {
-          LOGGER.info("Successfully saved MappingRules to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
+          LOGGER.debug("Successfully saved MappingRules to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
           mappingRulesCache.put(jobExecutionId, CompletableFuture.completedFuture(mappingRules));
         }
       }).onFailure(throwable -> LOGGER.error("Failed to save MappingRules for jobExecutionId: '{}'", jobExecutionId, throwable));
