@@ -116,19 +116,19 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   @Override
-  public void triggerNextChunkFetch(String tenantId) {
+  public void triggerNextChunksFetch(String tenantId) {
     if (!enableFlowControl) {
       return;
     }
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("triggerNextChunkFetch:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+        LOGGER.info("triggerNextChunksFetch:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
         if (consumer.demand() == 0) {
           consumer.fetch(maxSimultaneousChunks);
         }
-        LOGGER.info("triggerNextChunkFetch:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+        LOGGER.info("triggerNextChunksFetch:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
       });
   }

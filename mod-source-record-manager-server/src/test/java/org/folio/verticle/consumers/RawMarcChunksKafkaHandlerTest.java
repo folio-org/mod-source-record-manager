@@ -86,7 +86,7 @@ public class RawMarcChunksKafkaHandlerTest {
 
     // then
     verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
-    verify(flowControlService).triggerNextChunkFetch(TENANT_ID);
+    verify(flowControlService).triggerNextChunksFetch(TENANT_ID);
     assertTrue(future.succeeded());
   }
 

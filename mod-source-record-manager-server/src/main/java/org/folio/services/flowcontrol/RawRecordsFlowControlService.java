@@ -42,5 +42,5 @@ public interface RawRecordsFlowControlService {
    *
    * @param tenantId tenant id
    */
-  void triggerNextChunkFetch(String tenantId);
+  void triggerNextChunksFetch(String tenantId);
 }

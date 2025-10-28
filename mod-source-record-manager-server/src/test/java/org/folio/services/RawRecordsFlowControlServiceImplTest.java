@@ -48,6 +48,7 @@ public class RawRecordsFlowControlServiceImplTest {
     service.trackChunkReceivedEvent(TENANT_ID, 10);
     service.trackChunkDuplicateEvent(TENANT_ID, 10);
     service.trackRecordCompleteEvent(TENANT_ID, 0);
+    service.triggerNextChunksFetch(TENANT_ID);
 
     // 1.firstly we receive 10 simultaneous records, so should pause consumers
     // 2.after it we recognize that these 10 records were duplicates, so should resume consumers
@@ -172,7 +173,7 @@ public class RawRecordsFlowControlServiceImplTest {
       .thenReturn(Collections.singletonList(consumerWrapper));
     when(consumerWrapper.demand()).thenReturn(0L); // 0 means consumer is paused
 
-    service.triggerNextChunkFetch(TENANT_ID);
+    service.triggerNextChunksFetch(TENANT_ID);
 
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerWrapper).fetch(2);
@@ -186,7 +187,7 @@ public class RawRecordsFlowControlServiceImplTest {
       .thenReturn(Collections.singletonList(consumerWrapper));
     when(consumerWrapper.demand()).thenReturn(1L); // > 0 means consumer keeps reading chunks
 
-    service.triggerNextChunkFetch(TENANT_ID);
+    service.triggerNextChunksFetch(TENANT_ID);
 
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     verify(consumerWrapper, never()).fetch(anyLong());
