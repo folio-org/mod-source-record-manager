@@ -23,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.folio.rest.impl.AbstractRestTest.CACHE_EXPIRATION_TIME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -49,7 +50,7 @@ public class MappingMetadataServiceImplTest {
       mappingParametersProvider,
       mappingRuleService,
       mappingRulesSnapshotDao,
-      mappingParamsSnapshotDao);
+      mappingParamsSnapshotDao, CACHE_EXPIRATION_TIME);
 
   }
 
