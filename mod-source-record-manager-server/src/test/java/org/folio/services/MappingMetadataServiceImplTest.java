@@ -69,7 +69,7 @@ public class MappingMetadataServiceImplTest {
     // Mock DAO calls that happen on the first, cache-miss call
     Mockito.when(mappingParamsSnapshotDao.getByJobExecutionId(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(mappingParameters)));
-    Mockito.when(mappingRulesSnapshotDao.getByJobExecutionId(eq(jobExecutionId), eq(tenantId)))
+    Mockito.when(mappingRulesSnapshotDao.getByJobExecutionId(jobExecutionId, tenantId))
       .thenReturn(Future.succeededFuture(Optional.of(jsonObject)));
 
     // Mock DAO calls for SAVE operations
@@ -88,27 +88,27 @@ public class MappingMetadataServiceImplTest {
     service.getMappingMetadataDto(jobExecutionId, params)
       .compose(ar -> {
         context.assertNotNull(ar);
-        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
+        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
+        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
         return Future.succeededFuture();
       })
       .compose(ar -> service.saveMappingRulesSnapshot(jobExecutionId, Record.RecordType.MARC_BIB.toString(), tenantId))
       .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params))
       .compose(ar -> {
         context.assertNotNull(ar);
-        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
+        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
+        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
         return Future.succeededFuture();
       })
       .compose(ar -> service.saveMappingParametersSnapshot(jobExecutionId, params))
       .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params))
       .compose(ar -> {
         context.assertNotNull(ar);
-        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
+        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
+        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
 
         Mockito.verify(mappingParametersProvider, Mockito.times(1)).get(any(), eq(params));
-        Mockito.verify(mappingRuleService, Mockito.times(1)).get(eq(org.folio.Record.RecordType.MARC_BIB), eq(tenantId));
+        Mockito.verify(mappingRuleService, Mockito.times(1)).get(org.folio.Record.RecordType.MARC_BIB, tenantId);
         return Future.succeededFuture();
       })
       .onSuccess(ar -> async.complete())
