@@ -51,7 +51,8 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
                                     @Autowired MappingRuleService mappingRuleService,
                                     @Autowired MappingRulesSnapshotDao mappingRulesSnapshotDao,
                                     @Autowired MappingParamsSnapshotDao mappingParamsSnapshotDao,
-                                    @Value("${srm.metadata.cache.expiration.seconds:3600}") long cacheExpirationTime) {
+                                    @Value("${srm.metadata.cache.expiration.seconds:3600}") long cacheExpirationTime,
+                                    @Value("${srm.metadata.cache.max.size:20}") int cacheMaxSize) {
 
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
@@ -60,11 +61,13 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
     this.mappingParamsCache = Caffeine.newBuilder()
       .expireAfterWrite(cacheExpirationTime, TimeUnit.SECONDS)
+      .maximumSize(cacheMaxSize)
       .executor(cacheExecutor)
       .buildAsync();
 
     this.mappingRulesCache = Caffeine.newBuilder()
       .expireAfterWrite(cacheExpirationTime, TimeUnit.SECONDS)
+      .maximumSize(cacheMaxSize)
       .executor(cacheExecutor)
       .buildAsync();
   }

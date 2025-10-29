@@ -151,6 +151,7 @@ public abstract class AbstractRestTest {
   protected static final String OKAPI_URL = "http://localhost:" + PORT;
   protected static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   public static final int CACHE_EXPIRATION_TIME = 3600;
+  public static final int CACHE_MAX_SIZE = 20;
 
   private final JsonObject userResponse = new JsonObject()
     .put("users",
