@@ -1,7 +1,9 @@
 package org.folio.services;
 
 import com.github.benmanes.caffeine.cache.AsyncCache;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -63,13 +65,28 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       .expireAfterWrite(cacheExpirationTime, TimeUnit.SECONDS)
       .maximumSize(cacheMaxSize)
       .executor(cacheExecutor)
+      .recordStats()
       .buildAsync();
 
     this.mappingRulesCache = Caffeine.newBuilder()
       .expireAfterWrite(cacheExpirationTime, TimeUnit.SECONDS)
       .maximumSize(cacheMaxSize)
       .executor(cacheExecutor)
+      .recordStats()
       .buildAsync();
+  }
+
+  public void logCacheStats(AsyncCache cache, String cacheName) {
+    CacheStats stats = cache.synchronous().stats();
+    LOGGER.info("Cache {} statistics :", cacheName);
+    LOGGER.info("  Request Count: {}", stats.requestCount());
+    LOGGER.info("  Hit Count: {}", stats.hitCount());
+    LOGGER.info("  Hit Rate: {}%", String.format("%.2f", stats.hitRate() * 100));
+    LOGGER.info("  Miss Count: {}", stats.missCount());
+    LOGGER.info("  Miss Rate: {}%", String.format("%.2f", stats.missRate() * 100));
+    LOGGER.info("  Load Count: {}", stats.loadCount());
+    LOGGER.info("  Average Load Time: {}%", String.format("%.2f", stats.averageLoadPenalty() / 1_000_000.0));
+    LOGGER.info("  Eviction Count: {}", stats.evictionCount());
   }
 
   @Override
@@ -87,6 +104,9 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       .compose(res -> {
         MappingParameters params = res.resultAt(0);
         JsonObject rules = res.resultAt(1);
+
+        logCacheStats(mappingParamsCache, "MappingParametersCache");
+        logCacheStats(mappingRulesCache, "MappingRulesCache");
 
         return Future.succeededFuture(new MappingMetadataDto()
           .withJobExecutionId(jobExecutionId)
