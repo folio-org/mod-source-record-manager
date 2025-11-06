@@ -74,6 +74,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
+    LOGGER.info("getMappingMetadataDto:: Retrieving MappingMetadataDto for jobExecutionId: '{}'", jobExecutionId);
     Future<MappingParameters> mappingParamsFuture = Future.fromCompletionStage(
       mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParams(key, okapiParams))
     );
