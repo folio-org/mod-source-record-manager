@@ -134,11 +134,15 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
         .toCompletionStage()
         .toCompletableFuture()
         .whenComplete((result, throwable) -> {
-          loadingParams.remove(key);
-          if (throwable != null) {
-            LOGGER.error("loadMappingParamsWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
-          } else {
+          if (throwable == null) {
             LOGGER.info("loadMappingParamsWithProtection:: COMPLETED load for jobExecutionId: '{}'", key);
+            loadingParams.remove(key);
+          } else if (isNotFoundException(throwable)) {
+            LOGGER.warn("loadMappingParamsWithProtection:: NOT FOUND for jobExecutionId: '{}' - removing from loading registry", key);
+            loadingParams.remove(key);
+          } else {
+            LOGGER.error("loadMappingParamsWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
+            loadingParams.remove(key);
           }
         });
     });
@@ -152,17 +156,33 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
         .toCompletionStage()
         .toCompletableFuture()
         .whenComplete((result, throwable) -> {
-          loadingRules.remove(key);
-          if (throwable != null) {
-            LOGGER.error("loadMappingRulesWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
-          } else {
+          if (throwable == null) {
             LOGGER.info("loadMappingRulesWithProtection:: COMPLETED load for jobExecutionId: '{}'", key);
+            loadingRules.remove(key);
+          } else if (isNotFoundException(throwable)) {
+            LOGGER.warn("loadMappingRulesWithProtection:: NOT FOUND for jobExecutionId: '{}' - removing from loading registry", key);
+            loadingRules.remove(key);
+          } else {
+            LOGGER.error("loadMappingRulesWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
+            loadingRules.remove(key);
           }
         });
     });
   }
 
-
+  private boolean isNotFoundException(Throwable throwable) {
+    if (throwable instanceof NotFoundException) {
+      return true;
+    }
+    Throwable cause = throwable.getCause();
+    while (cause != null) {
+      if (cause instanceof NotFoundException) {
+        return true;
+      }
+      cause = cause.getCause();
+    }
+    return false;
+  }
 
   private CompletableFuture<JsonObject> loadMappingRules(String jobExecutionId, String tenantId) {
     LOGGER.info("loadMappingRules:: Loading mapping rules for jobExecutionId: '{}'", jobExecutionId);

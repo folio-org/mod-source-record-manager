@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -391,6 +392,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         return false;
       })
       .recover(throwable -> {
+        NotFoundException notFoundEx = extractNotFoundException(throwable);
         if (throwable instanceof NotFoundException) {
           LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", jobExecutionId);
           RecordType recordType = recordsList.getFirst().getRecordType();
@@ -407,6 +409,26 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           return Future.failedFuture(throwable);
         }
       });
+  }
+
+  private NotFoundException extractNotFoundException(Throwable throwable) {
+    if (throwable instanceof NotFoundException) {
+      return (NotFoundException) throwable;
+    }
+
+    if (throwable instanceof CompletionException && throwable.getCause() instanceof NotFoundException) {
+      return (NotFoundException) throwable.getCause();
+    }
+
+    Throwable cause = throwable.getCause();
+    while (cause != null) {
+      if (cause instanceof NotFoundException) {
+        return (NotFoundException) cause;
+      }
+      cause = cause.getCause();
+    }
+
+    return null;
   }
 
   private boolean updateMarcActionExists(JobExecution jobExecution) {
