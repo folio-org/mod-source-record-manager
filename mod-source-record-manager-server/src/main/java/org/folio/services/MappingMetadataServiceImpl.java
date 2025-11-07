@@ -1,7 +1,6 @@
 package org.folio.services;
 
 import com.github.benmanes.caffeine.cache.AsyncCache;
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.Context;
@@ -23,10 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 public class MappingMetadataServiceImpl implements MappingMetadataService {
@@ -54,7 +50,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
                                     @Autowired MappingRulesSnapshotDao mappingRulesSnapshotDao,
                                     @Autowired MappingParamsSnapshotDao mappingParamsSnapshotDao,
                                     @Value("${srm.metadata.cache.expiration.seconds:3600}") long cacheExpirationTime,
-                                    @Value("${srm.metadata.cache.max.size:20}") int cacheMaxSize) {
+                                    @Value("${srm.metadata.cache.max.size:200}") int cacheMaxSize) {
 
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
@@ -116,13 +112,56 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   }
 
   private CompletableFuture<MappingParameters> loadMappingParams(String jobExecutionId, OkapiConnectionParams okapiParams) {
+    LOGGER.info("loadMappingParams:: Loading mapping parameters for jobExecutionId: '{}'", jobExecutionId);
     return retrieveMappingParameters(jobExecutionId, okapiParams)
       .onFailure(throwable -> LOGGER.error("loadMappingParams:: Failed to load mapping parameters for jobExecutionId: '{}'", jobExecutionId, throwable))
       .toCompletionStage()
       .toCompletableFuture();
   }
 
+  private final ConcurrentHashMap<String, CompletableFuture<MappingParameters>> loadingParams = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, CompletableFuture<JsonObject>> loadingRules = new ConcurrentHashMap<>();
+
+  private CompletableFuture<MappingParameters> loadMappingParamsWithProtection(String jobExecutionId, OkapiConnectionParams okapiParams) {
+    return loadingParams.computeIfAbsent(jobExecutionId, key -> {
+      LOGGER.info("loadMappingParamsWithProtection:: Starting NEW load for jobExecutionId: '{}'", key);
+
+      return retrieveMappingParameters(key, okapiParams)
+        .toCompletionStage()
+        .toCompletableFuture()
+        .whenComplete((result, throwable) -> {
+          loadingParams.remove(key);
+          if (throwable != null) {
+            LOGGER.error("loadMappingParamsWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
+          } else {
+            LOGGER.info("loadMappingParamsWithProtection:: COMPLETED load for jobExecutionId: '{}'", key);
+          }
+        });
+    });
+  }
+
+  private CompletableFuture<JsonObject> loadMappingRulesWithProtection(String jobExecutionId, String tenantId) {
+    return loadingRules.computeIfAbsent(jobExecutionId, key -> {
+      LOGGER.info("loadMappingRulesWithProtection:: Starting NEW load for jobExecutionId: '{}'", key);
+
+      return retrieveMappingRules(key, tenantId)
+        .toCompletionStage()
+        .toCompletableFuture()
+        .whenComplete((result, throwable) -> {
+          loadingRules.remove(key);
+          if (throwable != null) {
+            LOGGER.error("loadMappingRulesWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
+          } else {
+            LOGGER.info("loadMappingRulesWithProtection:: COMPLETED load for jobExecutionId: '{}'", key);
+          }
+        });
+    });
+  }
+
+
+
   private CompletableFuture<JsonObject> loadMappingRules(String jobExecutionId, String tenantId) {
+    LOGGER.info("loadMappingRules:: Loading mapping rules for jobExecutionId: '{}'", jobExecutionId);
     return retrieveMappingRules(jobExecutionId, tenantId)
       .toCompletionStage()
       .toCompletableFuture();
