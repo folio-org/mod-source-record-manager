@@ -393,7 +393,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       })
       .recover(throwable -> {
         NotFoundException notFoundEx = extractNotFoundException(throwable);
-        if (throwable instanceof NotFoundException) {
+        if (notFoundEx != null) {
           LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", jobExecutionId);
           RecordType recordType = recordsList.getFirst().getRecordType();
           recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
