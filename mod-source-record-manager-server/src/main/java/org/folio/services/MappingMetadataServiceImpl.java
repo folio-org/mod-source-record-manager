@@ -22,7 +22,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class MappingMetadataServiceImpl implements MappingMetadataService {
@@ -89,11 +93,11 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
     LOGGER.info("getMappingMetadataDto:: Retrieving MappingMetadataDto for jobExecutionId: '{}'", jobExecutionId);
     Future<MappingParameters> mappingParamsFuture = Future.fromCompletionStage(
-      mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParams(key, okapiParams))
+      mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParamsWithProtection(key, okapiParams))
     );
 
     Future<JsonObject> mappingRulesFuture = Future.fromCompletionStage(
-      mappingRulesCache.get(jobExecutionId, (key, executor) -> loadMappingRules(key, okapiParams.getTenantId()))
+      mappingRulesCache.get(jobExecutionId, (key, executor) -> loadMappingRulesWithProtection(key, okapiParams.getTenantId()))
     );
 
     return Future.all(mappingParamsFuture, mappingRulesFuture)
