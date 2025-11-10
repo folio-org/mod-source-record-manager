@@ -41,7 +41,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
       try {
         LOGGER.debug("getMappingMetadataByJobExecutionId:: jobExecutionId {}", jobExecutionId);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        mappingMetadataService.getMappingMetadataDto(jobExecutionId, params)
+        mappingMetadataService.getMappingMetadataDto(jobExecutionId, params, "getMappingMetadataByJobExecutionId")
           .map(GetMappingMetadataByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

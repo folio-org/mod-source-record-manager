@@ -95,26 +95,23 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   }
 
   @Override
-  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
+  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams, String fromMethod) {
     int current = concurrentRequests.incrementAndGet();
-    //LOGGER.info("getMappingMetadataDto:: Retrieving MappingMetadataDto for jobExecutionId: '{}'", jobExecutionId);
-    LOGGER.info("getMappingMetadataDto:: Starting request for jobExecutionId: '{}', concurrent requests: {}",
-      jobExecutionId, current);
+    LOGGER.info("getMappingMetadataDto:: Starting request for jobExecutionId: '{}', concurrent requests: {}, from method: '{}'",
+      jobExecutionId, current, fromMethod);
+
     Future<MappingParameters> mappingParamsFuture = Future.fromCompletionStage(
-      mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParamsWithProtection(key, okapiParams))
+      mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParamsWithProtection(key, okapiParams, fromMethod))
     );
 
     Future<JsonObject> mappingRulesFuture = Future.fromCompletionStage(
-      mappingRulesCache.get(jobExecutionId, (key, executor) -> loadMappingRulesWithProtection(key, okapiParams.getTenantId()))
+      mappingRulesCache.get(jobExecutionId, (key, executor) -> loadMappingRulesWithProtection(key, okapiParams.getTenantId(), fromMethod))
     );
 
     return Future.all(mappingParamsFuture, mappingRulesFuture)
       .compose(res -> {
         MappingParameters params = res.resultAt(0);
         JsonObject rules = res.resultAt(1);
-
-        logCacheStats(mappingParamsCache, "MappingParametersCache");
-        logCacheStats(mappingRulesCache, "MappingRulesCache");
 
         return Future.succeededFuture(new MappingMetadataDto()
           .withJobExecutionId(jobExecutionId)
@@ -125,32 +122,33 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
         int remaining = concurrentRequests.decrementAndGet();
         LOGGER.info("getMappingMetadataDto:: Completed request for jobExecutionId: '{}', remaining requests: {}",
           jobExecutionId, remaining);
+
+        logCacheStats(mappingParamsCache, "MappingParametersCache");
+        logCacheStats(mappingRulesCache, "MappingRulesCache");
       });
   }
 
-  private CompletableFuture<MappingParameters> loadMappingParamsWithProtection(String jobExecutionId, OkapiConnectionParams okapiParams) {
+  private CompletableFuture<MappingParameters> loadMappingParamsWithProtection(String jobExecutionId, OkapiConnectionParams okapiParams, String fromMethod) {
     return loadingParams.computeIfAbsent(jobExecutionId, key -> {
-      LOGGER.info("loadMappingParamsWithProtection:: Starting NEW load for jobExecutionId: '{}'", key);
+      LOGGER.info("loadMappingParamsWithProtection:: Starting NEW load for jobExecutionId: '{}', method: {}", key, fromMethod);
 
       return retrieveMappingParameters(key, okapiParams)
         .toCompletionStage()
         .toCompletableFuture()
         .whenComplete((result, throwable) -> {
+          loadingParams.remove(key);
           if (throwable == null) {
-            LOGGER.info("loadMappingParamsWithProtection:: COMPLETED load for jobExecutionId: '{}'", key);
-            loadingParams.remove(key);
+            LOGGER.info("loadMappingParamsWithProtection:: COMPLETED load for jobExecutionId: '{}', method: {}", key, fromMethod);
           } else if (isNotFoundException(throwable)) {
-            LOGGER.warn("loadMappingParamsWithProtection:: NOT FOUND for jobExecutionId: '{}' - removing from loading registry", key);
-            loadingParams.remove(key);
+            LOGGER.warn("loadMappingParamsWithProtection:: NOT FOUND for jobExecutionId: '{}', method: {}", key, fromMethod);
           } else {
-            LOGGER.error("loadMappingParamsWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
-            loadingParams.remove(key);
+            LOGGER.error("loadMappingParamsWithProtection:: FAILED load for jobExecutionId: '{}', method: {}", key, fromMethod, throwable);
           }
         });
     });
   }
 
-  private CompletableFuture<JsonObject> loadMappingRulesWithProtection(String jobExecutionId, String tenantId) {
+  private CompletableFuture<JsonObject> loadMappingRulesWithProtection(String jobExecutionId, String tenantId, String fromMethod) {
     return loadingRules.computeIfAbsent(jobExecutionId, key -> {
       LOGGER.info("loadMappingRulesWithProtection:: Starting NEW load for jobExecutionId: '{}'", key);
 
@@ -158,15 +156,13 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
         .toCompletionStage()
         .toCompletableFuture()
         .whenComplete((result, throwable) -> {
+          loadingRules.remove(key);
           if (throwable == null) {
-            LOGGER.info("loadMappingRulesWithProtection:: COMPLETED load for jobExecutionId: '{}'", key);
-            loadingRules.remove(key);
+            LOGGER.info("loadMappingRulesWithProtection:: COMPLETED load for jobExecutionId: '{}', method: {}", key, fromMethod);
           } else if (isNotFoundException(throwable)) {
-            LOGGER.warn("loadMappingRulesWithProtection:: NOT FOUND for jobExecutionId: '{}' - removing from loading registry", key);
-            loadingRules.remove(key);
+            LOGGER.warn("loadMappingRulesWithProtection:: NOT FOUND for jobExecutionId: '{}', method: {}", key, fromMethod);
           } else {
-            LOGGER.error("loadMappingRulesWithProtection:: FAILED load for jobExecutionId: '{}'", key, throwable);
-            loadingRules.remove(key);
+            LOGGER.error("loadMappingRulesWithProtection:: FAILED load for jobExecutionId: '{}', method: {}", key, fromMethod, throwable);
           }
         });
     });

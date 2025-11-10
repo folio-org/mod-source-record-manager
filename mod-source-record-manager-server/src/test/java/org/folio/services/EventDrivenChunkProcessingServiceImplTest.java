@@ -239,7 +239,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       Mockito.verify(jobExecutionProgressService).initializeJobExecutionProgress(anyString(), eq(rawRecordsDto.getRecordsMetadata().getTotal()), eq(TENANT_ID));
       context.assertTrue(PARSING_IN_PROGRESS.equals(statusCaptor.getValue().getStatus()));
 
-      mappingMetadataService.getMappingMetadataDto(jobExecutionIdCaptor.getValue(), params)
+      mappingMetadataService.getMappingMetadataDto(jobExecutionIdCaptor.getValue(), params, "test")
         .onComplete(mappingMetadataDtoAsyncResult -> {
           context.assertTrue(mappingMetadataDtoAsyncResult.succeeded());
           context.assertTrue(mappingMetadataDtoAsyncResult.result().getJobExecutionId().equals(jobExecutionIdCaptor.getValue()));

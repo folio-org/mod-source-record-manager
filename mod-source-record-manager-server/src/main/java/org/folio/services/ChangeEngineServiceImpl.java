@@ -382,11 +382,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
                                                         OkapiConnectionParams okapiParams) {
+
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
 
-    return mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
+    return mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams, "ensureMappingMetaDataSnapshot")
       .map(dto -> {
         LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}", jobExecutionId);
         return false;
