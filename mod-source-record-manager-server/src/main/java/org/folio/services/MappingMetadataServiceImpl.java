@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class MappingMetadataServiceImpl implements MappingMetadataService {
@@ -48,6 +49,10 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       ForkJoinPool.commonPool().execute(serviceExecutor);
     }
   };
+
+  private final AtomicInteger concurrentRequests = new AtomicInteger(0);
+  private final ConcurrentHashMap<String, CompletableFuture<MappingParameters>> loadingParams = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, CompletableFuture<JsonObject>> loadingRules = new ConcurrentHashMap<>();
 
   public MappingMetadataServiceImpl(@Autowired MappingParametersProvider mappingParametersProvider,
                                     @Autowired MappingRuleService mappingRuleService,
@@ -91,7 +96,10 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    LOGGER.info("getMappingMetadataDto:: Retrieving MappingMetadataDto for jobExecutionId: '{}'", jobExecutionId);
+    int current = concurrentRequests.incrementAndGet();
+    //LOGGER.info("getMappingMetadataDto:: Retrieving MappingMetadataDto for jobExecutionId: '{}'", jobExecutionId);
+    LOGGER.info("getMappingMetadataDto:: Starting request for jobExecutionId: '{}', concurrent requests: {}",
+      jobExecutionId, current);
     Future<MappingParameters> mappingParamsFuture = Future.fromCompletionStage(
       mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParamsWithProtection(key, okapiParams))
     );
@@ -112,19 +120,13 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
           .withJobExecutionId(jobExecutionId)
           .withMappingParams(Json.encode(params))
           .withMappingRules(rules.encode()));
+      })
+      .onComplete(ar -> {
+        int remaining = concurrentRequests.decrementAndGet();
+        LOGGER.info("getMappingMetadataDto:: Completed request for jobExecutionId: '{}', remaining requests: {}",
+          jobExecutionId, remaining);
       });
   }
-
-  private CompletableFuture<MappingParameters> loadMappingParams(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    LOGGER.info("loadMappingParams:: Loading mapping parameters for jobExecutionId: '{}'", jobExecutionId);
-    return retrieveMappingParameters(jobExecutionId, okapiParams)
-      .onFailure(throwable -> LOGGER.error("loadMappingParams:: Failed to load mapping parameters for jobExecutionId: '{}'", jobExecutionId, throwable))
-      .toCompletionStage()
-      .toCompletableFuture();
-  }
-
-  private final ConcurrentHashMap<String, CompletableFuture<MappingParameters>> loadingParams = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<String, CompletableFuture<JsonObject>> loadingRules = new ConcurrentHashMap<>();
 
   private CompletableFuture<MappingParameters> loadMappingParamsWithProtection(String jobExecutionId, OkapiConnectionParams okapiParams) {
     return loadingParams.computeIfAbsent(jobExecutionId, key -> {
@@ -182,13 +184,6 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       cause = cause.getCause();
     }
     return false;
-  }
-
-  private CompletableFuture<JsonObject> loadMappingRules(String jobExecutionId, String tenantId) {
-    LOGGER.info("loadMappingRules:: Loading mapping rules for jobExecutionId: '{}'", jobExecutionId);
-    return retrieveMappingRules(jobExecutionId, tenantId)
-      .toCompletionStage()
-      .toCompletableFuture();
   }
 
   @Override
