@@ -389,7 +389,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     return mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams, "ensureMappingMetaDataSnapshot")
       .map(dto -> {
-        LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}", jobExecutionId);
+        LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
+          jobExecutionId, recordsList.size());
         return false;
       })
       .recover(throwable -> {
@@ -402,7 +403,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           return mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
             .map(ar -> {
-              LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}", jobExecutionId);
+              LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}, size: {}",
+                jobExecutionId, recordsList.size());
               return true;
             });
         } else {

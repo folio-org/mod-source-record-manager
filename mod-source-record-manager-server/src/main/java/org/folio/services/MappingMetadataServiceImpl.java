@@ -112,7 +112,6 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       .compose(res -> {
         MappingParameters params = res.resultAt(0);
         JsonObject rules = res.resultAt(1);
-
         return Future.succeededFuture(new MappingMetadataDto()
           .withJobExecutionId(jobExecutionId)
           .withMappingParams(Json.encode(params))
@@ -131,7 +130,6 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   private CompletableFuture<MappingParameters> loadMappingParamsWithProtection(String jobExecutionId, OkapiConnectionParams okapiParams, String fromMethod) {
     return loadingParams.computeIfAbsent(jobExecutionId, key -> {
       LOGGER.info("loadMappingParamsWithProtection:: Starting NEW load for jobExecutionId: '{}', method: {}", key, fromMethod);
-
       return retrieveMappingParameters(key, okapiParams)
         .toCompletionStage()
         .toCompletableFuture()
@@ -151,7 +149,6 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   private CompletableFuture<JsonObject> loadMappingRulesWithProtection(String jobExecutionId, String tenantId, String fromMethod) {
     return loadingRules.computeIfAbsent(jobExecutionId, key -> {
       LOGGER.info("loadMappingRulesWithProtection:: Starting NEW load for jobExecutionId: '{}'", key);
-
       return retrieveMappingRules(key, tenantId)
         .toCompletionStage()
         .toCompletableFuture()
@@ -194,6 +191,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<MappingParameters> saveMappingParametersSnapshot(String jobExecutionId, OkapiConnectionParams okapiParams) {
+    LOGGER.info("saveMappingParametersSnapshot:: Saving MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId);
     return mappingParametersProvider.get(jobExecutionId, okapiParams)
       .compose(mappingParameters -> {
         LOGGER.debug("Attempting to save MappingParameters snapshot to DB for jobExecutionId: '{}'", jobExecutionId);
@@ -202,7 +200,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       })
       .onSuccess(mappingParameters -> {
         if (mappingParameters != null) {
-          LOGGER.debug("Successfully saved MappingParameters snapshot to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
+          LOGGER.info("Successfully saved MappingParameters snapshot to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
           mappingParamsCache.put(jobExecutionId, CompletableFuture.completedFuture(mappingParameters));
         }
       }).onFailure(throwable -> LOGGER.error("Failed to save MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId, throwable));
@@ -210,6 +208,9 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<JsonObject> saveMappingRulesSnapshot(String jobExecutionId, String recordType, String tenantId) {
+    LOGGER.info("saveMappingRulesSnapshot:: Saving MappingRules snapshot for jobExecutionId: '{}', recordType: '{}', tenantId: '{}'",
+      jobExecutionId, recordType, tenantId);
+
     return mappingRuleService.get(Record.RecordType.fromValue(recordType), tenantId)
       .map(rulesOptional -> rulesOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping rules are not found for tenant id '%s'", tenantId))))
@@ -219,19 +220,21 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
           .map(rules);
       }).onSuccess(mappingRules -> {
         if (mappingRules != null) {
-          LOGGER.debug("Successfully saved MappingRules to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
+          LOGGER.info("Successfully saved MappingRules to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
           mappingRulesCache.put(jobExecutionId, CompletableFuture.completedFuture(mappingRules));
         }
       }).onFailure(throwable -> LOGGER.error("Failed to save MappingRules for jobExecutionId: '{}'", jobExecutionId, throwable));
   }
 
   private Future<MappingParameters> retrieveMappingParameters(String jobExecutionId, OkapiConnectionParams okapiParams) {
+    LOGGER.info("retrieveMappingParameters:: Retrieving MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId);
     return mappingParamsSnapshotDao.getByJobExecutionId(jobExecutionId, okapiParams.getTenantId())
       .map(mappingParamsOptional -> mappingParamsOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping parameters snapshot is not found for JobExecution '%s'", jobExecutionId))));
   }
 
   private Future<JsonObject> retrieveMappingRules(String jobExecutionId, String tenantId) {
+    LOGGER.info("retrieveMappingRules:: Retrieving MappingRules snapshot for jobExecutionId: '{}'", jobExecutionId);
     return mappingRulesSnapshotDao.getByJobExecutionId(jobExecutionId, tenantId)
       .map(rulesOptional -> rulesOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping rules snapshot is not found for JobExecution '%s'", jobExecutionId))));
