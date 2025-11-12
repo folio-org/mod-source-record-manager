@@ -101,11 +101,11 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       jobExecutionId, current, fromMethod);
 
     Future<MappingParameters> mappingParamsFuture = Future.fromCompletionStage(
-      mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParamsWithProtection(key, okapiParams, fromMethod))
+      mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParams(key, okapiParams))
     );
 
     Future<JsonObject> mappingRulesFuture = Future.fromCompletionStage(
-      mappingRulesCache.get(jobExecutionId, (key, executor) -> loadMappingRulesWithProtection(key, okapiParams.getTenantId(), fromMethod))
+      mappingRulesCache.get(jobExecutionId, (key, executor) -> loadMappingRules(key, okapiParams.getTenantId()))
     );
 
     return Future.all(mappingParamsFuture, mappingRulesFuture)
@@ -127,74 +127,32 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       });
   }
 
-  private CompletableFuture<MappingParameters> loadMappingParamsWithProtection(String jobExecutionId, OkapiConnectionParams okapiParams, String fromMethod) {
-    return loadingParams.compute(jobExecutionId, (key, existingFuture) -> {
-      if (existingFuture != null && !existingFuture.isDone()) {
-        LOGGER.info("loadMappingParamsWithProtection:: Joining existing load for jobExecutionId: '{}', concurrent threads will share result", key);
-        return existingFuture;
-      }
-
-      LOGGER.info("loadMappingParamsWithProtection:: Starting NEW load for jobExecutionId: '{}', method: {}", key, fromMethod);
-
-      return retrieveMappingParameters(key, okapiParams)
-        .toCompletionStage()
-        .toCompletableFuture()
-        .whenComplete((result, throwable) -> {
-          CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS).execute(() -> {
-            loadingParams.remove(key);
-          });
-
-          if (throwable == null) {
-            LOGGER.info("loadMappingParamsWithProtection:: COMPLETED load for jobExecutionId: '{}', method: {}", key, fromMethod);
-          } else if (isNotFoundException(throwable)) {
-            LOGGER.warn("loadMappingParamsWithProtection:: NOT FOUND for jobExecutionId: '{}', method: {}", key, fromMethod);
-          } else {
-            LOGGER.error("loadMappingParamsWithProtection:: FAILED load for jobExecutionId: '{}', method: {}", key, fromMethod, throwable);
-          }
-        });
-    });
+  private CompletableFuture<MappingParameters> loadMappingParams(String jobExecutionId, OkapiConnectionParams okapiParams) {
+    LOGGER.info("loadMappingParams:: Loading from source for jobExecutionId: '{}'", jobExecutionId);
+    return retrieveMappingParameters(jobExecutionId, okapiParams)
+      .onFailure(t -> {
+        if (!(t instanceof NotFoundException)) {
+          LOGGER.error("loadMappingParams:: Failed to load mapping parameters for jobExecutionId: '{}'", jobExecutionId, t);
+        } else {
+          LOGGER.warn("loadMappingParams:: Mapping parameters not found for jobExecutionId: '{}'", jobExecutionId);
+        }
+      })
+      .toCompletionStage()
+      .toCompletableFuture();
   }
 
-  private CompletableFuture<JsonObject> loadMappingRulesWithProtection(String jobExecutionId, String tenantId, String fromMethod) {
-    return loadingRules.compute(jobExecutionId, (key, existingFuture) -> {
-      if (existingFuture != null && !existingFuture.isDone()) {
-        LOGGER.info("loadMappingRulesWithProtection:: Joining existing load for jobExecutionId: '{}', concurrent threads will share result", key);
-        return existingFuture;
-      }
-
-      LOGGER.info("loadMappingRulesWithProtection:: Starting NEW load for jobExecutionId: '{}', method: {}", key, fromMethod);
-
-      return retrieveMappingRules(key, tenantId)
-        .toCompletionStage()
-        .toCompletableFuture()
-        .whenComplete((result, throwable) -> {
-          CompletableFuture.delayedExecutor(100, TimeUnit.MILLISECONDS).execute(() -> {
-            loadingRules.remove(key);
-          });
-
-          if (throwable == null) {
-            LOGGER.info("loadMappingRulesWithProtection:: COMPLETED load for jobExecutionId: '{}', method: {}", key, fromMethod);
-          } else if (isNotFoundException(throwable)) {
-            LOGGER.warn("loadMappingRulesWithProtection:: NOT FOUND for jobExecutionId: '{}', method: {}", key, fromMethod);
-          } else {
-            LOGGER.error("loadMappingRulesWithProtection:: FAILED load for jobExecutionId: '{}', method: {}", key, fromMethod, throwable);
-          }
-        });
-    });
-  }
-
-  private boolean isNotFoundException(Throwable throwable) {
-    if (throwable instanceof NotFoundException) {
-      return true;
-    }
-    Throwable cause = throwable.getCause();
-    while (cause != null) {
-      if (cause instanceof NotFoundException) {
-        return true;
-      }
-      cause = cause.getCause();
-    }
-    return false;
+  private CompletableFuture<JsonObject> loadMappingRules(String jobExecutionId, String tenantId) {
+    LOGGER.info("loadMappingRules:: Loading from source for jobExecutionId: '{}'", jobExecutionId);
+    return retrieveMappingRules(jobExecutionId, tenantId)
+      .onFailure(t -> {
+        if (!(t instanceof NotFoundException)) {
+          LOGGER.error("loadMappingRules:: Failed to load mapping rules for jobExecutionId: '{}'", jobExecutionId, t);
+        } else {
+          LOGGER.warn("loadMappingRules:: Mapping rules not found for jobExecutionId: '{}'", jobExecutionId);
+        }
+      })
+      .toCompletionStage()
+      .toCompletableFuture();
   }
 
   @Override

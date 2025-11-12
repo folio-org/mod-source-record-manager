@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -380,49 +381,61 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value(), null);
   }
 
+
+  private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
+
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
                                                         OkapiConnectionParams okapiParams) {
-
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
 
-    return mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams, "ensureMappingMetaDataSnapshot")
-      .map(dto -> {
-        LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
-          jobExecutionId, recordsList.size());
-        return false;
-      })
-      .recover(throwable -> {
-        NotFoundException notFoundEx = extractNotFoundException(throwable);
-        if (notFoundEx != null) {
-          LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", jobExecutionId);
-          RecordType recordType = recordsList.getFirst().getRecordType();
-          recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
+     return ensuringInProgress.compute(jobExecutionId, (key, existingFuture) -> {
+      if (existingFuture != null && !existingFuture.isComplete()) {
+        LOGGER.info("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
+        return existingFuture;
+      }
 
-          return mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
-            .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
-            .map(ar -> {
-              LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}, size: {}",
-                jobExecutionId, recordsList.size());
-              return true;
-            });
-        } else {
-          LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", jobExecutionId, throwable);
-          return Future.failedFuture(throwable);
-        }
-      });
+      LOGGER.info("ensureMappingMetaDataSnapshot:: Starting a new ensure operation for jobExecutionId: {}", key);
+      return mappingMetadataService.getMappingMetadataDto(key, okapiParams, "ensureMappingMetaDataSnapshot")
+        .map(dto -> {
+          LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
+            key, recordsList.size());
+          return false;
+        })
+        .recover(throwable -> {
+          NotFoundException notFoundEx = extractNotFoundException(throwable);
+          if (notFoundEx != null) {
+            LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
+            RecordType recordType = recordsList.getFirst().getRecordType();
+            recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
+
+            return mappingMetadataService.saveMappingRulesSnapshot(key, recordType.toString(), okapiParams.getTenantId())
+              .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(key, okapiParams))
+              .map(ar -> {
+                LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}, size: {}",
+                  key, recordsList.size());
+                return true;
+              });
+          } else {
+              LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", key, throwable);
+            return Future.failedFuture(throwable);
+          }
+        })
+        .onComplete(ar -> {
+          LOGGER.info("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", key);
+          ensuringInProgress.remove(key);
+        });
+    });
   }
 
   private NotFoundException extractNotFoundException(Throwable throwable) {
     if (throwable instanceof NotFoundException) {
       return (NotFoundException) throwable;
     }
-
     if (throwable instanceof CompletionException && throwable.getCause() instanceof NotFoundException) {
       return (NotFoundException) throwable.getCause();
     }
-
     Throwable cause = throwable.getCause();
     while (cause != null) {
       if (cause instanceof NotFoundException) {
@@ -430,7 +443,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }
       cause = cause.getCause();
     }
-
     return null;
   }
 
