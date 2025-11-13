@@ -390,7 +390,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       return Future.succeededFuture(false);
     }
 
-     return ensuringInProgress.compute(jobExecutionId, (key, existingFuture) -> {
+    Future<Boolean> operationFuture = ensuringInProgress.compute(jobExecutionId, (key, existingFuture) -> {
+
       if (existingFuture != null && !existingFuture.isComplete()) {
         LOGGER.info("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
         return existingFuture;
@@ -418,15 +419,18 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 return true;
               });
           } else {
-              LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", key, throwable);
+            LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", key, throwable);
             return Future.failedFuture(throwable);
           }
-        })
-        .onComplete(ar -> {
-          LOGGER.info("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", key);
-          ensuringInProgress.remove(key);
         });
     });
+
+    operationFuture.onComplete(ar -> {
+      LOGGER.info("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", jobExecutionId);
+      ensuringInProgress.remove(jobExecutionId);
+    });
+
+    return operationFuture;
   }
 
   private NotFoundException extractNotFoundException(Throwable throwable) {
