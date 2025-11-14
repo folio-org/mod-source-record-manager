@@ -431,19 +431,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private NotFoundException extractNotFoundException(Throwable throwable) {
-    if (throwable instanceof NotFoundException) {
-      return (NotFoundException) throwable;
+    if (throwable instanceof NotFoundException notFoundEx) {
+      return notFoundEx;
     }
-    if (throwable instanceof CompletionException && throwable.getCause() instanceof NotFoundException) {
-      return (NotFoundException) throwable.getCause();
+
+    if (throwable instanceof CompletionException ce && ce.getCause() instanceof NotFoundException notFoundEx) {
+      return notFoundEx;
     }
+
     Throwable cause = throwable.getCause();
     while (cause != null) {
-      if (cause instanceof NotFoundException) {
-        return (NotFoundException) cause;
+      if (cause instanceof NotFoundException notFoundEx) {
+        return notFoundEx;
       }
       cause = cause.getCause();
     }
+
     return null;
   }
 

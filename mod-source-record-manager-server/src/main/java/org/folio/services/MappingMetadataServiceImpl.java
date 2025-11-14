@@ -75,7 +75,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       .buildAsync();
   }
 
-  public void logCacheStats(AsyncCache cache, String cacheName) {
+  public void logCacheStats(AsyncCache<?, ?> cache, String cacheName) {
     CacheStats stats = cache.synchronous().stats();
     LOGGER.debug("Cache {} statistics :", cacheName);
     LOGGER.debug("  Request Count: {}", stats.requestCount());
