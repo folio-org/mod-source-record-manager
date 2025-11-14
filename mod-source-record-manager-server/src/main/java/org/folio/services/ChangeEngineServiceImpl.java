@@ -149,6 +149,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final ConsortiumDataCache consortiumDataCache;
   private final Vertx vertx;
   private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
+  private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -382,8 +383,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
 
-  private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
-
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
                                                         OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(recordsList)) {
@@ -391,26 +390,24 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
 
     Future<Boolean> operationFuture = ensuringInProgress.compute(jobExecutionId, (key, existingFuture) -> {
-
       if (existingFuture != null && !existingFuture.isComplete()) {
-        LOGGER.info("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
+        LOGGER.debug("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
         return existingFuture;
       }
 
-      LOGGER.info("ensureMappingMetaDataSnapshot:: Starting a new ensure operation for jobExecutionId: {}", key);
-      return mappingMetadataService.getMappingMetadataDto(key, okapiParams, "ensureMappingMetaDataSnapshot")
+      LOGGER.debug("ensureMappingMetaDataSnapshot:: Starting a new ensure operation for jobExecutionId: {}", key);
+      return mappingMetadataService.getMappingMetadataDto(key, okapiParams)
         .map(dto -> {
-          LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
+          LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
             key, recordsList.size());
           return false;
         })
         .recover(throwable -> {
           NotFoundException notFoundEx = extractNotFoundException(throwable);
           if (notFoundEx != null) {
-            LOGGER.info("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
+            LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
             RecordType recordType = recordsList.getFirst().getRecordType();
             recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
-
             return mappingMetadataService.saveMappingRulesSnapshot(key, recordType.toString(), okapiParams.getTenantId())
               .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(key, okapiParams))
               .map(ar -> {
@@ -426,7 +423,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     });
 
     operationFuture.onComplete(ar -> {
-      LOGGER.info("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", jobExecutionId);
+      LOGGER.debug("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", jobExecutionId);
       ensuringInProgress.remove(jobExecutionId);
     });
 

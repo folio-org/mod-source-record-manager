@@ -85,7 +85,7 @@ public class MappingMetadataServiceImplTest {
       .thenReturn(Future.succeededFuture(Optional.of(jsonObject)));
 
     // Act
-    service.getMappingMetadataDto(jobExecutionId, params, "test")
+    service.getMappingMetadataDto(jobExecutionId, params)
       .compose(ar -> {
         context.assertNotNull(ar);
         Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
@@ -93,7 +93,7 @@ public class MappingMetadataServiceImplTest {
         return Future.succeededFuture();
       })
       .compose(ar -> service.saveMappingRulesSnapshot(jobExecutionId, Record.RecordType.MARC_BIB.toString(), tenantId))
-      .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params, "test"))
+      .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params))
       .compose(ar -> {
         context.assertNotNull(ar);
         Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
@@ -101,7 +101,7 @@ public class MappingMetadataServiceImplTest {
         return Future.succeededFuture();
       })
       .compose(ar -> service.saveMappingParametersSnapshot(jobExecutionId, params))
-      .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params, "test"))
+      .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params))
       .compose(ar -> {
         context.assertNotNull(ar);
         Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);

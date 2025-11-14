@@ -141,7 +141,7 @@ public class ChangeEngineServiceImplTest {
     ReflectionTestUtils.setField(service, "batchSize", 100);
     ReflectionTestUtils.setField(service, "journalRecordProducer", messageProducer);
 
-    when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class), anyString()))
+    when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class)))
       .thenReturn(Future.succeededFuture(new MappingMetadataDto()));
 
     when(jobProfileSnapshotValidationService

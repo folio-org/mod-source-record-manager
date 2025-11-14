@@ -41,13 +41,14 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
       try {
         LOGGER.debug("getMappingMetadataByJobExecutionId:: jobExecutionId {}", jobExecutionId);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        mappingMetadataService.getMappingMetadataDto(jobExecutionId, params, "getMappingMetadataByJobExecutionId")
+        mappingMetadataService.getMappingMetadataDto(jobExecutionId, params)
           .map(GetMappingMetadataByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.warn("getMappingMetadataByJobExecutionId:: Failed to retrieve MappingMetadataDto entity for JobExecution with id {} for tenant {}", jobExecutionId, tenantId, e);
+        LOGGER.warn("getMappingMetadataByJobExecutionId:: Failed to retrieve MappingMetadataDto " +
+          "entity for JobExecution with id {} for tenant {}", jobExecutionId, tenantId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

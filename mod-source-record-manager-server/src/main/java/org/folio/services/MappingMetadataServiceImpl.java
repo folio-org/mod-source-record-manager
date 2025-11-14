@@ -23,11 +23,9 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class MappingMetadataServiceImpl implements MappingMetadataService {
@@ -49,10 +47,6 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       ForkJoinPool.commonPool().execute(serviceExecutor);
     }
   };
-
-  private final AtomicInteger concurrentRequests = new AtomicInteger(0);
-  private final ConcurrentHashMap<String, CompletableFuture<MappingParameters>> loadingParams = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<String, CompletableFuture<JsonObject>> loadingRules = new ConcurrentHashMap<>();
 
   public MappingMetadataServiceImpl(@Autowired MappingParametersProvider mappingParametersProvider,
                                     @Autowired MappingRuleService mappingRuleService,
@@ -83,22 +77,20 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   public void logCacheStats(AsyncCache cache, String cacheName) {
     CacheStats stats = cache.synchronous().stats();
-    LOGGER.info("Cache {} statistics :", cacheName);
-    LOGGER.info("  Request Count: {}", stats.requestCount());
-    LOGGER.info("  Hit Count: {}", stats.hitCount());
-    LOGGER.info("  Hit Rate: {}%", String.format("%.2f", stats.hitRate() * 100));
-    LOGGER.info("  Miss Count: {}", stats.missCount());
-    LOGGER.info("  Miss Rate: {}%", String.format("%.2f", stats.missRate() * 100));
-    LOGGER.info("  Load Count: {}", stats.loadCount());
-    LOGGER.info("  Average Load Time: {}%", String.format("%.2f", stats.averageLoadPenalty() / 1_000_000.0));
-    LOGGER.info("  Eviction Count: {}", stats.evictionCount());
+    LOGGER.debug("Cache {} statistics :", cacheName);
+    LOGGER.debug("  Request Count: {}", stats.requestCount());
+    LOGGER.debug("  Hit Count: {}", stats.hitCount());
+    LOGGER.debug("  Hit Rate: {}%", String.format("%.2f", stats.hitRate() * 100));
+    LOGGER.debug("  Miss Count: {}", stats.missCount());
+    LOGGER.debug("  Miss Rate: {}%", String.format("%.2f", stats.missRate() * 100));
+    LOGGER.debug("  Load Count: {}", stats.loadCount());
+    LOGGER.debug("  Average Load Time: {}%", String.format("%.2f", stats.averageLoadPenalty() / 1_000_000.0));
+    LOGGER.debug("  Eviction Count: {}", stats.evictionCount());
   }
 
   @Override
-  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams, String fromMethod) {
-    int current = concurrentRequests.incrementAndGet();
-    LOGGER.info("getMappingMetadataDto:: Starting request for jobExecutionId: '{}', concurrent requests: {}, from method: '{}'",
-      jobExecutionId, current, fromMethod);
+  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
+    LOGGER.debug("getMappingMetadataDto:: Starting request for jobExecutionId: '{}'", jobExecutionId);
 
     Future<MappingParameters> mappingParamsFuture = Future.fromCompletionStage(
       mappingParamsCache.get(jobExecutionId, (key, executor) -> loadMappingParams(key, okapiParams))
@@ -118,17 +110,16 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
           .withMappingRules(rules.encode()));
       })
       .onComplete(ar -> {
-        int remaining = concurrentRequests.decrementAndGet();
-        LOGGER.info("getMappingMetadataDto:: Completed request for jobExecutionId: '{}', remaining requests: {}",
-          jobExecutionId, remaining);
-
-        logCacheStats(mappingParamsCache, "MappingParametersCache");
-        logCacheStats(mappingRulesCache, "MappingRulesCache");
+        LOGGER.debug("getMappingMetadataDto:: Completed request for jobExecutionId: '{}'", jobExecutionId);
+        if (LOGGER.isDebugEnabled()) {
+          logCacheStats(mappingParamsCache, "MappingParametersCache");
+          logCacheStats(mappingRulesCache, "MappingRulesCache");
+        }
       });
   }
 
   private CompletableFuture<MappingParameters> loadMappingParams(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    LOGGER.info("loadMappingParams:: Loading from source for jobExecutionId: '{}'", jobExecutionId);
+    LOGGER.debug("loadMappingParams:: Loading Mapping Params from source for jobExecutionId: '{}'", jobExecutionId);
     return retrieveMappingParameters(jobExecutionId, okapiParams)
       .onFailure(t -> {
         if (!(t instanceof NotFoundException)) {
@@ -142,7 +133,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   }
 
   private CompletableFuture<JsonObject> loadMappingRules(String jobExecutionId, String tenantId) {
-    LOGGER.info("loadMappingRules:: Loading from source for jobExecutionId: '{}'", jobExecutionId);
+    LOGGER.debug("loadMappingRules:: Loading Mapping Rules from source for jobExecutionId: '{}'", jobExecutionId);
     return retrieveMappingRules(jobExecutionId, tenantId)
       .onFailure(t -> {
         if (!(t instanceof NotFoundException)) {
@@ -167,7 +158,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<MappingParameters> saveMappingParametersSnapshot(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    LOGGER.info("saveMappingParametersSnapshot:: Saving MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId);
+    LOGGER.debug("saveMappingParametersSnapshot:: Saving MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId);
     return mappingParametersProvider.get(jobExecutionId, okapiParams)
       .compose(mappingParameters -> {
         LOGGER.debug("Attempting to save MappingParameters snapshot to DB for jobExecutionId: '{}'", jobExecutionId);
@@ -176,7 +167,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       })
       .onSuccess(mappingParameters -> {
         if (mappingParameters != null) {
-          LOGGER.info("Successfully saved MappingParameters snapshot to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
+          LOGGER.debug("Successfully saved MappingParameters snapshot to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
           mappingParamsCache.put(jobExecutionId, CompletableFuture.completedFuture(mappingParameters));
         }
       }).onFailure(throwable -> LOGGER.error("Failed to save MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId, throwable));
@@ -184,7 +175,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<JsonObject> saveMappingRulesSnapshot(String jobExecutionId, String recordType, String tenantId) {
-    LOGGER.info("saveMappingRulesSnapshot:: Saving MappingRules snapshot for jobExecutionId: '{}', recordType: '{}', tenantId: '{}'",
+    LOGGER.debug("saveMappingRulesSnapshot:: Saving MappingRules snapshot for jobExecutionId: '{}', recordType: '{}', tenantId: '{}'",
       jobExecutionId, recordType, tenantId);
 
     return mappingRuleService.get(Record.RecordType.fromValue(recordType), tenantId)
@@ -196,21 +187,21 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
           .map(rules);
       }).onSuccess(mappingRules -> {
         if (mappingRules != null) {
-          LOGGER.info("Successfully saved MappingRules to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
+          LOGGER.debug("Successfully saved MappingRules to DB for jobExecutionId: '{}'. Updating cache.", jobExecutionId);
           mappingRulesCache.put(jobExecutionId, CompletableFuture.completedFuture(mappingRules));
         }
       }).onFailure(throwable -> LOGGER.error("Failed to save MappingRules for jobExecutionId: '{}'", jobExecutionId, throwable));
   }
 
   private Future<MappingParameters> retrieveMappingParameters(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    LOGGER.info("retrieveMappingParameters:: Retrieving MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId);
+    LOGGER.debug("retrieveMappingParameters:: Retrieving MappingParameters snapshot for jobExecutionId: '{}'", jobExecutionId);
     return mappingParamsSnapshotDao.getByJobExecutionId(jobExecutionId, okapiParams.getTenantId())
       .map(mappingParamsOptional -> mappingParamsOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping parameters snapshot is not found for JobExecution '%s'", jobExecutionId))));
   }
 
   private Future<JsonObject> retrieveMappingRules(String jobExecutionId, String tenantId) {
-    LOGGER.info("retrieveMappingRules:: Retrieving MappingRules snapshot for jobExecutionId: '{}'", jobExecutionId);
+    LOGGER.debug("retrieveMappingRules:: Retrieving MappingRules snapshot for jobExecutionId: '{}'", jobExecutionId);
     return mappingRulesSnapshotDao.getByJobExecutionId(jobExecutionId, tenantId)
       .map(rulesOptional -> rulesOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping rules snapshot is not found for JobExecution '%s'", jobExecutionId))));

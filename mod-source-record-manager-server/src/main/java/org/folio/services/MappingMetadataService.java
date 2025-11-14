@@ -19,7 +19,7 @@ public interface MappingMetadataService {
    * @param okapiParams    okapi connection params
    * @return MappingMetadataDto
    */
-  Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams, String fromMethod);
+  Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams);
 
   /**
    * Returns Mapping rules and Mapping parameters in MappingMetadataDto entity by recordType
