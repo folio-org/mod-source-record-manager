@@ -190,13 +190,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         params.getTenantId(), acceptInstanceId, params);
 
     futureParsedRecords
-      .compose(parsedRecords -> {
+      .map(parsedRecords -> {
         saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
-        return filterParsedRecords(jobExecution, params, parsedRecords);
+        return parsedRecords;
       })
-      .compose(filteredParsedRecords -> validateJobProfile(jobExecution, filteredParsedRecords).map(filteredParsedRecords))
-      .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
-        .map(parsedRecords))
+      .compose(parsedRecords -> validateJobProfile(jobExecution, parsedRecords).map(parsedRecords))
+      .compose(parsedRecords -> filterParsedRecords(jobExecution, params, parsedRecords))
+      .compose(filteredParsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), filteredParsedRecords, params)
+        .map(filteredParsedRecords))
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
