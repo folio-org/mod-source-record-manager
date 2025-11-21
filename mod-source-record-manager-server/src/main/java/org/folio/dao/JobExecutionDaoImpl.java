@@ -300,7 +300,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         return endTxFuture.future();
       }).onComplete(ar -> {
         if (ar.failed()) {
-          LOGGER.error("updateBlocking:: Error updating jobExecution, jobExecutionId={}, error: {}", jobExecutionId, ar.cause().getMessage());
+          LOGGER.warn("updateBlocking:: Error updating jobExecution, jobExecutionId={}, error: {}", jobExecutionId, ar.cause().getMessage());
           pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> {
             if (rollback.failed()) {
               LOGGER.error("updateBlocking:: Rollback failed for jobExecutionId={}", jobExecutionId, rollback.cause());

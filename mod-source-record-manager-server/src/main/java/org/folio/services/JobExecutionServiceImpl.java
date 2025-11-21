@@ -138,18 +138,20 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     if (jobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT) {
       LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={}", jobExecution.getId());
       return getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
-        .compose(parentJobOptional ->
-          parentJobOptional
-            .map(parentExecution -> {
-              if (COMPLETED_STATUSES.contains(parentExecution.getUiStatus())) {
-                LOGGER.info("updateJobExecutionWithSnapshotStatusAsync:: Parent job with jobExecutionId={} already has completed status. Skipping update.", parentExecution.getId());
-                return Future.succeededFuture(jobExecution);
-              } else {
-                return updateJobExecutionAndSnapshot(jobExecution, params, promise);
-              }
-            })
-            .orElse(Future.failedFuture(format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job execution with jobExecutionId=%s", jobExecution.getParentJobId())))
-        );
+        .compose(parentJobOptional -> {
+          if (parentJobOptional.isPresent()) {
+            JobExecution parentExecution = parentJobOptional.get();
+            if (COMPLETED_STATUSES.contains(parentExecution.getUiStatus())) {
+              String warnMessage = String.format("updateJobExecutionWithSnapshotStatusAsync:: Parent job with jobExecutionId=%s already has completed status. Skipping update.", parentExecution.getId());
+              LOGGER.warn(warnMessage);
+              return Future.failedFuture(new BadRequestException(warnMessage));
+            } else {
+              return updateJobExecutionAndSnapshot(jobExecution, params, promise);
+            }
+          } else {
+            return Future.failedFuture(new NotFoundException(format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job execution with jobExecutionId=%s", jobExecution.getParentJobId())));
+          }
+        });
     } else {
       return updateJobExecutionAndSnapshot(jobExecution, params, promise);
     }
