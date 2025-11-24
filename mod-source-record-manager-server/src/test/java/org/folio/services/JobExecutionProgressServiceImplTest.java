@@ -199,8 +199,11 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
     Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
 
     future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      context.assertEquals(jobExecution, ar.result());
+      context.assertTrue(ar.failed());
+      context.assertEquals(
+        String.format("updateJobExecutionWithSnapshotStatusAsync:: Parent job with jobExecutionId=%s already has completed status. Skipping update.", jobExecution.getParentJobId()),
+        ar.cause().getMessage()
+      );
       verify(jobExecutionDao, never()).updateBlocking(anyString(), any(), anyString());
       async.complete();
     });
