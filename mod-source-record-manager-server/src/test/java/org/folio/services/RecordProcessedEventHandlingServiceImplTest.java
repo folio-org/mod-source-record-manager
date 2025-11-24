@@ -200,7 +200,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
-    MappingMetadataService mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
+    MappingMetadataService mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao, CACHE_EXPIRATION_TIME, CACHE_MAX_SIZE);
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
     RecordsPublishingService recordsPublishingService = new RecordsPublishingServiceImpl(jobExecutionService,
       new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList());
