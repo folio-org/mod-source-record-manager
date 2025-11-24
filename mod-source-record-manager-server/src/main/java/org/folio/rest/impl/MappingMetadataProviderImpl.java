@@ -47,7 +47,8 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.warn("getMappingMetadataByJobExecutionId:: Failed to retrieve MappingMetadataDto entity for JobExecution with id {} for tenant {}", jobExecutionId, tenantId, e);
+        LOGGER.warn("getMappingMetadataByJobExecutionId:: Failed to retrieve MappingMetadataDto " +
+          "entity for JobExecution with id {} for tenant {}", jobExecutionId, tenantId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

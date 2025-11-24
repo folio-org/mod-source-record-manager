@@ -52,6 +52,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -147,6 +149,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final ConsortiumDataCache consortiumDataCache;
   private final Vertx vertx;
   private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
+  private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -379,27 +382,72 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value(), null);
   }
 
+
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
                                                         OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
-    Promise<Boolean> promise = Promise.promise();
-    mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
-      .onSuccess(v -> promise.complete(false))
-      .onFailure(e -> {
-        if (e instanceof NotFoundException) {
-          RecordType recordType = recordsList.get(0).getRecordType();
-          recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
-          mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
-            .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
-            .onSuccess(ar -> promise.complete(true))
-            .onFailure(promise::fail);
-          return;
-        }
-        promise.fail(e);
-      });
-    return promise.future();
+
+    Future<Boolean> operationFuture = ensuringInProgress.compute(jobExecutionId, (key, existingFuture) -> {
+      if (existingFuture != null && !existingFuture.isComplete()) {
+        LOGGER.debug("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
+        return existingFuture;
+      }
+
+      LOGGER.debug("ensureMappingMetaDataSnapshot:: Starting a new ensure operation for jobExecutionId: {}", key);
+      return mappingMetadataService.getMappingMetadataDto(key, okapiParams)
+        .map(dto -> {
+          LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
+            key, recordsList.size());
+          return false;
+        })
+        .recover(throwable -> {
+          NotFoundException notFoundEx = extractNotFoundException(throwable);
+          if (notFoundEx != null) {
+            LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
+            RecordType recordType = recordsList.getFirst().getRecordType();
+            recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
+            return mappingMetadataService.saveMappingRulesSnapshot(key, recordType.toString(), okapiParams.getTenantId())
+              .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(key, okapiParams))
+              .map(ar -> {
+                LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}, size: {}",
+                  key, recordsList.size());
+                return true;
+              });
+          } else {
+            LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", key, throwable);
+            return Future.failedFuture(throwable);
+          }
+        });
+    });
+
+    operationFuture.onComplete(ar -> {
+      LOGGER.debug("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", jobExecutionId);
+      ensuringInProgress.remove(jobExecutionId);
+    });
+
+    return operationFuture;
+  }
+
+  private NotFoundException extractNotFoundException(Throwable throwable) {
+    if (throwable instanceof NotFoundException notFoundEx) {
+      return notFoundEx;
+    }
+
+    if (throwable instanceof CompletionException ce && ce.getCause() instanceof NotFoundException notFoundEx) {
+      return notFoundEx;
+    }
+
+    Throwable cause = throwable.getCause();
+    while (cause != null) {
+      if (cause instanceof NotFoundException notFoundEx) {
+        return notFoundEx;
+      }
+      cause = cause.getCause();
+    }
+
+    return null;
   }
 
   private boolean updateMarcActionExists(JobExecution jobExecution) {

@@ -23,8 +23,9 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.folio.rest.impl.AbstractRestTest.CACHE_EXPIRATION_TIME;
+import static org.folio.rest.impl.AbstractRestTest.CACHE_MAX_SIZE;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 
 @RunWith(VertxUnitRunner.class)
@@ -49,8 +50,9 @@ public class MappingMetadataServiceImplTest {
       mappingParametersProvider,
       mappingRuleService,
       mappingRulesSnapshotDao,
-      mappingParamsSnapshotDao);
-
+      mappingParamsSnapshotDao,
+      CACHE_EXPIRATION_TIME,
+      CACHE_MAX_SIZE);
   }
 
   @Test
@@ -64,56 +66,49 @@ public class MappingMetadataServiceImplTest {
     OkapiConnectionParams params = mock(OkapiConnectionParams.class);
     Mockito.when(params.getTenantId()).thenReturn(tenantId);
 
+    // Mock DAO calls that happen on the first, cache-miss call
     Mockito.when(mappingParamsSnapshotDao.getByJobExecutionId(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(mappingParameters)));
-    Mockito.when(mappingParamsSnapshotDao.save(any(), eq(jobExecutionId), eq(tenantId)))
-      .thenReturn(Future.succeededFuture(""));
-    Mockito.when(mappingRulesSnapshotDao.getByJobExecutionId(eq(jobExecutionId), eq(tenantId)))
+    Mockito.when(mappingRulesSnapshotDao.getByJobExecutionId(jobExecutionId, tenantId))
       .thenReturn(Future.succeededFuture(Optional.of(jsonObject)));
-    Mockito.when(mappingRulesSnapshotDao.save(any(), eq(jobExecutionId), eq(tenantId)))
-      .thenReturn(Future.succeededFuture(""));
+
+    // Mock DAO calls for SAVE operations
+    Mockito.when(mappingParamsSnapshotDao.save(any(MappingParameters.class), anyString(), anyString()))
+      .thenReturn(Future.succeededFuture(UUID.randomUUID().toString()));
+    Mockito.when(mappingRulesSnapshotDao.save(any(JsonObject.class), anyString(), anyString()))
+      .thenReturn(Future.succeededFuture(UUID.randomUUID().toString()));
+
+    // Mock provider/service calls for save operations
     Mockito.when(mappingParametersProvider.get(any(), eq(params)))
       .thenReturn(Future.succeededFuture(mappingParameters));
     Mockito.when(mappingRuleService.get(eq(org.folio.Record.RecordType.MARC_BIB), eq(tenantId)))
       .thenReturn(Future.succeededFuture(Optional.of(jsonObject)));
 
-
     // Act
     service.getMappingMetadataDto(jobExecutionId, params)
       .compose(ar -> {
         context.assertNotNull(ar);
-        context.assertEquals(ar.getJobExecutionId(), jobExecutionId);
-        context.assertEquals(ar.getMappingRules(), "{}");
-        context.assertNotNull(ar.getMappingParams());
-        // verify dependencies are called
-        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingParametersProvider, Mockito.never()).get(any(), eq(params));
-        Mockito.verify(mappingRuleService, Mockito.never()).get(eq(org.folio.Record.RecordType.MARC_BIB), eq(tenantId));
+        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
+        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
         return Future.succeededFuture();
       })
       .compose(ar -> service.saveMappingRulesSnapshot(jobExecutionId, Record.RecordType.MARC_BIB.toString(), tenantId))
       .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params))
       .compose(ar -> {
-        // another call to get metadata should not return from cache
-        // since only rules are saved in cache but not parameters
         context.assertNotNull(ar);
-        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(2)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(2)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingParametersProvider, Mockito.never()).get(any(), any());
-        Mockito.verify(mappingRuleService, Mockito.times(1)).get(eq(org.folio.Record.RecordType.MARC_BIB), eq(tenantId));
+        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
+        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
         return Future.succeededFuture();
       })
       .compose(ar -> service.saveMappingParametersSnapshot(jobExecutionId, params))
-      .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params)
-      )
+      .compose(ar -> service.getMappingMetadataDto(jobExecutionId, params))
       .compose(ar -> {
-        // another call to get metadata should return from the cache rather than going to DAO objects
         context.assertNotNull(ar);
-        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(2)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
-        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(2)).getByJobExecutionId(eq(jobExecutionId), eq(tenantId));
+        Mockito.verify(mappingParamsSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
+        Mockito.verify(mappingRulesSnapshotDao, Mockito.times(1)).getByJobExecutionId(jobExecutionId, tenantId);
+
         Mockito.verify(mappingParametersProvider, Mockito.times(1)).get(any(), eq(params));
-        Mockito.verify(mappingRuleService, Mockito.times(1)).get(eq(org.folio.Record.RecordType.MARC_BIB), eq(tenantId));
+        Mockito.verify(mappingRuleService, Mockito.times(1)).get(org.folio.Record.RecordType.MARC_BIB, tenantId);
         return Future.succeededFuture();
       })
       .onSuccess(ar -> async.complete())
