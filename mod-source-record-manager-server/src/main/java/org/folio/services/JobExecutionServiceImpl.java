@@ -135,19 +135,18 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   public Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId={}", jobExecution.getId());
 
-    Function<JobExecution, Future<JobExecution>> updateChain = (execToUpdate) ->
+    Function<JobExecution, Future<JobExecution>> updateChain = execToUpdate ->
       updateJobExecution(execToUpdate, params)
         .compose(updatedExec -> updateSnapshotStatus(updatedExec, params))
-        .onSuccess(updatedExec -> LOGGER.info("Successfully updated snapshot status for jobExecutionId={}", updatedExec.getId()));
+        .onSuccess(updatedExec -> LOGGER.info("Successfully updated snapshot status for jobExecutionId={}", jobExecution.getId()));
 
     if (jobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT) {
-      LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={} of job with jobExecutionId={}",
-        jobExecution.getParentJobId(), jobExecution.getId());
-      return getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
+      LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={}", jobExecution.getId());
+      return getJobExecutionById(jobExecution.getId(), params.getTenantId())
         .compose(parentJobOptional -> {
           if (parentJobOptional.isEmpty()) {
-            return Future.failedFuture(new NotFoundException(format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job execution with jobExecutionId=%s",
-              jobExecution.getParentJobId())));
+            return Future.failedFuture(new NotFoundException(format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job with jobExecutionId=%s",
+              jobExecution.getId())));
           }
 
           JobExecution parentJobInDb = parentJobOptional.get();
@@ -607,7 +606,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return promise.future();
   }
 
-  Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
+  protected Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.debug("updateSnapshotStatus:: jobExecutionId={}", jobExecution.getId());
     Promise<JobExecution> promise = Promise.promise();
     Snapshot snapshot = new Snapshot()
