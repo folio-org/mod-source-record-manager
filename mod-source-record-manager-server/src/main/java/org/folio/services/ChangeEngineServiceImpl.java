@@ -52,9 +52,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -147,6 +148,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final ConsortiumDataCache consortiumDataCache;
   private final Vertx vertx;
   private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
+  private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -380,27 +382,72 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value(), null);
   }
 
+
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
                                                         OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
-    Promise<Boolean> promise = Promise.promise();
-    mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
-      .onSuccess(v -> promise.complete(false))
-      .onFailure(e -> {
-        if (e instanceof NotFoundException) {
-          RecordType recordType = recordsList.get(0).getRecordType();
-          recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
-          mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
-            .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
-            .onSuccess(ar -> promise.complete(true))
-            .onFailure(promise::fail);
-          return;
-        }
-        promise.fail(e);
-      });
-    return promise.future();
+
+    Future<Boolean> operationFuture = ensuringInProgress.compute(jobExecutionId, (key, existingFuture) -> {
+      if (existingFuture != null && !existingFuture.isComplete()) {
+        LOGGER.debug("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
+        return existingFuture;
+      }
+
+      LOGGER.debug("ensureMappingMetaDataSnapshot:: Starting a new ensure operation for jobExecutionId: {}", key);
+      return mappingMetadataService.getMappingMetadataDto(key, okapiParams)
+        .map(dto -> {
+          LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
+            key, recordsList.size());
+          return false;
+        })
+        .recover(throwable -> {
+          NotFoundException notFoundEx = extractNotFoundException(throwable);
+          if (notFoundEx != null) {
+            LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
+            RecordType recordType = recordsList.getFirst().getRecordType();
+            recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
+            return mappingMetadataService.saveMappingRulesSnapshot(key, recordType.toString(), okapiParams.getTenantId())
+              .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(key, okapiParams))
+              .map(ar -> {
+                LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}, size: {}",
+                  key, recordsList.size());
+                return true;
+              });
+          } else {
+            LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", key, throwable);
+            return Future.failedFuture(throwable);
+          }
+        });
+    });
+
+    operationFuture.onComplete(ar -> {
+      LOGGER.debug("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", jobExecutionId);
+      ensuringInProgress.remove(jobExecutionId);
+    });
+
+    return operationFuture;
+  }
+
+  private NotFoundException extractNotFoundException(Throwable throwable) {
+    if (throwable instanceof NotFoundException notFoundEx) {
+      return notFoundEx;
+    }
+
+    if (throwable instanceof CompletionException ce && ce.getCause() instanceof NotFoundException notFoundEx) {
+      return notFoundEx;
+    }
+
+    Throwable cause = throwable.getCause();
+    while (cause != null) {
+      if (cause instanceof NotFoundException notFoundEx) {
+        return notFoundEx;
+      }
+      cause = cause.getCause();
+    }
+
+    return null;
   }
 
   private boolean updateMarcActionExists(JobExecution jobExecution) {
@@ -529,8 +576,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private boolean isMarcHoldingsExists(ProfileSnapshotWrapper actionProfileWrapper) {
     List<ProfileSnapshotWrapper> childWrappers = actionProfileWrapper.getChildSnapshotWrappers();
-    if (childWrappers != null && !childWrappers.isEmpty() && childWrappers.get(0) != null) {
-      MappingProfile mappingProfile = new JsonObject((Map) childWrappers.get(0).getContent()).mapTo(MappingProfile.class);
+    if (childWrappers != null && !childWrappers.isEmpty() && childWrappers.getFirst() != null) {
+      MappingProfile mappingProfile = new JsonObject((Map) childWrappers.getFirst().getContent()).mapTo(MappingProfile.class);
       return mappingProfile.getExistingRecordType() == EntityType.HOLDINGS && mappingProfile.getIncomingRecordType() == EntityType.MARC_HOLDINGS;
     }
     return false;
@@ -611,7 +658,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           }
         }
         return record;
-      }).collect(Collectors.toList());
+      }).toList();
   }
 
   private ParsedResult addErrorMessageWhen999ffFieldExistsOnCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
@@ -648,7 +695,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
       .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
       .filter(StringUtils::isNotBlank)
-      .collect(Collectors.toList());
+      .toList();
     // split on batches and create list of Futures
     List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
     List<Future<List<String>>> futureList = new ArrayList<>();
@@ -667,13 +714,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .stream()
             .map(Future<List<String>>::result)
             .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+            .toList();
           LOGGER.info("filterMarcHoldingsBy004Field:: MARC_BIB invalid list ids: {}", invalidMarcBibIds);
           var validMarcBibRecords = records.stream()
             .filter(record -> {
               var controlFieldValue = getControlFieldValue(record, TAG_004);
               return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
-            }).collect(Collectors.toList());
+            }).toList();
           LOGGER.info("filterMarcHoldingsBy004Field:: Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
             records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
           promise.complete(validMarcBibRecords);
@@ -891,7 +938,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    */
   private void fillParsedRecordsWithAdditionalFields(List<Record> records) {
     if (!CollectionUtils.isEmpty(records)) {
-      Record.RecordType recordType = records.get(0).getRecordType();
+      Record.RecordType recordType = records.getFirst().getRecordType();
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         for (Record record : records) {
           if (record.getMatchedId() != null) {
@@ -950,6 +997,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private String prepareWrongJobProfileErrorMessage(JobExecution jobExecution, List<Record> records) {
     JobExecutionUtils.cache.put(jobExecution.getId(), JobExecution.Status.ERROR);
-    return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.get(0).getRecordType());
+    return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.getFirst().getRecordType());
   }
 }

@@ -10,6 +10,7 @@
 * [MODSOURMAN-1250](https://folio-org.atlassian.net/browse/MODSOURMAN-1250) Replace dependency on mod-configuration with mod-settings to get tenant timezone
 * [MODSOURMAN-1359](https://folio-org.atlassian.net/browse/MODSOURMAN-1359) Remove duplicate subfield "x" from 455 and 555 fields in the MARC authority mapping rules
 * [MODSOURMAN-1356](https://folio-org.atlassian.net/browse/MODSOURMAN-1356) Investigate delay observed during job run right after previous job cancellation
+* [MODSOURMAN-1365](https://folio-org.atlassian.net/browse/MODSOURMAN-1365) Update bib mapping rule for Cumulative Index / Finding Aids notes
 * [MODSOURMAN-1260](https://folio-org.atlassian.net/browse/MODSOURMAN-1260) The 'The 004 tag of the Holdings doesn't have a link to the Bibliographic record' error message is not displayed on JSON data after importing file
 
 ## 2025-03-13 v3.10.0
