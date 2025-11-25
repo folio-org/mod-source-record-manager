@@ -56,7 +56,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -193,13 +192,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         params.getTenantId(), acceptInstanceId, params);
 
     futureParsedRecords
-      .compose(parsedRecords -> {
+      .map(parsedRecords -> {
         saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
-        return filterParsedRecords(jobExecution, params, parsedRecords);
+        return parsedRecords;
       })
-      .compose(filteredParsedRecords -> validateJobProfile(jobExecution, filteredParsedRecords).map(filteredParsedRecords))
-      .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
-        .map(parsedRecords))
+      .compose(parsedRecords -> validateJobProfile(jobExecution, parsedRecords).map(parsedRecords))
+      .compose(parsedRecords -> filterParsedRecords(jobExecution, params, parsedRecords))
+      .compose(filteredParsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), filteredParsedRecords, params)
+        .map(filteredParsedRecords))
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
@@ -576,8 +576,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private boolean isMarcHoldingsExists(ProfileSnapshotWrapper actionProfileWrapper) {
     List<ProfileSnapshotWrapper> childWrappers = actionProfileWrapper.getChildSnapshotWrappers();
-    if (childWrappers != null && !childWrappers.isEmpty() && childWrappers.get(0) != null) {
-      MappingProfile mappingProfile = new JsonObject((Map) childWrappers.get(0).getContent()).mapTo(MappingProfile.class);
+    if (childWrappers != null && !childWrappers.isEmpty() && childWrappers.getFirst() != null) {
+      MappingProfile mappingProfile = new JsonObject((Map) childWrappers.getFirst().getContent()).mapTo(MappingProfile.class);
       return mappingProfile.getExistingRecordType() == EntityType.HOLDINGS && mappingProfile.getIncomingRecordType() == EntityType.MARC_HOLDINGS;
     }
     return false;
@@ -658,7 +658,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           }
         }
         return record;
-      }).collect(Collectors.toList());
+      }).toList();
   }
 
   private ParsedResult addErrorMessageWhen999ffFieldExistsOnCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
@@ -695,7 +695,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
       .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
       .filter(StringUtils::isNotBlank)
-      .collect(Collectors.toList());
+      .toList();
     // split on batches and create list of Futures
     List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
     List<Future<List<String>>> futureList = new ArrayList<>();
@@ -714,13 +714,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .stream()
             .map(Future<List<String>>::result)
             .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+            .toList();
           LOGGER.info("filterMarcHoldingsBy004Field:: MARC_BIB invalid list ids: {}", invalidMarcBibIds);
           var validMarcBibRecords = records.stream()
             .filter(record -> {
               var controlFieldValue = getControlFieldValue(record, TAG_004);
               return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
-            }).collect(Collectors.toList());
+            }).toList();
           LOGGER.info("filterMarcHoldingsBy004Field:: Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
             records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
           promise.complete(validMarcBibRecords);
@@ -938,7 +938,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    */
   private void fillParsedRecordsWithAdditionalFields(List<Record> records) {
     if (!CollectionUtils.isEmpty(records)) {
-      Record.RecordType recordType = records.get(0).getRecordType();
+      Record.RecordType recordType = records.getFirst().getRecordType();
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         for (Record record : records) {
           if (record.getMatchedId() != null) {
@@ -997,6 +997,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private String prepareWrongJobProfileErrorMessage(JobExecution jobExecution, List<Record> records) {
     JobExecutionUtils.cache.put(jobExecution.getId(), JobExecution.Status.ERROR);
-    return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.get(0).getRecordType());
+    return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.getFirst().getRecordType());
   }
 }
