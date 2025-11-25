@@ -56,6 +56,9 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   @InjectMocks
   JobExecutionServiceImpl jobExecutionService;
   @InjectMocks
+  @Spy
+  private JobExecutionProgressDaoImpl jobExecutionProgressDao;
+  @InjectMocks
   private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl(vertx);
 
   private OkapiConnectionParams params;
