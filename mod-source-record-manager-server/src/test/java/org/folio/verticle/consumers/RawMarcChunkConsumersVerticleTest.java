@@ -23,6 +23,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.MappingProfile;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -62,7 +63,8 @@ import static org.junit.Assert.*;
 @RunWith(VertxUnitRunner.class)
 public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
-  private static final String RAW_RECORD_WITH_999_ff_field = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
+  private static final String RAW_RECORD_WITH_999_FF_FIELD = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
+  private static final String RAW_MARC_HOLDINGS_RECORD = "00182cx  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
   private static final String CORRECT_RAW_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500430028626000470032926500380037630000150041431000220042932100250045136200230047657000290049965000330052865000450056165500420060670000450064885300180069386300230071190200160073490500210075094800370077195000340080836683220141106221425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)notisABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Journal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [etc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Apr. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm a2200361   ";
   private static final String INVALID_RECORD = "00558nam a22002053i 45000010012000000050017000120080041000290200018000700b0002100088041000800109100001900117245004500136250001200181264001800193336002600211337002800237338002700265700001900292999004100311\u001E00000010150\u001E20230724074007.2\u001E230724|2020||||||||||||       |||||und||\u001E  \u001Fa9788408232421\u001E  \u001FaCC-ClU\u001Fbspa\u001Ferda\u001E  \u001Faspa\u001E1 \u001FaChicot, Marcos\u001E00\u001FaEl asesinato de Platón / Chicot Marcos\u001E  \u001FaPrimera\u001E 1\u001FbPlaneta\u001Fc2020\u001E  \u001Fatext\u001Fbtxt\u001F2rdacontent\u001E  \u001Faunmediated\u001Fbn\u001F2rdamedia\u001E  \u001Favolume\u001Fbnc\u001F2rdacarrier\u001E1 \u001FaChicot, Marcos\u001Eff\u001Fi7e1ea9dd-f65d-4758-a738-fa1d61365267\u001E\u001D";
   private static final String RAW_EDIFACT_RECORD_PATH = "src/test/resources/records/edifact/565751us20210122.edi";
@@ -101,6 +103,11 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   private final MappingProfile mappingProfileMarcBibToMarcBib = new MappingProfile()
     .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
     .withExistingRecordType(EntityType.MARC_BIBLIOGRAPHIC);
+
+  protected JobProfile createAuthorityJobProfile = new JobProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create authority")
+    .withDataType(JobProfile.DataType.MARC);
 
   private final ActionProfile createAuthorityActionProfile = new ActionProfile()
     .withId(UUID.randomUUID().toString())
@@ -148,12 +155,14 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
     WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
       .willReturn(WireMock.ok().withBody(Json.encode(emptyList()))));
+    WireMock.stubFor(WireMock.get("/user-tenants?limit=1")
+      .willReturn(WireMock.ok().withBody("{\"userTenants\":[]}")));
   }
 
   @Test
   public void shouldNotFillInInstanceIdAndInstanceHridWhenRecordContains999FieldWithInstanceId() throws InterruptedException, ExecutionException {
     // given
-    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_FF_FIELD);
 
     // when
     sendEvent(producerRecord);
@@ -222,7 +231,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .willReturn(WireMock.created().withBody(Json.encode(marcBibUpdateUnsupportedSimpleJobProfileSnapshot))));
 
     ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
-      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_FF_FIELD);
 
     // when
     sendEvent(producerRecord);
@@ -240,7 +249,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .willReturn(WireMock.created().withBody(Json.encode(marcBibUpdateUnsupportedJobProfileSnapshot))));
 
     ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
-      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_FF_FIELD);
 
     // when
     sendEvent(producerRecord);
@@ -253,7 +262,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   @Test
   public void shouldNotObserveValuesWhenJobExecutionIdNotCreated() throws InterruptedException, ExecutionException {
-    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_FF_FIELD);
     String jobExecutionId = UUID.randomUUID().toString();
 
     Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
@@ -318,7 +327,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .willReturn(WireMock.created().withBody(Json.encode(updateInstanceJobProfileSnapshot))));
 
     ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
-      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_FF_FIELD);
 
     // when
     sendEvent(producerRecord);
@@ -346,7 +355,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .willReturn(WireMock.created().withBody(Json.encode(createAuthorityJobProfileSnapshot))));
 
     ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
-      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_FF_FIELD);
 
     // when
     sendEvent(producerRecord);
@@ -356,6 +365,45 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_ERROR.value(), eventPayload.getEventType());
     assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
+    System.err.println(eventPayload.getContext().get(ERROR_KEY));
+  }
+
+  @Test
+  public void shouldSendDIErrorWithIncompatibleProfileErrorWhenJobProfileIncompatibleAndMarcHoldingContainsInvalid004FieldValue()
+    throws InterruptedException, ExecutionException {
+    // given
+    String expectedError = "Chosen job profile '%s' does not support 'MARC_HOLDING' record type"
+      .formatted(createAuthorityJobProfile.getName());
+
+    WireMock.stubFor(WireMock.post("/source-storage/batch/verified-records")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\": [ \"9928371\" ]}")))));
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + JOB_PROFILE_ID + "?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(createAuthorityJobProfile.withId(JOB_PROFILE_ID)))));
+
+    ProfileSnapshotWrapper createAuthorityJobProfileSnapshot = new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withContentType(JOB_PROFILE)
+      .withContent(createAuthorityJobProfile)
+      .withChildSnapshotWrappers(List.of(
+        new ProfileSnapshotWrapper()
+          .withContentType(ACTION_PROFILE)
+          .withContent(createAuthorityActionProfile)));
+
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(createAuthorityJobProfileSnapshot))));
+
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+      RecordsMetadata.ContentType.MARC_RAW, RAW_MARC_HOLDINGS_RECORD);
+
+    // when
+    sendEvent(producerRecord);
+
+    // then
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_ERROR.value(), eventPayload.getEventType());
+    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
+    assertEquals(expectedError, eventPayload.getContext().get(ERROR_KEY));
   }
 
   @Test
