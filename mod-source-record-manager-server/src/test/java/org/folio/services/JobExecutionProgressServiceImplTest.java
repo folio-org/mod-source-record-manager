@@ -26,14 +26,21 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
@@ -48,9 +55,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   @Spy
   @InjectMocks
   JobExecutionServiceImpl jobExecutionService;
-  @InjectMocks
-  @Spy
-  private JobExecutionProgressDaoImpl jobExecutionProgressDao;
   @InjectMocks
   private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl(vertx);
 
@@ -197,7 +201,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
 
     Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
-
     future.onComplete(ar -> {
       context.assertTrue(ar.failed());
       context.assertEquals(
