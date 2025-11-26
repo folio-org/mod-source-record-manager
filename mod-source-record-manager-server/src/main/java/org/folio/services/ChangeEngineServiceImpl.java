@@ -403,6 +403,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           return false;
         })
         .recover(throwable -> {
+          LOGGER.warn("=== DEBUG: Exception in recover ===");
+          LOGGER.warn("Exception type: " + throwable.getClass().getSimpleName());
+          LOGGER.warn("Exception message: " + throwable.getMessage());
+          if (throwable instanceof CompletionException) {
+            LOGGER.warn("CompletionException cause: " + throwable.getCause().getClass().getSimpleName());
+            LOGGER.warn("CompletionException cause message: " + throwable.getCause().getMessage());
+          }
+          LOGGER.warn("=== END DEBUG ===");
           NotFoundException notFoundEx = extractNotFoundException(throwable);
           if (notFoundEx != null) {
             LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
@@ -432,16 +440,19 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private NotFoundException extractNotFoundException(Throwable throwable) {
     if (throwable instanceof NotFoundException notFoundEx) {
+      LOGGER.error("throwable instanceof NotFoundException", throwable);
       return notFoundEx;
     }
 
     if (throwable instanceof CompletionException ce && ce.getCause() instanceof NotFoundException notFoundEx) {
+      LOGGER.error("throwable instanceof CompletionException", throwable);
       return notFoundEx;
     }
 
     Throwable cause = throwable.getCause();
     while (cause != null) {
       if (cause instanceof NotFoundException notFoundEx) {
+        LOGGER.error("cause instanceof NotFoundException", cause);
         return notFoundEx;
       }
       cause = cause.getCause();
