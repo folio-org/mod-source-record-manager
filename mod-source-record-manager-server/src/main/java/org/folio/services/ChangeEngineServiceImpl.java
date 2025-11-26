@@ -951,8 +951,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             if (record.getMatchedId() != null) {
               addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
             }
-            String inventoryId = UUID.randomUUID().toString();
-            addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
+            String existingInventoryId = getValue(record, TAG_999, SUBFIELD_I);
+            final String inventoryId;
+            if (isBlank(existingInventoryId)) {
+              inventoryId = UUID.randomUUID().toString();
+              addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
+            } else {
+              inventoryId = existingInventoryId;
+            }
             Optional.ofNullable(getControlFieldValue(record, TAG_001))
               .map(String::trim)
               .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrId)),
