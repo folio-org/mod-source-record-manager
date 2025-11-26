@@ -305,10 +305,10 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .withStatus(JobExecution.Status.PROCESSING_IN_PROGRESS)
       .withUiStatus(JobExecution.UiStatus.RUNNING);
 
-    when(jobExecutionDao.getJobExecutionById(eq(parentJobId), anyString()))
-      .thenReturn(Future.succeededFuture(Optional.of(initialStateInDb)))
-      .thenReturn(Future.succeededFuture(Optional.of(initialStateInDb)))
-      .thenReturn(Future.succeededFuture(Optional.of(parentToUpdate)));
+    doReturn(Future.succeededFuture(Optional.of(initialStateInDb)))
+      .doReturn(Future.succeededFuture(Optional.of(initialStateInDb)))
+      .doReturn(Future.succeededFuture(Optional.of(parentToUpdate)))
+      .when(jobExecutionService).getJobExecutionById(eq(parentJobId), anyString());
 
     AtomicBoolean firstUpdateSucceeded = new AtomicBoolean(false);
     doAnswer(invocation -> {
