@@ -288,7 +288,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSendOnlyOneEventOnRaceCondition(TestContext context) {
+  public void shouldUpdateJobExecutionStatusToCommittedOnlyOnceOnMultipleAttempts(TestContext context) {
     Async async = context.async();
 
     String parentJobId = UUID.randomUUID().toString();
