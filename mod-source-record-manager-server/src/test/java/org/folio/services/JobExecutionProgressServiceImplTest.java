@@ -26,14 +26,25 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.util.*;
+import javax.ws.rs.BadRequestException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
@@ -186,21 +197,19 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
 
     JobExecution parentJobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT)
       .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
-
-    JobExecution jobExecution = new JobExecution()
-      .withId(UUID.randomUUID().toString())
-      .withParentJobId(parentJobExecution.getId())
-      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
 
     when(jobExecutionDao.getJobExecutionById(eq(parentJobExecution.getId()), anyString()))
       .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
 
-    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
-
+    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentJobExecution, params);
     future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      context.assertEquals(jobExecution, ar.result());
+      context.assertTrue(ar.failed());
+      context.assertEquals(
+        String.format("updateJobExecutionWithSnapshotStatusAsync:: Parent job with jobExecutionId=%s already has completed status. Skipping update.", parentJobExecution.getId()),
+        ar.cause().getMessage()
+      );
       verify(jobExecutionDao, never()).updateBlocking(anyString(), any(), anyString());
       async.complete();
     });
@@ -212,25 +221,20 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
 
     JobExecution parentJobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
-      .withUiStatus(JobExecution.UiStatus.INITIALIZATION);
-
-    JobExecution jobExecution = new JobExecution()
-      .withId(UUID.randomUUID().toString())
-      .withParentJobId(parentJobExecution.getId())
-      .withStatus(JobExecution.Status.COMMITTED)
       .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT)
-      .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
+      .withStatus(JobExecution.Status.PROCESSING_IN_PROGRESS)
+      .withUiStatus(JobExecution.UiStatus.RUNNING);
 
     when(jobExecutionDao.getJobExecutionById(eq(parentJobExecution.getId()), anyString()))
       .thenReturn(Future.succeededFuture(Optional.of(parentJobExecution)));
-    when(jobExecutionDao.updateBlocking(anyString(), any(), anyString()))
-      .thenReturn(Future.succeededFuture(jobExecution));
+    when(jobExecutionDao.updateBlocking(eq(parentJobExecution.getId()), any(), anyString()))
+      .thenReturn(Future.succeededFuture(parentJobExecution));
 
-    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
+    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentJobExecution, params);
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      context.assertEquals(jobExecution, ar.result());
+      context.assertEquals(parentJobExecution, ar.result());
       verify(jobExecutionDao).updateBlocking(anyString(), any(), anyString());
       async.complete();
     });
@@ -240,20 +244,21 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   public void updateJobExecutionWithSnapshotStatusAsyncFailsWhenParentJobNotFound(TestContext context) {
     Async async = context.async();
 
-    JobExecution jobExecution = new JobExecution()
+    JobExecution parentJobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
-      .withParentJobId(UUID.randomUUID().toString())
-      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT)
+      .withStatus(JobExecution.Status.PROCESSING_IN_PROGRESS)
+      .withUiStatus(JobExecution.UiStatus.RUNNING);
 
-    when(jobExecutionDao.getJobExecutionById(eq(jobExecution.getParentJobId()), anyString()))
+    when(jobExecutionDao.getJobExecutionById(eq(parentJobExecution.getId()), anyString()))
       .thenReturn(Future.succeededFuture(Optional.empty()));
 
-    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
+    Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentJobExecution, params);
 
     future.onComplete(ar -> {
       context.assertTrue(ar.failed());
       context.assertEquals(
-        String.format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job execution with jobExecutionId=%s", jobExecution.getParentJobId()),
+        String.format("updateJobExecutionWithSnapshotStatusAsync:: Couldn't find parent job with jobExecutionId=%s", parentJobExecution.getId()),
         ar.cause().getMessage()
       );
       async.complete();
@@ -269,7 +274,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .withStatus(JobExecution.Status.COMMITTED)
       .withSubordinationType(JobExecution.SubordinationType.CHILD);
 
-    when(jobExecutionDao.updateBlocking(anyString(), any(), anyString()))
+    when(jobExecutionDao.updateBlocking(eq(jobExecution.getId()), any(), anyString()))
       .thenReturn(Future.succeededFuture(jobExecution));
 
     Future<JobExecution> future = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(jobExecution, params);
@@ -278,6 +283,61 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       context.assertTrue(ar.succeeded());
       context.assertEquals(jobExecution, ar.result());
       verify(jobExecutionDao).updateBlocking(anyString(), any(), anyString());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldUpdateJobExecutionStatusToCommittedOnlyOnceOnMultipleAttempts(TestContext context) {
+    Async async = context.async();
+
+    String parentJobId = UUID.randomUUID().toString();
+
+    JobExecution parentToUpdate = new JobExecution()
+      .withId(parentJobId)
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT)
+      .withStatus(JobExecution.Status.COMMITTED)
+      .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
+
+    JobExecution initialStateInDb = new JobExecution()
+      .withId(parentJobId)
+      .withSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT)
+      .withStatus(JobExecution.Status.PROCESSING_IN_PROGRESS)
+      .withUiStatus(JobExecution.UiStatus.RUNNING);
+
+    doReturn(Future.succeededFuture(Optional.of(initialStateInDb)))
+      .doReturn(Future.succeededFuture(Optional.of(initialStateInDb)))
+      .doReturn(Future.succeededFuture(Optional.of(parentToUpdate)))
+      .when(jobExecutionService).getJobExecutionById(eq(parentJobId), anyString());
+
+    AtomicBoolean firstUpdateSucceeded = new AtomicBoolean(false);
+    doAnswer(invocation -> {
+      if (firstUpdateSucceeded.compareAndSet(false, true)) {
+        return Future.succeededFuture(parentToUpdate);
+      } else {
+        return Future.failedFuture(new BadRequestException("DAO: Job is already committed"));
+      }
+    }).when(jobExecutionDao).updateBlocking(eq(parentJobId), any(), anyString());
+
+    doReturn(Future.succeededFuture(new JobExecution()))
+      .when(jobExecutionService).updateSnapshotStatus(any(JobExecution.class), any(OkapiConnectionParams.class));
+
+    Future<JobExecution> winnerAttempt = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentToUpdate, params);
+    Future<JobExecution> loserAttemptDAO = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentToUpdate, params);
+    Future<JobExecution> loserAttemptService = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentToUpdate, params);
+
+    Future.all(winnerAttempt, loserAttemptDAO, loserAttemptService).onComplete(ar -> {
+      context.assertTrue(winnerAttempt.succeeded(), "The winner must finish successfully.");
+      context.assertNotNull(winnerAttempt.result());
+
+      context.assertTrue(loserAttemptDAO.failed(), "The loser (via DAO) should finish with an error.");
+      context.assertTrue(loserAttemptDAO.cause() instanceof BadRequestException);
+      context.assertTrue(loserAttemptDAO.cause().getMessage().contains("DAO: Job is already committed"));
+
+      context.assertTrue(loserAttemptService.failed(), "The loser (via the service) finish end with an error.");
+      context.assertTrue(loserAttemptService.cause() instanceof BadRequestException);
+      context.assertTrue(loserAttemptService.cause().getMessage().contains("already has completed status. Skipping update."));
+
       async.complete();
     });
   }
