@@ -52,7 +52,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -431,23 +430,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private NotFoundException extractNotFoundException(Throwable throwable) {
-    if (throwable instanceof NotFoundException notFoundEx) {
-      return notFoundEx;
-    }
-
-    if (throwable instanceof CompletionException ce && ce.getCause() instanceof NotFoundException notFoundEx) {
-      return notFoundEx;
-    }
-
-    Throwable cause = throwable.getCause();
-    while (cause != null) {
-      if (cause instanceof NotFoundException notFoundEx) {
-        return notFoundEx;
-      }
-      cause = cause.getCause();
-    }
-
-    return null;
+    return throwable instanceof NotFoundException notFoundEx ? notFoundEx : null;
   }
 
   private boolean updateMarcActionExists(JobExecution jobExecution) {
