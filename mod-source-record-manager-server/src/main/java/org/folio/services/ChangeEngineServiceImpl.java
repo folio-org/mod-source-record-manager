@@ -934,19 +934,29 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             if (record.getMatchedId() != null) {
               addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
             }
-            String inventoryId = UUID.randomUUID().toString();
-            addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
+            final String authorityId = setAuthorityIdIfAbsentForRecord(record);
             Optional.ofNullable(getControlFieldValue(record, TAG_001))
               .map(String::trim)
-              .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrId)),
+              .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId).withAuthorityHrid(hrId)),
                 () -> {
-                  record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId));
+                  record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId));
                   LOGGER.warn("fillParsedRecordsWithAdditionalFields:: record with id: {} does not contain the hrId field", record.getId());
                 });
           }
         }
       }
     }
+  }
+
+  private String setAuthorityIdIfAbsentForRecord(Record record) {
+    String authorityId = getValue(record, TAG_999, SUBFIELD_I);
+    if (isNotBlank(authorityId)) {
+      return authorityId;
+    }
+
+    authorityId = UUID.randomUUID().toString();
+    addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, authorityId);
+    return authorityId;
   }
 
   /**
