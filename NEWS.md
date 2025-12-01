@@ -1,3 +1,7 @@
+## 2025-12-01 v3.10.8
+* [MODSOURMAN-1368](https://folio-org.atlassian.net/browse/MODSOURMAN-1368) Fix implementation of caching mechanism
+* [MODSOURMAN-1364](https://folio-org.atlassian.net/browse/MODSOURMAN-1364) DI completion event is produced more than once
+
 ## 2025-08-18 v3.10.7
 * [MODSOURMAN-1341](https://folio-org.atlassian.net/browse/MODSOURMAN-1341) Configure consumer groupInstanceId
 
