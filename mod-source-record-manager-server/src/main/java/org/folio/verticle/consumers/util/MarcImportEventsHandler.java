@@ -75,6 +75,8 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
           .map(Object::toString)
           .collect(Collectors.toList());
 
+        LOGGER.info("marcBibTitleExtractor:: Content type: {}",  parsedRecord.getContent().getClass().getName());
+
         return subfieldCodes.isEmpty()
           ? null
           : ParsedRecordUtil.retrieveDataByField(parsedRecord, titleFieldTag, subfieldCodes);
