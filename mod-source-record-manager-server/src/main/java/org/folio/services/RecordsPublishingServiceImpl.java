@@ -102,7 +102,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
             params, jobExecution.getId(), params.getTenantId(), record));
         }
       } catch (Exception e) {
-        LOGGER.warn("sendRecords:: Error publishing event with record id: {}",record.getId(), e);
+        LOGGER.warn("sendRecords:: Error publishing event with jobExecutionId: {} recordId: {}", jobExecution.getId(), record.getId(), e);
         record.setErrorRecord(new ErrorRecord().withContent(record.getRawRecord()).withDescription(e.getMessage()));
         failedRecords.add(record);
       }
@@ -114,7 +114,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
     GenericCompositeFuture.join(futures).onComplete(ar -> {
       if (ar.failed()) {
-        LOGGER.warn("sendRecords:: Error publishing events with records", ar.cause());
+        LOGGER.warn("sendRecords:: Error publishing events with records for jobExecutionId: {}", jobExecution.getId(), ar.cause());
         promise.fail(ar.cause());
         return;
       }
@@ -131,7 +131,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
    */
   private boolean isParsedContentExists(Record currentRecord) {
     if (currentRecord.getParsedRecord() == null || currentRecord.getParsedRecord().getContent() == null) {
-      LOGGER.warn("isParsedContentExists:: Record has no parsed content - event will not be sent");
+      LOGGER.warn("isParsedContentExists:: Record has no parsed content - event will not be sent for recordId: {}", currentRecord.getId());
       return false;
     }
     return true;
@@ -172,7 +172,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
               KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null));
         }
       }
-      LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
+      LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send for jobExecutionId: {} recordId: {}", jobExecutionId, currentRecord.getId());
       sendDiError(throwable, jobExecutionId, okapiParams, currentRecord);
       return Future.succeededFuture(true);
   }

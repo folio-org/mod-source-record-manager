@@ -3,7 +3,6 @@ package org.folio.verticle.consumers;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
@@ -72,10 +71,11 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, byte[]
         })
         .onFailure(e -> {
           if (e instanceof DuplicateEventException) {
-            LOGGER.info(e.getMessage());
+            LOGGER.info("handle:: {} jobExecutionId: {} recordId: {}", e.getMessage(), jobExecutionId, recordId);
             result.complete();
           } else {
-            LOGGER.warn("handle:: Error with database during collecting of deduplication info for handlerId: {} , eventId: {}. ", DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), e);
+            LOGGER.warn("handle:: Error with database during collecting of deduplication info for handlerId: {} eventId: {} jobExecutionId: {} recordId: {}",
+              DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), jobExecutionId, recordId, e);
             result.fail(e);
           }
         });
