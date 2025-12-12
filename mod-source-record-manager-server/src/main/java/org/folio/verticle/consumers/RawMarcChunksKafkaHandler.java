@@ -73,7 +73,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
 
           try {
             Event event = DatabindCodec.mapper().readValue(record.value(), Event.class);
-            LOGGER.debug("handle:: Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
+            LOGGER.debug("handle:: Starting to handle of raw mark chunks from Kafka for event type: {} jobExecutionId: {} chunkId: {}", event.getEventType(), jobExecutionId, chunkId);
             RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
             if (!rawRecordsDto.getRecordsMetadata().getLast()) {
               flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), rawRecordsDto.getInitialRecords().size());
