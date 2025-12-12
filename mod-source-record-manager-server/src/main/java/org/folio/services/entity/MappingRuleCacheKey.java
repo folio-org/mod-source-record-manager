@@ -5,7 +5,6 @@ import lombok.Getter;
 
 import org.folio.Record;
 import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.rest.jaxrs.model.ParsedRecordDto;
 
 @Getter
 @EqualsAndHashCode
@@ -19,17 +18,6 @@ public class MappingRuleCacheKey {
     if (Record.RecordType.MARC_BIB.equals(recordType) || Record.RecordType.MARC_HOLDING.equals(recordType)
       || Record.RecordType.MARC_AUTHORITY.equals(recordType)) {
       this.recordType = recordType;
-    }
-  }
-
-  public MappingRuleCacheKey(String tenantId, ParsedRecordDto.RecordType recordType) {
-    this.tenantId = tenantId;
-    if (ParsedRecordDto.RecordType.MARC_BIB.equals(recordType)) {
-      this.recordType = Record.RecordType.MARC_BIB;
-    } else if (ParsedRecordDto.RecordType.MARC_HOLDING.equals(recordType)) {
-      this.recordType = Record.RecordType.MARC_HOLDING;
-    } else if (ParsedRecordDto.RecordType.MARC_AUTHORITY.equals(recordType)) {
-      this.recordType = Record.RecordType.MARC_AUTHORITY;
     }
   }
 

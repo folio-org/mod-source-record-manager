@@ -6,6 +6,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.spi.VerticleFactory;
 import io.vertx.serviceproxy.ServiceBinder;
@@ -22,7 +23,6 @@ import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportInitConsumersVerticle;
 import org.folio.verticle.JobExecutionProgressVerticle;
 import org.folio.verticle.DataImportJournalBatchConsumerVerticle;
-import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
 import org.folio.verticle.SpringVerticleFactory;
@@ -57,9 +57,6 @@ public class InitAPIImpl implements InitAPI {
   @Value("${srm.kafka.JobExecutionProgressVerticle.instancesNumber:1}")
   private int jobExecutionProgressInstancesNumber;
 
-  @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:1}")
-  private int quickMarcUpdateConsumerInstancesNumber;
-
   @Value("${srm.kafka.JobExecutionDeletion.instancesNumber:1}")
   private int jobExecutionDeletionInstanceNumber;
 
@@ -87,7 +84,7 @@ public class InitAPIImpl implements InitAPI {
           handler.handle(Future.failedFuture(th));
           LOGGER.warn("init:: Consumer Verticles were not started", th);
         });
-    } catch (Throwable th) {
+    } catch (Exception th) {
       LOGGER.warn("init:: Error during module init", th);
       handler.handle(Future.failedFuture(th));
     }
@@ -110,47 +107,41 @@ public class InitAPIImpl implements InitAPI {
     Promise<String> deployDataImportConsumer = Promise.promise();
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
     Promise<String> deployJobExecutionProgressConsumer = Promise.promise();
-    Promise<String> deployQuickMarcUpdateConsumer = Promise.promise();
     Promise<String> deployPeriodicDeleteJobExecution = Promise.promise();
 
     vertx.deployVerticle(getVerticleName(verticleFactory, DataImportInitConsumersVerticle.class),
       new DeploymentOptions()
-        .setWorker(true)
+        .setThreadingModel(ThreadingModel.WORKER)
         .setInstances(initConsumerInstancesNumber), deployInitConsumer);
 
     vertx.deployVerticle(getVerticleName(verticleFactory, RawMarcChunkConsumersVerticle.class),
       new DeploymentOptions()
-        .setWorker(true)
+        .setThreadingModel(ThreadingModel.WORKER)
         .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
     vertx.deployVerticle(getVerticleName(verticleFactory, StoredRecordChunkConsumersVerticle.class),
       new DeploymentOptions()
-        .setWorker(true)
+        .setThreadingModel(ThreadingModel.WORKER)
         .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);
 
     vertx.deployVerticle(getVerticleName(verticleFactory, DataImportConsumersVerticle.class),
       new DeploymentOptions()
-        .setWorker(true)
+        .setThreadingModel(ThreadingModel.WORKER)
         .setInstances(dataImportConsumerInstancesNumber), deployDataImportConsumer);
 
     vertx.deployVerticle(getVerticleName(verticleFactory, DataImportJournalBatchConsumerVerticle.class),
       new DeploymentOptions()
-        .setWorker(true)
+        .setThreadingModel(ThreadingModel.WORKER)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
 
     vertx.deployVerticle(getVerticleName(verticleFactory, JobExecutionProgressVerticle.class),
       new DeploymentOptions()
-        .setWorker(true)
+        .setThreadingModel(ThreadingModel.WORKER)
         .setInstances(jobExecutionProgressInstancesNumber), deployJobExecutionProgressConsumer);
-
-    vertx.deployVerticle(getVerticleName(verticleFactory,  QuickMarcUpdateConsumersVerticle.class),
-      new DeploymentOptions()
-        .setWorker(true)
-        .setInstances(quickMarcUpdateConsumerInstancesNumber), deployQuickMarcUpdateConsumer);
 
     vertx.deployVerticle(getVerticleName(verticleFactory, PeriodicDeleteJobExecutionVerticle.class),
       new DeploymentOptions()
-        .setWorker(true)
+        .setThreadingModel(ThreadingModel.WORKER)
         .setInstances(jobExecutionDeletionInstanceNumber), deployPeriodicDeleteJobExecution);
 
     return GenericCompositeFuture.all(Arrays.asList(
@@ -159,7 +150,6 @@ public class InitAPIImpl implements InitAPI {
       deployStoredMarcChunkConsumer.future(),
       deployDataImportConsumer.future(),
       deployDataImportJournalConsumer.future(),
-      deployQuickMarcUpdateConsumer.future(),
       deployPeriodicDeleteJobExecution.future()));
   }
 
