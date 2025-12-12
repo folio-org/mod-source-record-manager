@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static org.folio.services.RecordsPublishingServiceImpl.RECORD_ID_HEADER;
+import static org.folio.services.util.EventHandlingUtil.extractJobExecutionId;
+import static org.folio.services.util.EventHandlingUtil.extractRecordId;
 
 @Component
 @Qualifier("DataImportJournalKafkaHandler")
@@ -80,11 +82,14 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
   }
 
   private void processDeduplicationFailure(Promise<String> result, KafkaConsumerRecord<String, byte[]> record, JournalEvent event, Throwable e) {
+    String jobExecutionId = extractJobExecutionId(record.headers());
+    String recordId = extractRecordId(record.headers());
     if (e instanceof DuplicateEventException) { // duplicate coming, ignore it
       LOGGER.info(e.getMessage());
       result.complete(record.key());
     } else {
-      LOGGER.warn("processDeduplicationFailure:: Error with database during collecting of deduplication info for handlerId: {} , eventId: {}", DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), e);
+      LOGGER.warn("processDeduplicationFailure:: Error with database during collecting of deduplication info for handlerId: {} eventId: {} jobExecutionId: {} recordId: {}",
+        DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), jobExecutionId, recordId, e);
       result.fail(e);
     }
   }

@@ -78,6 +78,14 @@ public final class EventHandlingUtil {
     }
   }
 
+  public static String extractRecordId(List<KafkaHeader> kafkaHeaders) {
+    return extractHeader(kafkaHeaders, RECORD_ID_HEADER);
+  }
+
+  public static String extractJobExecutionId(List<KafkaHeader> kafkaHeaders) {
+    return extractHeader(kafkaHeaders, JOB_EXECUTION_ID_HEADER);
+  }
+
   private static String extractHeader(List<KafkaHeader> kafkaHeaders, String headerName) {
     return kafkaHeaders.stream()
       .filter(header -> header.key().equals(headerName))
