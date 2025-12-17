@@ -15,14 +15,12 @@ import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.JobExecutionService;
-import org.folio.services.ParsedRecordService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,8 +41,6 @@ public class ChangeManagerImpl implements ChangeManager {
   @Autowired
   @Qualifier("eventDrivenChunkProcessingService")
   private ChunkProcessingService eventDrivenChunkProcessingService;
-  @Autowired
-  private ParsedRecordService parsedRecordService;
 
   private String tenantId;
 
@@ -236,24 +232,6 @@ public class ChangeManagerImpl implements ChangeManager {
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.warn(getMessage("deleteChangeManagerJobExecutionsRecordsById:: Failed to delete records for JobExecution id {}", e, id));
-        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
-      }
-    });
-  }
-
-  @Override
-  public void putChangeManagerParsedRecordsById(String id, ParsedRecordDto entity, Map<String, String> okapiHeaders,
-                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    vertxContext.runOnContext(v -> {
-      try {
-        LOGGER.debug("putChangeManagerParsedRecordsById:: id {}, parsedRecordId {}", id, entity.getId());
-        parsedRecordService.updateRecord(entity, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
-          .map(sentEventForProcessing -> PutChangeManagerParsedRecordsByIdResponse.respond202())
-          .map(Response.class::cast)
-          .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .onComplete(asyncResultHandler);
-      } catch (Exception e) {
-        LOGGER.warn(getMessage("putChangeManagerParsedRecordsById:: Failed to update parsed record with id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
