@@ -1,5 +1,5 @@
-## 2025-12-dd v3.9.11
-* [MODSOURMAN-1376](https://folio-org.atlassian.net/browse/MODSOURMAN-1376) Suppress verbose logging in RMB by upgrading to RMB 35.3.2, Vert.x 4.5.23 (CVE-2025-67735 Netty CRLF injection fix)
+## 2025-12-30 v3.9.11
+* [MODSOURMAN-1376](https://folio-org.atlassian.net/browse/MODSOURMAN-1376) Upgrade to RMB 35.3.2 (logging improvements), Vert.x 4.5.23 (CVE-2025-67735 Netty CRLF injection fix)
 
 ## 2025-03-10 v3.9.10
 * [MODSOURMAN-1281](https://folio-org.atlassian.net/browse/MODSOURMAN-1281) 500 Error Returned when Posting Records Chunk with Existing ID Value
