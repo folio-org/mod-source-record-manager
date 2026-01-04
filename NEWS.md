@@ -1,3 +1,6 @@
+##  2026-01-05 v3.10.10
+* [MODSOURMAN-1377](https://folio-org.atlassian.net/browse/MODSOURMAN-1377) Upgrade RMB v35.4.2 (suppress verbose logging in RMB), and Vert.x 4.5.23 (CVE-2025-67735 Netty CRLF injection fix)
+
 ##  2025-12-15 v3.10.9
 * [MODSOURMAN-1380](https://folio-org.atlassian.net/browse/MODSOURMAN-1380) Update di-core to v4.4.8
 

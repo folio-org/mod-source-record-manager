@@ -19,8 +19,8 @@
   </modules>
 
   <properties>
-    <raml-module-builder.version>35.4.0</raml-module-builder.version>
-    <vertx.version>4.5.14</vertx.version>
+    <raml-module-builder.version>35.4.2</raml-module-builder.version>
+    <vertx.version>4.5.23</vertx.version>
     <spring.version>6.2.5</spring.version>
     <junit.version>5.12.2</junit.version>
     <rest-assured.version>5.5.1</rest-assured.version>
