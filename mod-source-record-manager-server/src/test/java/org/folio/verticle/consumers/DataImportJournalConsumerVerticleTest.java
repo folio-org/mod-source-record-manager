@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.KafkaUtil.sendEvent;
@@ -362,13 +363,20 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     sendEvent(producerRecord);
 
     // then
-    assertJournalRecord(context, jobExecution.getId(), journalRecords -> journalRecords.stream().anyMatch(journalRecord -> {
-      Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, journalRecord.getEntityType());
-      Assert.assertEquals("Action Type:", JournalRecord.ActionType.MODIFY, journalRecord.getActionType());
-      Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
-      Assert.assertEquals("Title:", "The Journal of ecclesiastical history.", journalRecord.getTitle());
+    assertJournalRecord(context, jobExecution.getId(), journalRecords -> {
+      List<JournalRecord> marcRecords = journalRecords.stream()
+        .filter(jr -> jr.getEntityType() == JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
+        .toList();
+      Assert.assertFalse("Expected MARC_BIBLIOGRAPHIC record", marcRecords.isEmpty());
+
+      JournalRecord marcRecord = marcRecords.getFirst();
+      Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, marcRecord.getEntityType());
+      Assert.assertEquals("Action Type:", JournalRecord.ActionType.MODIFY, marcRecord.getActionType());
+      Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.COMPLETED, marcRecord.getActionStatus());
+      Assert.assertEquals("Title:","The Journal of ecclesiastical history.", marcRecord.getTitle());
       return true;
-    }));
+    });
+
     async.complete();
   }
 
