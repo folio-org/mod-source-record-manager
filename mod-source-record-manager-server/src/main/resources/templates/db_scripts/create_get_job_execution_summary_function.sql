@@ -21,18 +21,16 @@ BEGIN
                ORDER BY CASE action_type
                  WHEN 'CREATE' THEN 1
                  WHEN 'UPDATE' THEN 2
-                 WHEN 'MODIFY' THEN 3
-                 WHEN 'NON_MATCH' THEN 4
-                 WHEN 'MATCH' THEN 5
+                 WHEN 'NON_MATCH' THEN 3
+                 WHEN 'MATCH' THEN 4
                  ELSE 99 END) as row_num_per_entity,
              FIRST_VALUE(action_type) OVER (
                PARTITION BY source_id, entity_type
                ORDER BY CASE action_type
                  WHEN 'CREATE' THEN 1
                  WHEN 'UPDATE' THEN 2
-                 WHEN 'MODIFY' THEN 3
-                 WHEN 'NON_MATCH' THEN 4
-                 WHEN 'MATCH' THEN 5
+                 WHEN 'NON_MATCH' THEN 3
+                 WHEN 'MATCH' THEN 4
                  ELSE 99 END
                ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as action_type_max,
              COUNT(CASE WHEN action_type NOT IN ('MATCH', 'PARSE') THEN 1 END) OVER (

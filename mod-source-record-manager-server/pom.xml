@@ -460,6 +460,9 @@
         <version>3.5.3</version>
         <configuration>
           <useSystemClassLoader>false</useSystemClassLoader>
+<!--          <systemPropertyVariables>-->
+<!--            <api.version>1.44</api.version>-->
+<!--          </systemPropertyVariables>-->
         </configuration>
       </plugin>
 
