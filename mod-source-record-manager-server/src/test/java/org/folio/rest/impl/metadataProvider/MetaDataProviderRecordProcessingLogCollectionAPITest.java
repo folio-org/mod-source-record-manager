@@ -1077,7 +1077,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     }));
   }
 
-  //MODSOURMAN-1385: 'No action' records do not display title
+  //Profile: Default - Create SRS MARC Authority
   @Test
   public void shouldReturnAuthorityTitles(TestContext context) {
     Async async = context.async();
@@ -1114,15 +1114,17 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   }
 
   //MODSOURMAN-1385: 'No action' records do not display title
+  //Profile: Match: no action; non-match: Default - Create SRS MARC Authority
+  //Case: matched
   @Test
-  public void shouldReturnAuthorityTitlesForDiscarded(TestContext context) {
+  public void shouldReturnAuthorityTitleForDiscarded(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v ->       createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, MATCH, AUTHORITY, COMPLETED, null, null))
       .onFailure(context::fail);
@@ -1141,6 +1143,75 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
         .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
+      async.complete();
+    }));
+  }
+
+  //Profile: Match: no action; non-match: Default - Create SRS MARC Authority
+  //Case: matched with error
+  @Test
+  public void shouldReturnAuthorityTitleForMatchedWithError(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String errorMessage = "org.folio.services.exceptions.DuplicateRecordException: Incoming file may contain duplicates";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, MATCH, AUTHORITY, ERROR, errorMessage, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      ValidatableResponse r = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].error", is(errorMessage))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.error", is(errorMessage));
+      async.complete();
+    }));
+  }
+
+  //MODSOURMAN-1385: 'No action' records do not display title
+  //Profile: Match: no action; non-match: Default - Create instance
+  //Case: matched
+  @Test
+  public void shouldReturnMarcBibTitleForMatchedWithoutAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      ValidatableResponse r = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedInstanceInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
       async.complete();
     }));
   }
