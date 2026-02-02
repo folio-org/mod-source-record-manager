@@ -28,7 +28,7 @@ on:
 
 jobs:
   evaluate:
-    uses: folio-org/tc-module-eval/.github/workflows/evaluate.yml@remote-eval
+    uses: folio-org/tc-module-eval/.github/workflows/evaluate.yml@master
     with:
       ref: ${{ inputs.ref }}
       output_format: ${{ inputs.output_format }}
