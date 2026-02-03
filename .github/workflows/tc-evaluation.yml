@@ -5,4 +5,9 @@ on:
 
 jobs:
   evaluate:
-    uses: folio-org/tc-module-eval/.github/workflows/evaluate.yml@remote-eval
+    uses: folio-org/tc-module-eval/.github/workflows/evaluate.yml@master
+    with:
+      ref: ${{ inputs.ref }}
+      output_format: ${{ inputs.output_format }}
+      criteria_filter: ${{ inputs.criteria_filter }}
+      java_version: ${{ inputs.java_version }}
