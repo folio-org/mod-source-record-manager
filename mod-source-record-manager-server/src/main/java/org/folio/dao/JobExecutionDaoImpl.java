@@ -1,7 +1,5 @@
 package org.folio.dao;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
@@ -33,8 +31,8 @@ import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
+import org.folio.rest.persist.Conn;
 import org.folio.rest.persist.PostgresClient;
-import org.folio.rest.persist.SQLConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -42,7 +40,6 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -143,7 +140,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private PostgresClientFactory pgClientFactory;
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter,
+    List<SortField> sortFields, int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String filterCriteria = filter.buildCriteria();
@@ -152,7 +150,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
       String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, jobTable, progressTable, filterCriteria, orderByClause);
 
-      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise::handle);
     } catch (Exception e) {
       LOGGER.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);
       promise.fail(e);
@@ -168,7 +166,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
       String sql = format(GET_CHILDREN_JOBS_BY_PARENT_ID_SQL, jobTable, jobTable, progressTable);
       Tuple queryParams = Tuple.of(UUID.fromString(parentId), limit, offset);
-      pgClientFactory.createInstance(tenantId).selectRead(sql, queryParams, promise);
+      pgClientFactory.createInstance(tenantId).selectRead(sql, queryParams, promise::handle);
     } catch (Exception e) {
       LOGGER.warn("getChildrenJobExecutionsByParentId:: Error getting jobExecutions by parent id", e);
       promise.fail(e);
@@ -182,7 +180,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String query = format(GET_BY_ID_SQL, jobTable);
-      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(UUID.fromString(id)), promise);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(UUID.fromString(id)), promise::handle);
     } catch (Exception e) {
       LOGGER.warn("getJobExecutionById:: Error getting jobExecution by id", e);
       promise.fail(e);
@@ -197,7 +195,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String query = format(GET_RELATED_JOB_PROFILES_SQL, jobTable);
-      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise::handle);
     } catch (Exception e) {
       LOGGER.warn("getRelatedJobProfiles:: Error getting related Job Profiles", e);
       promise.fail(e);
@@ -213,7 +211,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       if (getHrIdAr.succeeded() && getHrIdAr.result().iterator().hasNext()) {
         jobExecution.setHrId(getHrIdAr.result().iterator().next().getInteger(0));
         String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
-        pgClientFactory.createInstance(tenantId).execute(query, mapToTuple(jobExecution), promise);
+        pgClientFactory.createInstance(tenantId).execute(query, mapToTuple(jobExecution), promise::handle);
       } else {
         promise.fail(getHrIdAr.cause());
       }
@@ -223,103 +221,136 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());
     try {
       String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
       Tuple queryParams = mapToTuple(jobExecution);
-      pgClientFactory.createInstance(tenantId).execute(preparedQuery, queryParams, promise);
+      return pgClientFactory.createInstance(tenantId).execute(preparedQuery, queryParams)
+        .compose(rowSet -> rowSet.rowCount() != 1
+          ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture(jobExecution));
     } catch (Exception e) {
       LOGGER.warn("updateJobExecution:: Error updating jobExecution", e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future().compose(rowSet -> rowSet.rowCount() != 1
-      ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture(jobExecution));
   }
 
   @Override
-  public Future<Void> updateJobExecutionProgress(AsyncResult<SQLConnection> connection, Progress progress, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
+  public Future<Void> updateJobExecutionProgress(Conn connection, Progress progress, String tenantId) {
     String errorMessage = String.format("JobExecution with id '%s' was not found during progress update", progress.getJobExecutionId());
     try {
       String preparedQuery = format(UPDATE_PROGRESS_SQL, formatFullTableName(tenantId, TABLE_NAME));
       Tuple queryParams = Tuple.of(progress.getJobExecutionId(), progress.getCurrent(), progress.getTotal());
-      pgClientFactory.createInstance(tenantId).execute(connection, preparedQuery, queryParams, promise);
+      return connection.execute(preparedQuery, queryParams)
+        .compose(rowSet -> rowSet.rowCount() != 1
+          ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture());
     } catch (Exception e) {
       LOGGER.warn("updateJobExecutionProgress:: Error updating jobExecution progress, jobId: {}", progress.getJobExecutionId(), e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future().compose(rowSet -> rowSet.rowCount() != 1
-      ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture());
   }
 
   @Override
+//  public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId) {
+//    Promise<JobExecution> promise = Promise.promise();
+//    Promise<SQLConnection> connection = Promise.promise();
+//    Promise<JobExecution> jobExecutionPromise = Promise.promise();
+//    Future.succeededFuture()
+//      .compose(v -> {
+//        LOGGER.debug("updateBlocking:: Starting transaction for jobExecutionId={}", jobExecutionId);
+//        pgClientFactory.createInstance(tenantId).startTx(connection);
+//        return connection.future();
+//      }).compose(v -> {
+//        LOGGER.debug("updateBlocking:: Transaction started for jobExecutionId={}", jobExecutionId);
+//        String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 AND is_deleted = false LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
+//        Promise<RowSet<Row>> selectResult = Promise.promise();
+//        pgClientFactory.createInstance(tenantId).execute(connection.future(), selectForUpdate, Tuple.of(jobExecutionId), selectResult);
+//        return selectResult.future();
+//      }).compose(rowSet -> {
+//        if (rowSet.rowCount() != 1) {
+//          String errorMessage = String.format("updateBlocking:: JobExecution not found for id %s", jobExecutionId);
+//          LOGGER.error(errorMessage);
+//          throw new NotFoundException(errorMessage);
+//        }
+//        JobExecution existingJobExecution = mapRowToJobExecution(rowSet.iterator().next());
+//        LOGGER.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={} with subordinationType={} and status={}",
+//          jobExecutionId, existingJobExecution.getSubordinationType().value(), existingJobExecution.getStatus().value());
+//        if (existingJobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT
+//          && existingJobExecution.getStatus() == JobExecution.Status.COMMITTED) {
+//          String errorMessage = String.format("updateBlocking:: JobExecution is COMPOSITE_PARENT and already with COMMITTED status, skipping update, jobExecutionId=%s", jobExecutionId);
+//          LOGGER.warn(errorMessage);
+//          promise.fail(new BadRequestException(errorMessage));
+//          return Future.failedFuture(new BadRequestException(errorMessage));
+//        }
+//        return mutator.mutate(mapRowToJobExecution(rowSet.iterator().next())).onComplete(jobExecutionPromise);
+//      }).compose(jobExecution -> {
+//        LOGGER.debug("updateBlocking:: Mutated JobExecution, jobExecutionId={}", jobExecutionId);
+//        Promise<RowSet<Row>> updateHandler = Promise.promise();
+//        String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
+//        Tuple queryParams = mapToTuple(jobExecution);
+//        pgClientFactory.createInstance(tenantId).execute(connection.future(), preparedQuery, queryParams, updateHandler);
+//        return updateHandler.future();
+//      }).compose(updateHandler -> {
+//        LOGGER.debug("updateBlocking:: Updated JobExecution in DB, jobExecutionId={}", jobExecutionId);
+//        Promise<Void> endTxFuture = Promise.promise();
+//        pgClientFactory.createInstance(tenantId).endTx(connection.future(), endTxFuture);
+//        return endTxFuture.future();
+//      }).onComplete(ar -> {
+//        if (ar.failed()) {
+//          LOGGER.warn("updateBlocking:: Error updating jobExecution, jobExecutionId={}, error: {}", jobExecutionId, ar.cause().getMessage());
+//          pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> {
+//            if (rollback.failed()) {
+//              LOGGER.error("updateBlocking:: Rollback failed for jobExecutionId={}", jobExecutionId, rollback.cause());
+//            } else {
+//              LOGGER.warn("updateBlocking:: Transaction rolled back for jobExecutionId={}", jobExecutionId);
+//            }
+//            promise.fail(ar.cause());
+//          });
+//          return;
+//        }
+//        LOGGER.debug("updateBlocking:: Transaction completed successfully for jobExecutionId={}", jobExecutionId);
+//        promise.complete(jobExecutionPromise.future().result());
+//      });
+//    return promise.future();
+//  }
+
   public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId) {
-    Promise<JobExecution> promise = Promise.promise();
-    Promise<SQLConnection> connection = Promise.promise();
     Promise<JobExecution> jobExecutionPromise = Promise.promise();
-    Future.succeededFuture()
-      .compose(v -> {
-        LOGGER.debug("updateBlocking:: Starting transaction for jobExecutionId={}", jobExecutionId);
-        pgClientFactory.createInstance(tenantId).startTx(connection);
-        return connection.future();
-      }).compose(v -> {
+    LOGGER.debug("updateBlocking:: Starting transaction for jobExecutionId={}", jobExecutionId);
+
+    return pgClientFactory.createInstance(tenantId).withTrans(connection -> {
         LOGGER.debug("updateBlocking:: Transaction started for jobExecutionId={}", jobExecutionId);
         String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 AND is_deleted = false LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
-        Promise<RowSet<Row>> selectResult = Promise.promise();
-        pgClientFactory.createInstance(tenantId).execute(connection.future(), selectForUpdate, Tuple.of(jobExecutionId), selectResult);
-        return selectResult.future();
-      }).compose(rowSet -> {
-        if (rowSet.rowCount() != 1) {
-          String errorMessage = String.format("updateBlocking:: JobExecution not found for id %s", jobExecutionId);
-          LOGGER.error(errorMessage);
-          throw new NotFoundException(errorMessage);
-        }
-        JobExecution existingJobExecution = mapRowToJobExecution(rowSet.iterator().next());
-        LOGGER.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={} with subordinationType={} and status={}",
-          jobExecutionId, existingJobExecution.getSubordinationType().value(), existingJobExecution.getStatus().value());
-        if (existingJobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT
-          && existingJobExecution.getStatus() == JobExecution.Status.COMMITTED) {
-          String errorMessage = String.format("updateBlocking:: JobExecution is COMPOSITE_PARENT and already with COMMITTED status, skipping update, jobExecutionId=%s", jobExecutionId);
-          LOGGER.warn(errorMessage);
-          promise.fail(new BadRequestException(errorMessage));
-          return Future.failedFuture(new BadRequestException(errorMessage));
-        }
-        return mutator.mutate(mapRowToJobExecution(rowSet.iterator().next())).onComplete(jobExecutionPromise);
-      }).compose(jobExecution -> {
-        LOGGER.debug("updateBlocking:: Mutated JobExecution, jobExecutionId={}", jobExecutionId);
-        Promise<RowSet<Row>> updateHandler = Promise.promise();
-        String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
-        Tuple queryParams = mapToTuple(jobExecution);
-        pgClientFactory.createInstance(tenantId).execute(connection.future(), preparedQuery, queryParams, updateHandler);
-        return updateHandler.future();
-      }).compose(updateHandler -> {
-        LOGGER.debug("updateBlocking:: Updated JobExecution in DB, jobExecutionId={}", jobExecutionId);
-        Promise<Void> endTxFuture = Promise.promise();
-        pgClientFactory.createInstance(tenantId).endTx(connection.future(), endTxFuture);
-        return endTxFuture.future();
-      }).onComplete(ar -> {
-        if (ar.failed()) {
-          LOGGER.warn("updateBlocking:: Error updating jobExecution, jobExecutionId={}, error: {}", jobExecutionId, ar.cause().getMessage());
-          pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> {
-            if (rollback.failed()) {
-              LOGGER.error("updateBlocking:: Rollback failed for jobExecutionId={}", jobExecutionId, rollback.cause());
-            } else {
-              LOGGER.warn("updateBlocking:: Transaction rolled back for jobExecutionId={}", jobExecutionId);
+        return connection.execute(selectForUpdate, Tuple.of(jobExecutionId))
+          .compose(rowSet -> {
+            if (rowSet.rowCount() != 1) {
+              String errorMessage = String.format("updateBlocking:: JobExecution not found for id %s", jobExecutionId);
+              LOGGER.error(errorMessage);
+              throw new NotFoundException(errorMessage);
             }
-            promise.fail(ar.cause());
+            JobExecution existingJobExecution = mapRowToJobExecution(rowSet.iterator().next());
+            LOGGER.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={} with subordinationType={} and status={}",
+              jobExecutionId, existingJobExecution.getSubordinationType().value(), existingJobExecution.getStatus().value());
+            if (existingJobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT
+              && existingJobExecution.getStatus() == JobExecution.Status.COMMITTED) {
+              String errorMessage = String.format("updateBlocking:: JobExecution is COMPOSITE_PARENT and already with COMMITTED status, skipping update, jobExecutionId=%s", jobExecutionId);
+              LOGGER.warn(errorMessage);
+              return Future.failedFuture(new BadRequestException(errorMessage));
+            }
+            return mutator.mutate(existingJobExecution).onComplete(jobExecutionPromise);
+          }).compose(jobExecution -> {
+            LOGGER.debug("updateBlocking:: Mutated JobExecution, jobExecutionId={}", jobExecutionId);
+            String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
+            Tuple queryParams = mapToTuple(jobExecution);
+            return connection.execute(preparedQuery, queryParams).map(jobExecution);
           });
-          return;
-        }
-        LOGGER.debug("updateBlocking:: Transaction completed successfully for jobExecutionId={}", jobExecutionId);
-        promise.complete(jobExecutionPromise.future().result());
-      });
-    return promise.future();
+      }).onSuccess(v ->
+        LOGGER.debug("updateBlocking:: Transaction completed successfully for jobExecutionId={}", jobExecutionId))
+      .onFailure(e ->
+        LOGGER.warn("updateBlocking:: Error updating jobExecution, jobExecutionId={}", jobExecutionId, e));
   }
 
   @Override
   public Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       Map<String, String> data = new HashMap<>();
       data.put(TENANT_NAME, convertToPsqlStandard(tenantId));
@@ -330,12 +361,13 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       data.put(SET_CONDITIONAL_FIELD_VALUES, String.join("','", ids));
       data.put(RETURNING_FIELD_NAMES, ID + "," + IS_DELETED);
       String query = StrSubstitutor.replace(UPDATE_BY_IDS_SQL, data);
-      pgClientFactory.createInstance(tenantId).execute(query, promise);
+
+      return pgClientFactory.createInstance(tenantId).execute(query)
+        .map(this::mapRowSetToDeleteChangeManagerJobExeResp);
     } catch (Exception e) {
       LOGGER.warn("softDeleteJobExecutionsByIds:: Error deleting jobExecution by ids {}, ", ids, e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
   }
 
   @Override
@@ -344,7 +376,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String tableName = formatFullTableName(tenantId, TABLE_NAME);
       String query = format(GET_UNIQUE_USERS, tableName);
-      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise::handle);
     } catch (Exception e) {
       LOGGER.warn("getRelatedUsersInfo:: Error getting unique users ", e);
       promise.fail(e);
@@ -609,8 +641,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   @Override
   public Future<Boolean> hardDeleteJobExecutions(long diffNumberOfDays, String tenantId) {
     PostgresClient postgresClient = pgClientFactory.createInstance(tenantId);
-    return DbUtil.executeInTransaction(postgresClient, sqlConnection ->
-      fetchJobExecutionIdsConsideredForDeleting(tenantId, diffNumberOfDays, sqlConnection, postgresClient)
+    return DbUtil.executeInTransaction(postgresClient, connection ->
+      fetchJobExecutionIdsConsideredForDeleting(tenantId, diffNumberOfDays, connection)
         .compose(rowSet -> {
           if (rowSet.rowCount() < 1) {
             LOGGER.info("hardDeleteJobExecutions:: Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
@@ -625,12 +657,12 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
           UUID[] uuids = jobExecutionIds.stream().map(UUID::fromString).toList().toArray(UUID[]::new);
 
-          Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(PROGRESS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
-          Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteFromRelatedTableWithDeprecatedNaming(JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
-          Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(JOURNAL_RECORDS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
-          Future<RowSet<Row>> incomingRecordsFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(INCOMING_RECORDS_TABLE, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
-          return CompositeFuture.all(jobExecutionProgressFuture, jobExecutionSourceChunksFuture, journalRecordsFuture, incomingRecordsFuture)
-            .compose(ar -> Future.<RowSet<Row>>future(rowSetPromise -> deleteFromJobExecutionTable(uuids, sqlConnection, tenantId, rowSetPromise, postgresClient)))
+          return Future.all(
+            deleteFromRelatedTable(PROGRESS_TABLE_NAME, uuids, connection, tenantId),
+            deleteFromRelatedTableWithDeprecatedNaming(JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME, uuids, connection, tenantId),
+            deleteFromRelatedTable(JOURNAL_RECORDS_TABLE_NAME, uuids, connection, tenantId),
+            deleteFromRelatedTable(INCOMING_RECORDS_TABLE, uuids, connection, tenantId)
+          ).compose(v -> deleteFromJobExecutionTable(uuids, connection, tenantId))
             .map(true);
         }));
   }
@@ -641,29 +673,27 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return Future.succeededFuture(uuidsToBeDeleted);
   }
 
-  private Future<RowSet<Row>> fetchJobExecutionIdsConsideredForDeleting(String tenantId, long diffNumberOfDays, AsyncResult<SQLConnection> connection, PostgresClient postgresClient) {
+  private Future<RowSet<Row>> fetchJobExecutionIdsConsideredForDeleting(String tenantId, long diffNumberOfDays, Conn connection) {
     String selectForDeletion = format(SELECT_IDS_FOR_DELETION, convertToPsqlStandard(tenantId), TABLE_NAME);
-    Tuple queryParams = Tuple.of(LocalDateTime.now().minus(diffNumberOfDays, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC));
-    Promise<RowSet<Row>> selectResult = Promise.promise();
-    postgresClient.execute(connection, selectForDeletion, queryParams, selectResult);
-    return selectResult.future();
+    Tuple queryParams = Tuple.of(LocalDateTime.now().minusDays(diffNumberOfDays).atOffset(ZoneOffset.UTC));
+    return connection.execute(selectForDeletion, queryParams);
   }
 
-  private void deleteFromRelatedTable(String tableName, UUID[] uuids, AsyncResult<SQLConnection> connection, String tenantId, Promise<RowSet<Row>> promise, PostgresClient postgresClient) {
+  private Future<RowSet<Row>> deleteFromRelatedTable(String tableName, UUID[] uuids, Conn connection, String tenantId) {
     String deleteQuery = format(DELETE_FROM_RELATED_TABLE, convertToPsqlStandard(tenantId), tableName);
     Tuple queryParams = Tuple.of(uuids);
-    postgresClient.execute(connection, deleteQuery, queryParams, promise);
+    return connection.execute(deleteQuery, queryParams);
   }
 
-  private void deleteFromRelatedTableWithDeprecatedNaming(String tableName, UUID[] uuids, AsyncResult<SQLConnection> connection, String tenantId, Promise<RowSet<Row>> promise, PostgresClient postgresClient) {
+  private Future<RowSet<Row>> deleteFromRelatedTableWithDeprecatedNaming(String tableName, UUID[] uuids, Conn connection, String tenantId) {
     String deleteQuery = format(DELETE_FROM_RELATED_TABLE_DEPRECATED_NAMING, convertToPsqlStandard(tenantId), tableName);
     Tuple queryParams = Tuple.of(uuids);
-    postgresClient.execute(connection, deleteQuery, queryParams, promise);
+    return connection.execute(deleteQuery, queryParams);
   }
 
-  private void deleteFromJobExecutionTable(UUID[] uuids, AsyncResult<SQLConnection> connection, String tenantId, Promise<RowSet<Row>> promise, PostgresClient postgresClient) {
+  private Future<RowSet<Row>> deleteFromJobExecutionTable(UUID[] uuids, Conn connection, String tenantId) {
     String deleteQuery = format(DELETE_FROM_JOB_EXECUTION_TABLE, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(uuids);
-    postgresClient.execute(connection, deleteQuery, queryParams, promise);
+    return connection.execute(deleteQuery, queryParams);
   }
 }

@@ -17,10 +17,11 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeFiel
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
-import io.vertx.core.VertxOptions;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.io.File;
@@ -35,6 +36,7 @@ import org.folio.TestUtil;
 import org.folio.okapi.common.MetricsUtil;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
+import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -58,7 +60,7 @@ public class AdditionalFieldsUtilTest {
   public static void beforeClass() {
     System.setProperty("vertx.metrics.options.enabled", "true");
     System.setProperty("jmxMetricsOptions", "{\"domain\":\"org.folio\"}");
-    MetricsUtil.init(new VertxOptions());
+    MetricsUtil.init(Vertx.builder());
   }
 
   @AfterClass
@@ -337,7 +339,7 @@ public class AdditionalFieldsUtilTest {
         existsNewField = true;
         String currentTag = fields.getJsonObject(i).stream().map(Map.Entry::getKey).findFirst().get();
         String nextTag = fields.getJsonObject(i + 1).stream().map(Map.Entry::getKey).findFirst().get();
-        Assert.assertThat(currentTag, lessThanOrEqualTo(nextTag));
+        MatcherAssert.assertThat(currentTag, lessThanOrEqualTo(nextTag));
       }
     }
     Assert.assertTrue(existsNewField);
@@ -472,7 +474,7 @@ public class AdditionalFieldsUtilTest {
     assertEquals(2, cacheStats.missCount());
     assertEquals(2, cacheStats.loadCount());
     // get the control field
-    assertEquals(null, getControlFieldValue(record, "035"));
+    assertNull(getControlFieldValue(record, "035"));
     cacheStats = getCacheStats().minus(initialCacheStats);
     assertEquals(7, cacheStats.requestCount());
     assertEquals(5, cacheStats.hitCount());

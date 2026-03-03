@@ -40,7 +40,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
     try {
       String query = format(SELECT_BY_TYPE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(recordType != null ? recordType.toString() : null);
-      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise::handle);
     } catch (Exception e) {
       LOGGER.warn("get:: Error getting mapping rules", e);
       promise.fail(e);
@@ -58,7 +58,6 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
 
   @Override
   public Future<String> save(JsonObject rules, Record.RecordType recordType, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     LOGGER.trace("save:: Saving mapping rules tenant id {}", tenantId);
     UUID id = UUID.randomUUID();
     String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
@@ -66,16 +65,17 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
       id,
       new JsonObject().put(RULES_JSON_FIELD, rules),
       recordType.toString());
-    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
-    return promise.future().map(id.toString()).onFailure(e -> LOGGER.warn("save:: Error saving rules", e));
+    return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
+      .onFailure(e -> LOGGER.warn("save:: Error saving rules", e))
+      .map(id.toString());
   }
 
   @Override
   public Future<JsonObject> update(JsonObject rules, Record.RecordType recordType, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(UPDATE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(new JsonObject().put(RULES_JSON_FIELD, rules), recordType.toString());
-    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
-    return promise.future().map(rules).onFailure(e -> LOGGER.warn("update:: Error updating rules", e));
+    return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
+      .onFailure(e -> LOGGER.warn("update:: Error updating rules", e))
+      .map(rules);
   }
 }

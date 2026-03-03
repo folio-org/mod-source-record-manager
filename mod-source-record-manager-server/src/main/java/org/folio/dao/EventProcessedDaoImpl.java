@@ -22,8 +22,6 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
   public static final String EVENTS_PROCESSED_TABLE_NAME = "events_processed";
   private static final String INSERT_SQL = "INSERT INTO %s.%s (handler_id, event_id) VALUES ($1, $2)";
 
-  private static final String INSERT_EVENT_SQL = "SELECT save_event ($1, $2)";
-
   private final PostgresClientFactory pgClientFactory;
 
   @Autowired
@@ -33,22 +31,18 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
 
   @Override
   public Future<RowSet<Row>> save(String handlerId, String eventId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), EVENTS_PROCESSED_TABLE_NAME);
-
-    makeSaveCall(promise, query, handlerId, eventId, tenantId);
-
-    return promise.future();
+    return makeSaveCall(query, handlerId, eventId, tenantId);
   }
 
- private void makeSaveCall(Promise<RowSet<Row>> promise, String query, String handlerId, String eventId, String tenantId) {
+ private Future<RowSet<Row>> makeSaveCall(String query, String handlerId, String eventId, String tenantId) {
     try {
-      pgClientFactory.createInstance(tenantId).execute(query, Tuple.of(handlerId, eventId), promise);
+      return pgClientFactory.createInstance(tenantId).execute(query, Tuple.of(handlerId, eventId));
     } catch (Exception e) {
       LOGGER.warn("makeSaveCall:: Failed to save handlerId {} and eventId {} combination to table {}", handlerId,  eventId, EVENTS_PROCESSED_TABLE_NAME, e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-  }
+ }
 
   private Future<Integer> getCounterValueFromRowSet(Promise<RowSet<Row>> promise) {
     return promise.future().map(resultSet -> resultSet.iterator().next().getInteger(0));

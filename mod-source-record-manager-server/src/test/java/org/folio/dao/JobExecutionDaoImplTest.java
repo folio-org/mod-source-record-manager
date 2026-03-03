@@ -1,8 +1,6 @@
 package org.folio.dao;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -21,12 +19,12 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCompositeDetailsDto;
 import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
 import org.junit.Before;
@@ -40,7 +38,6 @@ import org.mockito.Spy;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -161,7 +158,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusThreeDays = LocalDateTime.now().minus(3, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
+    Instant minusThreeDays = LocalDateTime.now().minusDays(3).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
 
     preparationFuture.onComplete(ar -> {
@@ -170,7 +167,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
 
       jobExecutionDao.softDeleteJobExecutionsByIds(jobExecutionIds, TENANT_ID)
         .onSuccess(reply -> {
-          JobExecutionDetail jobExecutionDetail = reply.getJobExecutionDetails().get(0);
+          JobExecutionDetail jobExecutionDetail = reply.getJobExecutionDetails().getFirst();
           assertEquals(jobExecutionDetail.getJobExecutionId(), jobExecution.getId());
           assertTrue(jobExecutionDetail.getIsDeleted());
 
@@ -188,7 +185,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusThreeDays = LocalDateTime.now().minus(3, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
+    Instant minusThreeDays = LocalDateTime.now().minusDays(3).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
 
     preparationFuture.onComplete(ar -> {
@@ -209,7 +206,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusOneDay = LocalDateTime.now().minus(1, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
+    Instant minusOneDay = LocalDateTime.now().minusDays(1).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusOneDay);
     preparationFuture.onComplete(ar -> {
       JobExecution jobExecution = ar.result();
@@ -217,7 +214,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
 
       jobExecutionDao.softDeleteJobExecutionsByIds(jobExecutionIds, TENANT_ID)
         .onSuccess(reply -> {
-          JobExecutionDetail jobExecutionDetail = reply.getJobExecutionDetails().get(0);
+          JobExecutionDetail jobExecutionDetail = reply.getJobExecutionDetails().getFirst();
           assertEquals(jobExecutionDetail.getJobExecutionId(), jobExecution.getId());
           assertTrue(jobExecutionDetail.getIsDeleted());
 
@@ -235,7 +232,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusThreeDays = LocalDateTime.now().minus(3, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
+    Instant minusThreeDays = LocalDateTime.now().minusDays(3).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
     preparationFuture.onComplete(ar -> {
       JobExecution jobExecution = ar.result();
@@ -251,7 +248,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     jobExec.withCompletedDate(Date.from(completedDate));
 
@@ -283,7 +280,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       Future<RowSet<Row>> saveProgressFuture = jobExecutionProgressDao.save(jobExecutionProgress, TENANT_ID);
       Future<String> saveJournalFuture = journalRecordDao.save(journalRecord, TENANT_ID);
       Future<String> saveSourceChunkFuture = jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, TENANT_ID);
-      return CompositeFuture.all(saveProgressFuture, saveJournalFuture, saveSourceChunkFuture)
+      return Future.all(saveProgressFuture, saveJournalFuture, saveSourceChunkFuture)
         .compose(ar -> Future.succeededFuture(jobExecution));
     });
   }
@@ -318,10 +315,8 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   }
 
   private Future<RowSet<Row>> fetchInformationFromDatabase(String values, String tableName, String fieldName) {
-    Promise<RowSet<Row>> selectResult = Promise.promise();
     String preparedQuery = format(GENERIC_SELECT_QUERY_TO_GET_COUNT, convertToPsqlStandard(TENANT_ID) + "." + tableName, fieldName, values);
-    postgresClientFactory.createInstance(TENANT_ID).execute(preparedQuery, selectResult);
-    return selectResult.future();
+    return postgresClientFactory.createInstance(TENANT_ID).execute(preparedQuery);
   }
 
   @Test
@@ -329,7 +324,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     // many children so each status can have a unique # of children
     List<JobExecution> executions = constructAndPostCompositeInitJobExecutionRqDto("test-name", 1+2+3+4+5+6+7+8+9+10+11);
 
-    List<Future> futures = new ArrayList<>();
+    List<Future<Void>> futures = new ArrayList<>();
 
     for (int i = 1; i < 1 + 1; i++) {
       futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
@@ -387,16 +382,16 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
         1024));
     }
 
-    CompositeFuture.all(futures).onComplete(context.asyncAssertSuccess(v -> {
+    Future.all(futures).onComplete(context.asyncAssertSuccess(v -> {
       jobExecutionDao
         .getJobExecutionsWithoutParentMultiple(
-          new JobExecutionFilter().withSubordinationTypeNotAny(Arrays.asList(SubordinationType.COMPOSITE_CHILD)),
+          new JobExecutionFilter().withSubordinationTypeNotAny(List.of(SubordinationType.COMPOSITE_CHILD)),
           null, 0, 100, params.getTenantId()
         )
         .onComplete(context.asyncAssertSuccess(result -> {
           assertThat(result.getTotalRecords(), is(1));
 
-          JobExecutionDto execution = result.getJobExecutions().get(0);
+          JobExecutionDto execution = result.getJobExecutions().getFirst();
           JobExecutionCompositeDetailsDto compositeDetails = execution.getCompositeDetails();
 
           assertThat(compositeDetails.getNewState().getChunksCount(), is(1));
@@ -467,7 +462,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       .onComplete(context.asyncAssertSuccess(result -> {
         assertThat(result.getTotalRecords(), is(1));
 
-        JobExecutionDto execution = result.getJobExecutions().get(0);
+        JobExecutionDto execution = result.getJobExecutions().getFirst();
 
         assertThat(execution.getCompositeDetails(), is(nullValue()));
         assertThat(execution.getCompositeDetails(), is(nullValue()));

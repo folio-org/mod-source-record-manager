@@ -10,7 +10,7 @@ import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.okapi.common.GenericCompositeFuture;
+import io.vertx.core.Future;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -123,7 +123,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .compose(initJobExecutionsRsDto -> {
         Future<JobExecutionProgress> future1 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
         Future<JobExecutionProgress> future2 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
-        return GenericCompositeFuture.join(Arrays.asList(future1, future2));
+        return Future.join(Arrays.asList(future1, future2));
       });
 
     future.onComplete(ar -> {

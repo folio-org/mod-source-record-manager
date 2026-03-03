@@ -38,7 +38,7 @@ public class MappingRulesSnapshotDaoImpl implements MappingRulesSnapshotDao {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-    pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
+    pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise::handle);
     return promise.future().map(resultSet -> {
       if (resultSet.rowCount() == 0 || resultSet.iterator().next().getValue(RULES_FIELD) == null) {
         return Optional.empty();
@@ -51,8 +51,7 @@ public class MappingRulesSnapshotDaoImpl implements MappingRulesSnapshotDao {
 
   @Override
   public Future<String> save(JsonObject rules, String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
-    LOGGER.trace("save:: Saving mappingRulesSnapshot for tenant {}", tenantId);
+    LOGGER.trace("save:: Saving mappingRulesSnapshot for jobExecutionId: {}, tenant: {}", jobExecutionId, tenantId);
     try {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
@@ -60,21 +59,21 @@ public class MappingRulesSnapshotDaoImpl implements MappingRulesSnapshotDao {
         rules,
         LocalDateTime.now()
       );
-      pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
+      return pgClientFactory.createInstance(tenantId).execute(query, queryParams).map(jobExecutionId)
+        .onFailure(e -> LOGGER.warn("save:: Failed to save MappingRulesSnapshot entity, jobExecutionId: {}",
+          jobExecutionId, e));
     } catch (Exception e) {
-      LOGGER.warn("save:: Error saving MappingRulesSnapshot entity", e);
-      promise.fail(e);
+      LOGGER.warn("save:: Error saving MappingRulesSnapshot entity, jobExecutionId: {}", jobExecutionId, e);
+      return Future.failedFuture(e);
     }
-    return promise.future().map(jobExecutionId).onFailure(e -> LOGGER.warn("save:: Failed to save MappingRulesSnapshot entity", e));
   }
 
   @Override
   public Future<Boolean> delete(String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
-    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
+    return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
+      .map(updateResult -> updateResult.rowCount() == 1);
   }
 
 }
