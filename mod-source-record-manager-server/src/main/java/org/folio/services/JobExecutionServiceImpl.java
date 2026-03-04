@@ -587,7 +587,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    */
   private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
     LOGGER.debug("postSnapshot:: jobExecutionId={}", snapshot.getJobExecutionId());
-    Promise<String> promise = Promise.promise();
 
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
@@ -604,9 +603,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       });
     } catch (Exception e) {
       LOGGER.warn("postSnapshot:: Error during post for new Snapshot", e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future();
   }
 
   protected Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
