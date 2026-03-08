@@ -207,6 +207,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     ChangeEngineService changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig, fieldModificationService,
       incomingRecordService, consortiumDataCache, vertx);
+    ReflectionTestUtils.setField(changeEngineService, "thresholdChunkSize", 100);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     ReflectionTestUtils.setField(recordsPublishingService, "maxDistributionNum", 100);

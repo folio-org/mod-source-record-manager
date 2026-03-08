@@ -9,8 +9,9 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
+import io.vertx.core.Handler;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
@@ -62,10 +63,10 @@ public class RuleMigrationChangeLogDaoImplTest {
     when(rowSet.spliterator()).thenReturn(Stream.<Row>empty().spliterator());
 
     doAnswer(invocation -> {
-      Promise<RowSet<Row>> promise = invocation.getArgument(2);
-      promise.complete(rowSet);
+      Handler<AsyncResult<RowSet<Row>>> handler = invocation.getArgument(2);
+      handler.handle(Future.succeededFuture(rowSet));
       return null;
-    }).when(pgClient).selectRead(anyString(), any(), any());
+    }).when(pgClient).selectRead(anyString(), any(Tuple.class), any(Handler.class));
 
     changeLogDao.getMigrationIds(TENANT_ID).onComplete(ar -> {
       assertTrue(ar.succeeded());
@@ -80,11 +81,11 @@ public class RuleMigrationChangeLogDaoImplTest {
     when(row.getUUID("migration_id")).thenReturn(MIGRATION_ID);
     when(rowSet.spliterator()).thenReturn(Stream.of(row).spliterator());
 
-    doAnswer(inv -> {
-      Promise<RowSet<Row>> p = inv.getArgument(2);
-      p.complete(rowSet);
+    doAnswer(invocation -> {
+      Handler<AsyncResult<RowSet<Row>>> handler = invocation.getArgument(2);
+      handler.handle(Future.succeededFuture(rowSet));
       return null;
-    }).when(pgClient).selectRead(anyString(), any(), any());
+    }).when(pgClient).selectRead(anyString(), any(Tuple.class), any(Handler.class));
 
     changeLogDao.getMigrationIds(TENANT_ID).onComplete(ar -> {
       assertTrue(ar.succeeded());
@@ -96,11 +97,11 @@ public class RuleMigrationChangeLogDaoImplTest {
 
   @Test
   public void getMigrationIds_shouldFail_whenSelectFails() {
-    doAnswer(inv -> {
-      Promise<RowSet<Row>> p = inv.getArgument(2);
-      p.fail(new RuntimeException(ERROR_MESSAGE));
+    doAnswer(invocation -> {
+      Handler<AsyncResult<RowSet<Row>>> handler = invocation.getArgument(2);
+      handler.handle(Future.failedFuture(new RuntimeException(ERROR_MESSAGE)));
       return null;
-    }).when(pgClient).selectRead(anyString(), any(), any());
+    }).when(pgClient).selectRead(anyString(), any(Tuple.class), any(Handler.class));
 
     changeLogDao.getMigrationIds(TENANT_ID).onComplete(ar -> {
       assertTrue(ar.failed());
