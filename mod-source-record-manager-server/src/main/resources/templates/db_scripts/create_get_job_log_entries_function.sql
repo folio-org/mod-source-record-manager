@@ -235,6 +235,7 @@ FROM (
        LEFT JOIN (
   SELECT DISTINCT journal_records.source_id, journal_records.title
   FROM journal_records WHERE journal_records.job_execution_id = ''%1$s'' AND (journal_records.entity_id IS NOT NULL OR journal_records.action_status = ''ERROR'' or journal_records.action_type = ''NON_MATCH'')
+       OR (journal_records.entity_type IN (''MARC_AUTHORITY'', ''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'') AND journal_records.title IS NOT NULL)
 ) AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
 
        LEFT JOIN (
