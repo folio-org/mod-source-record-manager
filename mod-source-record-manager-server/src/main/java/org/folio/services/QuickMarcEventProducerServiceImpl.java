@@ -61,9 +61,8 @@ public class QuickMarcEventProducerServiceImpl implements QuickMarcEventProducer
             promise.complete(true);
           })
           .onFailure(throwable -> {
-            var cause = throwable.getCause();
-            LOGGER.warn("sendEventInternal:: Error while send event {}: {}", eventType, cause);
-            promise.fail(cause);
+            LOGGER.warn("sendEventInternal:: Error while send event {}: {}", eventType, throwable);
+            promise.fail(throwable);
           });
       } else {
         promise.fail("No producer found for event: " + eventType);

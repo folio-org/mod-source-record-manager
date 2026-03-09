@@ -276,7 +276,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
           // Successfully create and return a Bundle object containing the record and event details
           return Optional.of(new Bundle(consumerRecord, event, okapiConnectionParams));
         } catch (Exception e) {
-          LOGGER.error("Error processing Kafka event with exception: {}", e.getMessage());
+          LOGGER.error("Error processing Kafka event with exception", e);
           // Return empty Optional to skip this record and continue processing
           return Optional.<Bundle>empty();
         }

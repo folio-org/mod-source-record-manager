@@ -434,7 +434,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
         return Future.succeededFuture();
       })
       .onSuccess(notUsed -> async.complete())
-      .onFailure(th -> context.fail(th.getCause()));
+      .onFailure(context::fail);
   }
 
   @Test
