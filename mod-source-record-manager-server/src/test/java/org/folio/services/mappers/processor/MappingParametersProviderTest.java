@@ -329,9 +329,9 @@ public class MappingParametersProviderTest {
 
     mappingParametersProvider.get("1", okapiConnectionParams)
       .onComplete(context.asyncAssertSuccess(mappingParameters -> {
-      context.assertEquals(1, mappingParameters.getInstanceNoteTypes().size());
-      context.assertEquals("Awards note", mappingParameters.getInstanceNoteTypes().getFirst().getName());
-    }));
+        context.assertEquals(1, mappingParameters.getInstanceNoteTypes().size());
+        context.assertEquals("Awards note", mappingParameters.getInstanceNoteTypes().getFirst().getName());
+      }));
   }
 
   /**
