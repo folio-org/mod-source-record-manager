@@ -589,18 +589,20 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       return client.postSourceStorageSnapshots(snapshot)
-        .onFailure(e -> LOGGER.warn("postSnapshot:: Error during post for new Snapshot", e))
+        .onFailure(e -> LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
+          snapshot.getJobExecutionId(), e))
         .compose(response -> {
         if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
-          LOGGER.warn("postSnapshot:: Error during post for new Snapshot. Status code: {}, body: '{}'",
-            response.statusCode(), response.bodyAsString());
+          LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}. Status code: {}, body: '{}'",
+            snapshot.getJobExecutionId(), response.statusCode(), response.bodyAsString());
           return Future.failedFuture(new HttpException(response.statusCode(), "Error during post for new Snapshot."));
         } else {
           return Future.succeededFuture(response.bodyAsString());
         }
       });
     } catch (Exception e) {
-      LOGGER.warn("postSnapshot:: Error during post for new Snapshot", e);
+      LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
+        snapshot.getJobExecutionId(), e);
       return Future.failedFuture(e);
     }
   }
