@@ -203,8 +203,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
       }).onFailure(th -> {
-        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, cause: {}, jobExecutionId: {}",
-          th.getMessage(), jobExecution.getId());
+        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, jobExecutionId: {}",
+         jobExecution.getId(), th);
         promise.fail(th);
       });
     return promise.future();
@@ -773,7 +773,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         promise.complete(invalidMarcBibIds);
       });
     } catch (Exception e) {
-      LOGGER.warn("verifyMarcHoldings004Field:: Error during call post request to SRS: {}", e.getMessage());
+      LOGGER.warn("verifyMarcHoldings004Field:: Error during call post request to SRS", e);
       promise.complete(Collections.emptyList());
     }
     return promise.future();
