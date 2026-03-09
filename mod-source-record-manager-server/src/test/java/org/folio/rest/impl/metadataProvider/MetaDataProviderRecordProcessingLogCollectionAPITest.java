@@ -11,7 +11,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import io.vertx.core.Future;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;

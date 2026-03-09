@@ -87,7 +87,6 @@ import org.folio.SubjectType;
 import org.folio.SubjectTypes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
-import io.vertx.core.Future;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
 import org.springframework.beans.factory.annotation.Autowired;

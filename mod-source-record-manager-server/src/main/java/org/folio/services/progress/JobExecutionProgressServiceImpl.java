@@ -5,12 +5,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageProducer;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionProgressDao;
-import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.Progress;
-import org.folio.rest.persist.PostgresClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,24 +43,11 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
   }
 
   @Override
-//  public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
-//    Progress jobProgress = new Progress().withJobExecutionId(jobExecutionId)
-//      .withCurrent(0)
-//      .withTotal(totalRecords);
-//
-//    PostgresClient pgClient = pgClientFactory.createInstance(tenantId);
-//    return DbUtil.executeInTransaction(pgClient, connectionAr ->
-//      jobExecutionProgressDao.initializeJobExecutionProgress(connectionAr, jobExecutionId, totalRecords, tenantId)
-//        .compose(progress -> jobExecutionDao.updateJobExecutionProgress(connectionAr, jobProgress, tenantId).map(progress))
-//    );
-//  }
-
   public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
     Progress jobProgress = new Progress().withJobExecutionId(jobExecutionId)
       .withCurrent(0)
       .withTotal(totalRecords);
 
-    //    return DbUtil.executeInTransaction(pgClient, connectionAr ->
     return pgClientFactory.createInstance(tenantId).withTrans(connection ->
       jobExecutionProgressDao.initializeJobExecutionProgress(connection, jobExecutionId, totalRecords, tenantId)
         .compose(progress -> jobExecutionDao.updateJobExecutionProgress(connection, jobProgress, tenantId).map(progress))

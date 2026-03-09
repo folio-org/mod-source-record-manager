@@ -10,7 +10,6 @@ import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import io.vertx.core.Future;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
