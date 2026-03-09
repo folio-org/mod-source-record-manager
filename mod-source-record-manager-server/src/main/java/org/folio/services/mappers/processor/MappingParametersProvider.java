@@ -546,7 +546,7 @@ public class MappingParametersProvider {
           try {
             linkingRules = DatabindCodec.mapper().readValue(response, new TypeReference<>(){});
           } catch (JsonProcessingException e) {
-            LOGGER.warn("Unable to parse linking rules response: {}", e.getMessage());
+            LOGGER.warn("Unable to parse linking rules response", e);
             promise.complete(Collections.emptyList());
           }
           promise.complete(linkingRules);
