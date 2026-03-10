@@ -45,24 +45,25 @@ DECLARE
   topSQL TEXT := '
   WITH
   target_source_ids AS (
-    SELECT source_id, MIN(source_record_order) as source_record_order,
-
-           (array_agg(title ORDER BY source_record_order)
-            FILTER (WHERE title IS NOT NULL))[1] AS sort_title,
-
-           (array_agg(error ORDER BY source_record_order)
-            FILTER (WHERE error != ''''))[1] AS sort_error,
-
-           (array_agg(action_type ORDER BY array_position(ARRAY[''CREATE'', ''UPDATE'', ''MODIFY'', ''DELETE''], action_type))
-            FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS sort_source_action
+    SELECT
+      source_id,
+      MIN(source_record_order) as source_record_order,
+      (array_agg(title ORDER BY source_record_order) FILTER (WHERE title IS NOT NULL))[1] AS sort_title,
+      (array_agg(error ORDER BY source_record_order) FILTER (WHERE error != ''''))[1] AS sort_error,
+      CASE
+        WHEN MAX(error) != '''' OR bool_or(action_type = ''NON_MATCH'') THEN ''DISCARDED''
+        WHEN bool_or(action_type = ''CREATE'') THEN ''CREATED''
+        WHEN bool_or(action_type = ''UPDATE'') THEN ''UPDATED''
+        WHEN bool_or(action_type = ''MATCH'') THEN ''DISCARDED''
+        ELSE NULL
+      END AS sort_source_action
 
     FROM journal_records
     WHERE job_execution_id = ''%1$s''
-       	AND entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'',
-                            ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''AUTHORITY'', ''PO_LINE'')
+      AND entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'',
+                          ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''AUTHORITY'', ''PO_LINE'')
     GROUP BY source_id
-    HAVING COUNT(*) FILTER (WHERE (''%3$s'' = ''ALL'' OR entity_type = ANY(%4$L)) AND (NOT %2$L OR error <> '''')
-    ) > 0
+    HAVING COUNT(*) FILTER (WHERE (''%3$s'' = ''ALL'' OR entity_type = ANY(%4$L)) AND (NOT %2$L OR error <> '''')) > 0
   ),
 
   total_count_cte AS (
@@ -524,7 +525,12 @@ FROM (
      ) AS records_actions
        LEFT JOIN (
   SELECT DISTINCT journal_records.source_id, journal_records.title
-  FROM journal_records WHERE journal_records.job_execution_id = ''%1$s'' AND (journal_records.entity_id IS NOT NULL OR journal_records.action_status = ''ERROR'' or journal_records.action_type = ''NON_MATCH'')
+  FROM journal_records WHERE journal_records.job_execution_id = ''%1$s''
+       AND (
+              (journal_records.entity_id IS NOT NULL OR journal_records.action_status = ''ERROR'' or journal_records.action_type = ''NON_MATCH'')
+                 OR
+              (journal_records.entity_type IN (''MARC_AUTHORITY'', ''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'') AND journal_records.title IS NOT NULL)
+       )
 ) AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
 
        LEFT JOIN (
