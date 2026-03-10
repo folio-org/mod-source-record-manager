@@ -44,20 +44,8 @@ DECLARE
 
   topSQL TEXT := '
   WITH
-  target_source_ids AS (
-    SELECT
-      source_id,
-      MIN(source_record_order) as source_record_order,
-      (array_agg(title ORDER BY source_record_order) FILTER (WHERE title IS NOT NULL))[1] AS sort_title,
-      (array_agg(error ORDER BY source_record_order) FILTER (WHERE error != ''''))[1] AS sort_error,
-      CASE
-        WHEN MAX(error) != '''' OR bool_or(action_type = ''NON_MATCH'') THEN ''DISCARDED''
-        WHEN bool_or(action_type = ''CREATE'') THEN ''CREATED''
-        WHEN bool_or(action_type = ''UPDATE'') THEN ''UPDATED''
-        WHEN bool_or(action_type = ''MATCH'') THEN ''DISCARDED''
-        ELSE NULL
-      END AS sort_source_action
-
+  qualifying_source_ids AS (
+    SELECT source_id
     FROM journal_records
     WHERE job_execution_id = ''%1$s''
       AND entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'',
@@ -66,13 +54,32 @@ DECLARE
     HAVING COUNT(*) FILTER (WHERE (''%3$s'' = ''ALL'' OR entity_type = ANY(%4$L)) AND (NOT %2$L OR error <> '''')) > 0
   ),
 
+  main_aggregation AS (
+    SELECT
+      jr.source_id,
+      MIN(jr.source_record_order) as source_record_order,
+      (array_agg(jr.title ORDER BY jr.source_record_order) FILTER (WHERE jr.title IS NOT NULL))[1] AS sort_title,
+      (array_agg(jr.error ORDER BY jr.source_record_order) FILTER (WHERE jr.error != ''''))[1] AS sort_error,
+      CASE
+        WHEN MAX(jr.error) != '''' OR bool_or(jr.action_type = ''NON_MATCH'') THEN ''DISCARDED''
+        WHEN bool_or(jr.action_type = ''CREATE'') THEN ''CREATED''
+        WHEN bool_or(jr.action_type = ''UPDATE'') THEN ''UPDATED''
+        WHEN bool_or(jr.action_type = ''MATCH'') THEN ''DISCARDED''
+        ELSE NULL
+      END AS sort_source_action
+    FROM journal_records jr
+    JOIN qualifying_source_ids q ON jr.source_id = q.source_id
+    WHERE jr.job_execution_id = ''%1$s''
+    GROUP BY jr.source_id
+  ),
+
   total_count_cte AS (
-    SELECT COUNT(*) as total_count FROM target_source_ids
+    SELECT COUNT(*) as total_count FROM main_aggregation
   ),
 
   paginated_source_ids AS (
     SELECT source_id, source_record_order
-    FROM target_source_ids
+    FROM main_aggregation
     ORDER BY %5$s %6$s
     LIMIT %7$s OFFSET %8$s
   ),
