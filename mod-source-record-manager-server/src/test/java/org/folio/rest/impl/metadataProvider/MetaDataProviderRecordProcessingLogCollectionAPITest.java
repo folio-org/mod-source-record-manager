@@ -1708,6 +1708,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
         .then()
         .statusCode(HttpStatus.SC_OK)
+        .log().all()
         .body("entries", hasSize(2))
         .body("totalRecords", is(2))
         .body("entries[0].relatedInstanceInfo.error", is("Error description 1"))
@@ -1723,6 +1724,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
         .then()
         .statusCode(HttpStatus.SC_OK)
+        .log().all()
         .body("entries", is(empty()))
         .body("totalRecords", is(0));
 

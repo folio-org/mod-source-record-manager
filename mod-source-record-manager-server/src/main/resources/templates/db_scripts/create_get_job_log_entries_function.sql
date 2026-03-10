@@ -36,9 +36,307 @@ CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField
 AS $$
 
 DECLARE
-  v_sortingField text DEFAULT sortingfield;
+  v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
+  v_orderByPagination text DEFAULT sortingfield; -- for ORDER BY in paginated_source_ids (topSQL) or for ORDER BY in originalSQL
   v_entityAttribute text[] DEFAULT ARRAY[upper(entityType)];
+  v_orderByFinal text;                           -- for final ORDER BY (only topSQL)
+  v_useOptimized boolean := false;
+
   topSQL TEXT := '
+  WITH
+  qualifying_source_ids AS (
+    SELECT source_id
+    FROM journal_records
+    WHERE job_execution_id = ''%1$s''
+      AND entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'',
+                          ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''AUTHORITY'', ''PO_LINE'')
+    GROUP BY source_id
+    HAVING COUNT(*) FILTER (WHERE (''%3$s'' = ''ALL'' OR entity_type = ANY(%4$L)) AND (NOT %2$L OR error <> '''')) > 0
+  ),
+
+  main_aggregation AS (
+    SELECT
+      jr.source_id,
+      MIN(jr.source_record_order) as source_record_order,
+      (array_agg(jr.title ORDER BY jr.source_record_order) FILTER (WHERE jr.title IS NOT NULL))[1] AS sort_title,
+      (array_agg(jr.error ORDER BY jr.source_record_order) FILTER (WHERE jr.error != ''''))[1] AS sort_error,
+      CASE
+        WHEN MAX(jr.error) != '''' OR bool_or(jr.action_type = ''NON_MATCH'') THEN ''DISCARDED''
+        WHEN bool_or(jr.action_type = ''CREATE'') THEN ''CREATED''
+        WHEN bool_or(jr.action_type = ''UPDATE'') THEN ''UPDATED''
+        WHEN bool_or(jr.action_type = ''MATCH'') THEN ''DISCARDED''
+        ELSE NULL
+      END AS sort_source_action
+    FROM journal_records jr
+    JOIN qualifying_source_ids q ON jr.source_id = q.source_id
+    WHERE jr.job_execution_id = ''%1$s''
+    GROUP BY jr.source_id
+  ),
+
+  total_count_cte AS (
+    SELECT COUNT(*) as total_count FROM main_aggregation
+  ),
+
+  paginated_source_ids AS (
+    SELECT source_id, source_record_order
+    FROM main_aggregation
+    ORDER BY %5$s %6$s
+    LIMIT %7$s OFFSET %8$s
+  ),
+
+  temp_result AS (
+    SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
+           CASE
+             WHEN error_max != '''' OR action_type = ''NON_MATCH'' THEN ''DISCARDED''
+             WHEN action_type = ''CREATE'' THEN ''CREATED''
+             WHEN action_type = ''UPDATE'' THEN ''UPDATED''
+             END AS action_type,
+           action_status, action_date, source_record_order, error, title, tenant_id,
+           instance_id, holdings_id, order_id, permanent_location_id
+    FROM journal_records
+           INNER JOIN (
+      SELECT entity_type as entity_type_max, entity_id as entity_id_max,
+             action_status as action_status_max, max(error) AS error_max,
+             (array_agg(id ORDER BY array_position(array[''CREATE'', ''UPDATE'', ''NON_MATCH''], action_type)))[1] AS id_max
+      FROM journal_records
+      WHERE job_execution_id = ''%1$s''
+        AND entity_type NOT IN (''EDIFACT'', ''INVOICE'')
+        AND action_type != ''MATCH''
+        AND source_id IN (SELECT source_id FROM paginated_source_ids)
+      GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
+    ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
+
+    UNION ALL
+
+    SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
+           CASE WHEN error_max != '''' OR action_type = ''MATCH'' THEN ''DISCARDED'' END AS action_type,
+           action_status, action_date, source_record_order, error, title, tenant_id,
+           instance_id, holdings_id, order_id, permanent_location_id
+    FROM journal_records
+           INNER JOIN (
+      SELECT entity_type as entity_type_max, entity_id as entity_id_max,
+             action_status as action_status_max, max(error) AS error_max,
+             (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
+      FROM journal_records
+      WHERE job_execution_id = ''%1$s''
+        AND entity_type NOT IN (''EDIFACT'', ''INVOICE'')
+        AND action_type = ''MATCH''
+        AND source_id IN (SELECT source_id FROM paginated_source_ids)
+        AND NOT EXISTS (
+        SELECT 1 FROM journal_records jr
+        WHERE jr.job_execution_id = ''%1$s''
+          AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
+          AND jr.source_id = journal_records.source_id
+      )
+      GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
+    ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
+  ),
+
+  instances AS (
+    SELECT action_type, entity_id, source_id, entity_hrid, error, job_execution_id,
+           title, source_record_order, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''INSTANCE'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT action_type, entity_id, source_id, entity_hrid, error, job_execution_id,
+           title, source_record_order, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''INSTANCE'' AND entity_id IS NULL AND NOT EXISTS
+      (SELECT 1 FROM temp_result as tr2
+       WHERE tr2.entity_type = ''INSTANCE'' AND tr2.source_id = temp_result.source_id AND tr2.entity_id IS NOT NULL)
+  ),
+
+  holdings AS (
+    SELECT action_type, entity_type, entity_id, entity_hrid, error, instance_id,
+           permanent_location_id, job_execution_id, source_id, title, source_record_order
+    FROM temp_result
+    WHERE entity_type = ''HOLDINGS'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT action_type, entity_type, entity_id, entity_hrid, error, instance_id,
+           permanent_location_id, job_execution_id, source_id, title, source_record_order
+    FROM temp_result
+    WHERE entity_type = ''HOLDINGS'' AND entity_id IS NULL AND NOT EXISTS
+      (SELECT 1 FROM temp_result as tr2
+       WHERE tr2.entity_type = ''HOLDINGS'' AND tr2.source_id = temp_result.source_id AND tr2.entity_id IS NOT NULL)
+  ),
+
+  items AS (
+    SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id,
+           job_execution_id, source_id, title, source_record_order
+    FROM temp_result
+    WHERE entity_type = ''ITEM'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id,
+           job_execution_id, source_id, title, source_record_order
+    FROM temp_result
+    WHERE entity_type = ''ITEM'' AND entity_id IS NULL AND NOT EXISTS
+      (SELECT 1 FROM temp_result as tr2
+       WHERE tr2.entity_type = ''ITEM'' AND tr2.source_id = temp_result.source_id AND tr2.entity_id IS NOT NULL)
+  ),
+
+  po_lines AS (
+    SELECT action_type, entity_id, entity_hrid, source_id, error, order_id,
+           job_execution_id, title, source_record_order
+    FROM temp_result
+    WHERE entity_type = ''PO_LINE''
+  ),
+
+  authorities AS (
+    SELECT action_type, entity_id, source_id, error, job_execution_id, title, source_record_order
+    FROM temp_result
+    WHERE entity_type = ''AUTHORITY'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT action_type, entity_id, source_id, error, job_execution_id, title, source_record_order
+    FROM temp_result
+    WHERE entity_type = ''AUTHORITY'' AND entity_id IS NULL AND NOT EXISTS
+      (SELECT 1 FROM temp_result as tr2
+       WHERE tr2.entity_type = ''AUTHORITY'' AND tr2.source_id = temp_result.source_id AND tr2.entity_id IS NOT NULL)
+  ),
+
+  marc_authority AS (
+    SELECT job_execution_id, entity_id, title, source_record_order, action_type,
+           error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_AUTHORITY'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT job_execution_id, entity_id, title, source_record_order, action_type,
+           error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_AUTHORITY'' AND entity_id IS NULL AND NOT EXISTS
+      (SELECT 1 FROM temp_result as tr2
+       WHERE tr2.entity_type = ''MARC_AUTHORITY'' AND tr2.source_id = temp_result.source_id AND tr2.entity_id IS NOT NULL)
+  ),
+
+  marc_holdings AS (
+    SELECT job_execution_id, entity_id, title, source_record_order, action_type,
+           error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_HOLDINGS''
+  ),
+
+  marc_bibliographic AS (
+    SELECT job_execution_id, entity_id, title, source_record_order, action_type,
+           error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_BIBLIOGRAPHIC'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT job_execution_id, entity_id, title, source_record_order, action_type,
+           error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_BIBLIOGRAPHIC'' AND entity_id IS NULL AND NOT EXISTS
+      (SELECT 1 FROM temp_result as tr2
+       WHERE tr2.entity_type = ''MARC_BIBLIOGRAPHIC'' AND tr2.source_id = temp_result.source_id AND tr2.entity_id IS NOT NULL)
+  ),
+
+  marc_identifiers AS (
+    SELECT entity_id AS marc_entity_id, source_id AS marc_source_id
+    FROM temp_result
+    WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')
+      AND entity_id IS NOT NULL
+  ),
+
+  records_actions AS (
+    SELECT
+      psi.source_id,
+      psi.source_record_order,
+      ''%1$s''::uuid AS job_execution_id,
+      (SELECT total_count FROM total_count_cte) AS total_count,
+      (array_agg(tr.entity_type ORDER BY tr.id) FILTER (WHERE tr.entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
+      (array_agg(tr.tenant_id ORDER BY tr.id) FILTER (WHERE tr.entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_tenant_id,
+      (array_agg(tr.error ORDER BY tr.id) FILTER (WHERE tr.entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_entity_error
+    FROM paginated_source_ids psi
+           LEFT JOIN temp_result tr ON tr.source_id = psi.source_id
+      AND tr.entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')
+    GROUP BY psi.source_id, psi.source_record_order
+  ),
+
+  rec_titles AS (
+    SELECT DISTINCT jr.source_id, jr.title
+    FROM journal_records jr
+    WHERE jr.job_execution_id = ''%1$s''
+      AND jr.source_id IN (SELECT source_id FROM paginated_source_ids)
+      AND (
+      (jr.entity_id IS NOT NULL OR jr.action_status = ''ERROR'' OR jr.action_type = ''NON_MATCH'')
+        OR
+      (jr.entity_type IN (''MARC_AUTHORITY'', ''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'') AND jr.title IS NOT NULL)
+      )
+  ),
+
+  rec_errors AS (
+    SELECT jr.source_id,
+           CASE
+             WHEN COUNT(*) = 1 THEN array_to_string(array_agg(jr.error), '', '')
+             ELSE ''['' || array_to_string(array_agg(jr.error), '', '') || '']''
+             END AS error
+    FROM journal_records jr
+    WHERE jr.job_execution_id = ''%1$s''
+      AND jr.source_id IN (SELECT source_id FROM paginated_source_ids)
+      AND jr.error != ''''
+    GROUP BY jr.source_id
+  )
+
+SELECT
+  records_actions.job_execution_id AS job_execution_id,
+  records_actions.source_id AS incoming_record_id,
+  marc_identifiers.marc_entity_id::uuid AS source_id,
+  records_actions.source_record_order AS source_record_order,
+  '''' as invoiceline_number,
+  coalesce(rec_titles.title, marc_holdings.title) AS title,
+  coalesce(marc_bibliographic.action_type, marc_authority.action_type, marc_holdings.action_type) AS source_record_action_status,
+  records_actions.source_entity_error AS source_entity_error,
+  records_actions.source_record_tenant_id AS source_record_tenant_id,
+  instances.action_type AS instance_action_status,
+  coalesce(instances.entity_id, holdings.instance_id, items.instance_id) AS instance_entity_id,
+  instances.entity_hrid AS instance_entity_hrid,
+  instances.error AS instance_entity_error,
+  instances.tenant_id AS instance_entity_tenant_id,
+  holdings.action_type AS holdings_action_status,
+  coalesce(holdings.entity_id, items.holdings_id) AS holdings_entity_id,
+  holdings.entity_hrid AS holdings_entity_hrid,
+  holdings.permanent_location_id AS holdings_permanent_location_id,
+  holdings.error AS holdings_entity_error,
+  items.action_type AS item_action_status,
+  items.entity_id AS item_entity_id,
+  items.entity_hrid AS item_entity_hrid,
+  items.error AS item_entity_error,
+  items.holdings_id AS item_holdings_id,
+  authorities.action_type AS authority_action_status,
+  coalesce(authorities.entity_id, marc_authority.entity_id) AS authority_entity_id,
+  coalesce(authorities.error, marc_authority.error) AS authority_entity_error,
+  po_lines.action_type AS po_line_action_status,
+  po_lines.entity_id AS po_lines_entity_id,
+  po_lines.entity_hrid AS po_lines_entity_hrid,
+  po_lines.error AS po_lines_entity_error,
+  po_lines.order_id AS order_entity_id,
+  null AS invoice_action_status,
+  null::text[] AS invoice_entity_id,
+  null::text[] AS invoice_entity_hrid,
+  null AS invoice_entity_error,
+  null AS invoice_line_action_status,
+  null AS invoice_line_entity_id,
+  null AS invoice_line_entity_hrid,
+  null AS invoice_line_entity_error,
+  records_actions.total_count,
+  null::UUID AS invoice_line_journal_record_id,
+  records_actions.source_record_entity_type,
+  ARRAY[records_actions.source_record_order] AS source_record_order_array,
+  po_lines.action_type AS order_action_status,
+  rec_errors.error AS error
+FROM records_actions
+       LEFT JOIN rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
+       LEFT JOIN instances ON instances.source_id = records_actions.source_id
+       LEFT JOIN holdings ON holdings.source_id = records_actions.source_id
+       LEFT JOIN items ON items.source_id = records_actions.source_id
+       LEFT JOIN po_lines ON po_lines.source_id = records_actions.source_id
+       LEFT JOIN authorities ON authorities.source_id = records_actions.source_id
+       LEFT JOIN marc_authority ON marc_authority.source_id = records_actions.source_id
+       LEFT JOIN marc_bibliographic ON marc_bibliographic.source_id = records_actions.source_id
+       LEFT JOIN marc_holdings ON marc_holdings.source_id = records_actions.source_id
+       LEFT JOIN marc_identifiers ON marc_identifiers.marc_source_id = records_actions.source_id
+       LEFT JOIN rec_errors ON rec_errors.source_id = records_actions.source_id
+ORDER BY %9$s %6$s;';
+
+  originalSQL TEXT := '
 WITH
   temp_result AS (
     SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
@@ -234,8 +532,12 @@ FROM (
      ) AS records_actions
        LEFT JOIN (
   SELECT DISTINCT journal_records.source_id, journal_records.title
-  FROM journal_records WHERE journal_records.job_execution_id = ''%1$s'' AND (journal_records.entity_id IS NOT NULL OR journal_records.action_status = ''ERROR'' or journal_records.action_type = ''NON_MATCH'')
-       OR (journal_records.entity_type IN (''MARC_AUTHORITY'', ''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'') AND journal_records.title IS NOT NULL)
+  FROM journal_records WHERE journal_records.job_execution_id = ''%1$s''
+       AND (
+              (journal_records.entity_id IS NOT NULL OR journal_records.action_status = ''ERROR'' or journal_records.action_type = ''NON_MATCH'')
+                 OR
+              (journal_records.entity_type IN (''MARC_AUTHORITY'', ''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'') AND journal_records.title IS NOT NULL)
+       )
 ) AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
 
        LEFT JOIN (
@@ -339,7 +641,7 @@ FROM (
 ORDER BY %5$I %6$s
 LIMIT %7$s OFFSET %8$s;';
 
-bottomSQL TEXT := '
+  bottomSQL TEXT := '
 SELECT records_actions.job_execution_id AS job_execution_id,
        records_actions.source_id AS incoming_record_id,
        records_actions.source_id AS source_id,
@@ -437,22 +739,108 @@ FROM (
 
 ORDER BY %5$I %6$s
 LIMIT %7$s OFFSET %8$s;';
-row_count INTEGER;
+
+  row_count INTEGER;
+  finalSQL TEXT;
+
 BEGIN
   -- Using the source_record_order column in the array type provides support for sorting invoices and marc records.
-  IF sortingField = 'source_record_order' THEN
-    v_sortingField := 'source_record_order_array';
-  END IF;
-
   IF entityType = 'MARC' THEN
     v_entityAttribute := ARRAY['MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY'];
+  ELSE
+    v_entityAttribute := ARRAY[upper(entityType)];
   END IF;
 
-    RETURN QUERY EXECUTE format(bottomSQL, jobExecutionId, errorsOnly, entityType, v_entityAttribute, v_sortingField, sortingDir, limitVal, offsetVal);
-    GET DIAGNOSTICS row_count =ROW_COUNT;
+  IF sortingField IN ('source_record_order', 'title', 'error', 'source_record_action_status') THEN
+    v_useOptimized := true;
 
-    IF row_count = 0 THEN
-      RETURN QUERY EXECUTE format(topSQL, jobExecutionId, errorsOnly, entityType, v_entityAttribute, v_sortingField, sortingDir, limitVal, offsetVal);
+    CASE sortingField
+      WHEN 'source_record_order' THEN
+        v_sortingField := 'source_record_order_array';
+        v_orderByPagination := 'source_record_order';
+        v_orderByFinal := 'records_actions.source_record_order';
+
+      WHEN 'title' THEN
+        v_sortingField := 'title';
+        v_orderByPagination := 'sort_title';
+        v_orderByFinal := 'COALESCE(rec_titles.title, marc_holdings.title)';
+
+      WHEN 'error' THEN
+        v_sortingField := 'error';
+        v_orderByPagination := 'sort_error';
+        v_orderByFinal := 'rec_errors.error';
+
+      WHEN 'source_record_action_status' THEN
+        v_sortingField := 'source_record_action_status';
+        v_orderByPagination := 'sort_source_action';
+        v_orderByFinal := 'COALESCE(marc_bibliographic.action_type, marc_authority.action_type, marc_holdings.action_type)';
+      END CASE;
+
+    RAISE NOTICE 'Using OPTIMIZED query for sortBy=% (pagination: %, final: %)',
+      sortingField, v_orderByPagination, v_orderByFinal;
+
+  ELSE
+    v_useOptimized := false;
+
+    IF sortingField = 'source_record_order' THEN
+      v_sortingField := 'source_record_order_array';
+      v_orderByPagination := 'source_record_order_array';
+    ELSE
+      v_sortingField := sortingField;
+      v_orderByPagination := sortingField;
     END IF;
+
+    RAISE NOTICE 'Using ORIGINAL query for sortBy=%', sortingField;
+  END IF;
+
+  RETURN QUERY EXECUTE format(
+    bottomSQL,
+    jobExecutionId,         -- %1$s
+    errorsOnly,             -- %2$L
+    entityType,             -- %3$s
+    v_entityAttribute,      -- %4$L
+    v_sortingField,         -- %5$I (for ORDER BY)
+    sortingDir,             -- %6$s
+    limitVal,               -- %7$L
+    offsetVal               -- %8$L
+                       );
+  GET DIAGNOSTICS row_count = ROW_COUNT;
+
+  IF row_count = 0 THEN
+    IF v_useOptimized THEN
+      finalSQL := format(
+        topSQL,
+        jobExecutionId,              -- %1$L
+        errorsOnly,                  -- %2$L
+        entityType,                  -- %3$L
+        v_entityAttribute,           -- %4$L
+        v_orderByPagination,         -- %5$s (for paginated_source_ids ORDER BY)
+        sortingDir,                  -- %6$s (ASC/DESC)
+        limitVal,                    -- %7$L
+        offsetVal,                   -- %8$L
+        v_orderByFinal               -- %9$s (for final ORDER BY)
+      );
+    ELSE
+      finalSQL := format(
+        originalSQL,
+        jobExecutionId,              -- %1$L
+        errorsOnly,                  -- %2$L
+        entityType,                  -- %3$L
+        v_entityAttribute,           -- %4$L
+        v_orderByPagination,         -- %5$I (for ORDER BY %5$I %6$s)
+        sortingDir,                  -- %6$s
+        limitVal,                    -- %7$L
+        offsetVal                    -- %8$L
+      );
+    END IF;
+    -- RAISE NOTICE 'Executing SQL: %', finalSQL;
+    RETURN QUERY EXECUTE finalSQL;
+  END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE INDEX IF NOT EXISTS idx_journal_records_window_opt
+  ON journal_records (job_execution_id, source_id, entity_type, entity_id, action_status) INCLUDE (action_type);
+
+CREATE INDEX IF NOT EXISTS idx_journal_records_job_entity_source
+  ON journal_records(job_execution_id, entity_type, source_id) INCLUDE (source_record_order, action_type, error);
