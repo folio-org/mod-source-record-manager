@@ -652,7 +652,7 @@ public abstract class AbstractRestTest {
     return KafkaTopicNameHelper.formatTopicName(KAFKA_ENV_VALUE, getDefaultNameSpace(), tenantId, eventType);
   }
 
-  protected  <T> T getBeanFromSpringContext(Vertx vtx, Class<T> clazz) {
+  protected  <T> T getBeanFromSpringContext(Class<T> clazz) {
     DeploymentManager deploymentManager = ((VertxImpl) vertx).deploymentManager();
     String parentDeploymentId = vertx.deploymentIDs().stream()
       .filter(id -> !deploymentManager.deployment(id).isChild())
