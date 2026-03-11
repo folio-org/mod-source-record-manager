@@ -1,7 +1,6 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
@@ -44,7 +43,4 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
     }
  }
 
-  private Future<Integer> getCounterValueFromRowSet(Promise<RowSet<Row>> promise) {
-    return promise.future().map(resultSet -> resultSet.iterator().next().getInteger(0));
-  }
 }
