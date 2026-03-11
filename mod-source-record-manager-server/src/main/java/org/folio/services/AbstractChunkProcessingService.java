@@ -42,8 +42,8 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   protected JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   protected JobExecutionService jobExecutionService;
 
-  public AbstractChunkProcessingService(JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
-                                        JobExecutionService jobExecutionService) {
+  protected AbstractChunkProcessingService(JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
+                                           JobExecutionService jobExecutionService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
   }
@@ -81,9 +81,9 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), acceptInstanceId, params))
       .map(true)
-      .recover(throwable -> throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE) ?
-        Future.failedFuture(new DuplicateEventException(String.format("Source chunk with %s id for %s jobExecution is already exists", incomingChunk.getId(), jobExecution.getId()))) :
-        Future.failedFuture(throwable));
+      .recover(e -> e instanceof PgException pgException && pgException.getSqlState().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE)
+        ? Future.failedFuture(new DuplicateEventException(String.format("Source chunk with %s id for %s jobExecution is already exists", incomingChunk.getId(), jobExecution.getId())))
+        : Future.failedFuture(e));
   }
 
   private boolean isNotSupportedJobProfileExists(JobExecution jobExecution) {
@@ -131,7 +131,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     boolean isMatchingRelation = false;
     MatchProfile matchProfile = extractProfile(profileSnapshotWrapper, MatchProfile.class);
     if (!CollectionUtils.isEmpty(matchProfile.getMatchDetails())) {
-      MatchDetail matchDetail = matchProfile.getMatchDetails().get(0);
+      MatchDetail matchDetail = matchProfile.getMatchDetails().getFirst();
       isMatchingRelation = matchDetail.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
         && matchDetail.getExistingRecordType() == EntityType.INSTANCE;
     }
@@ -144,10 +144,10 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
       && mappingProfile.getExistingRecordType() == EntityType.MARC_BIBLIOGRAPHIC;
   }
 
-  private <T> T extractProfile(ProfileSnapshotWrapper profileSnapshotWrapper, Class clazz) {
+  private <T> T extractProfile(ProfileSnapshotWrapper profileSnapshotWrapper, Class<T> clazz) {
     T profile;
-    if (profileSnapshotWrapper.getContent() instanceof Map) {
-      profile = (T) new JsonObject((Map) profileSnapshotWrapper.getContent()).mapTo(clazz);
+    if (profileSnapshotWrapper.getContent() instanceof Map profileAsMap) {
+      profile = new JsonObject(profileAsMap).mapTo(clazz);
     } else {
       profile = (T) profileSnapshotWrapper.getContent();
     }

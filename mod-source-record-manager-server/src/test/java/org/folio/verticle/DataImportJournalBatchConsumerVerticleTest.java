@@ -201,7 +201,7 @@ public class DataImportJournalBatchConsumerVerticleTest {
     // 2. Verify commit was attempted with correct offset
     ArgumentCaptor<Map<TopicPartition, OffsetAndMetadata>> offsetsCaptor =
       ArgumentCaptor.forClass(Map.class);
-    verify(vertxConsumerMock, timeout(1000)).commit(offsetsCaptor.capture(), any());
+    verify(vertxConsumerMock, timeout(1000)).commit(offsetsCaptor.capture());
 
     TopicPartition expectedTp = new TopicPartition("test-topic", 0);
     OffsetAndMetadata expectedOffset = new OffsetAndMetadata(124L, null);

@@ -53,7 +53,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionProgressVerticleTest extends AbstractRestTest {
 
-  private final int AWAIT_TIME = 3;
+  private static final int AWAIT_TIME = 3;
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -78,8 +78,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
     vertx.eventBus().registerCodec(new BatchableJobExecutionProgressCodec());
     JobExecutionProgressVerticle jobExecutionProgressVerticle =
       new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService, kafkaConfig);
-    vertx.deployVerticle(jobExecutionProgressVerticle,
-      context.asyncAssertSuccess());
+    vertx.deployVerticle(jobExecutionProgressVerticle).onComplete(context.asyncAssertSuccess());
     batchJobProgressProducer = getBatchJobProgressProducer(vertx);
     jobExecutionId = UUID.randomUUID().toString();
     tenantId = UUID.randomUUID().toString();

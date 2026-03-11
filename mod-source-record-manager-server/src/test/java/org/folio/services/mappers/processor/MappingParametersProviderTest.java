@@ -15,7 +15,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -97,7 +97,7 @@ public class MappingParametersProviderTest {
   private OkapiConnectionParams okapiConnectionParams;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     Vertx vertx = rule.vertx();
     mappingParametersProvider = new MappingParametersProvider(vertx);
     url = "http://localhost:" + snapshotMockServer.port();
@@ -319,17 +319,19 @@ public class MappingParametersProviderTest {
   }
 
   @Test
-  public void shouldReturnNullWhenMappingParamsDataResponseIsUnrecognized(TestContext context) {
-    Async async = context.async();
+  public void shouldReturnMappingParamsWhenReferenceDataResponseContainsUnrecognizedField(TestContext context) {
     JsonObject invalidNoteTypes = new JsonObject()
-      .put("instanceNoteTypes", JsonArray.of(new JsonObject().put("invalidField", "value")));
+      .put("instanceNoteTypes", JsonArray.of(new JsonObject()
+        .put("name", "Awards note")
+        .put("invalidField", "value")));
     WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL)
       .willReturn(okJson(invalidNoteTypes.encode())));
 
-    mappingParametersProvider.get("1", okapiConnectionParams).onComplete(ar -> {
-      context.assertNull(ar.result());
-      async.complete();
-    });
+    mappingParametersProvider.get("1", okapiConnectionParams)
+      .onComplete(context.asyncAssertSuccess(mappingParameters -> {
+        context.assertEquals(1, mappingParameters.getInstanceNoteTypes().size());
+        context.assertEquals("Awards note", mappingParameters.getInstanceNoteTypes().getFirst().getName());
+      }));
   }
 
   /**
@@ -338,25 +340,19 @@ public class MappingParametersProviderTest {
    */
   @Test
   public void manyRequests(TestContext context) {
-    Async async = context.async();
     String key = "1";
-    CompositeFuture.all(mappingParametersProvider
-          .get(key, okapiConnectionParams),
-        mappingParametersProvider
-          .get(key, okapiConnectionParams),
-        mappingParametersProvider
-          .get(key, okapiConnectionParams))
-      .onComplete(ar -> {
-        context.verify(v -> {
-          // should verify all the endpoints were called once, but that is a lot.
-          verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL)));
+    Future.all(
+      mappingParametersProvider.get(key, okapiConnectionParams),
+      mappingParametersProvider.get(key, okapiConnectionParams),
+      mappingParametersProvider.get(key, okapiConnectionParams)
+    ).onComplete(context.asyncAssertSuccess(cf -> {
+      // should verify all the endpoints were called once, but that is a lot.
+      verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL)));
 
-          // verify that the same mapping parameters is returned
-          Assert.assertSame(ar.result().<MappingParameters>resultAt(0), ar.result().<MappingParameters>resultAt(1));
-          Assert.assertSame(ar.result().<MappingParameters>resultAt(1), ar.result().<MappingParameters>resultAt(2));
-        });
-        async.complete();
-      });
+      // verify that the same mapping parameters is returned
+      Assert.assertSame(cf.<MappingParameters>resultAt(0), cf.<MappingParameters>resultAt(1));
+      Assert.assertSame(cf.<MappingParameters>resultAt(1), cf.<MappingParameters>resultAt(2));
+    }));
   }
 
   /**

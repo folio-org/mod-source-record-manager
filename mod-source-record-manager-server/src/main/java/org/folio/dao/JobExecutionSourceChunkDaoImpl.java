@@ -64,7 +64,6 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
 
   @Override
   public Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       LOGGER.trace("save:: Saving jobExecutionSourceChunk {} for tenant {}", jobExecutionChunk.getId(), tenantId);
       String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
@@ -72,12 +71,12 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
         StringUtils.defaultIfEmpty(jobExecutionChunk.getId(), /* generate UUID for the empty last chunk */ UUID.randomUUID().toString()),
         JsonObject.mapFrom(jobExecutionChunk),
         jobExecutionChunk.getJobExecutionId());
-      pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
+      return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
+        .map(jobExecutionChunk.getId());
     } catch (Exception e) {
       LOGGER.warn("save:: Failed to save JobExecutionSourceChunk with id: {}", jobExecutionChunk.getId(), e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future().map(jobExecutionChunk.getId());
   }
 
   @Override
@@ -85,8 +84,8 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
-      Tuple queryParams = Tuple.of(jobExecutionId, Boolean.valueOf(isLast).toString(), offset, limit);
-      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
+      Tuple queryParams = Tuple.of(jobExecutionId, Boolean.toString(isLast), offset, limit);
+      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise::handle);
     } catch (Exception e) {
       LOGGER.warn("get:: Error while searching for JobExecutionSourceChunks", e);
       promise.fail(e);
@@ -112,22 +111,21 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
 
   @Override
   public Future<Optional<JobExecutionSourceChunk>> getById(String id, String tenantId) {
-    Promise<Results<JobExecutionSourceChunk>> promise = Promise.promise();
     try {
       if (StringUtils.isBlank(id)) {
         LOGGER.warn("getById:: Can't retrieve JobExecutionSourceChunk by empty id.");
-        return promise.future().map(Optional.empty());
+        return Future.succeededFuture(Optional.empty());
       }
       Criteria idCrit = constructCriteria(ID_FIELD, id).setJSONB(false);
-      pgClientFactory.createInstance(tenantId)
-        .get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true, false, promise);
+      return pgClientFactory.createInstance(tenantId)
+        .get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true)
+        .map(Results::getResults)
+        .map(jobExecutionSourceChunks -> jobExecutionSourceChunks.isEmpty()
+          ? Optional.empty() : Optional.of(jobExecutionSourceChunks.getFirst()));
     } catch (Exception e) {
       LOGGER.warn("getById:: Error querying JobExecutionSourceChunk by id {}", id, e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future()
-      .map(Results::getResults)
-      .map(jobExecutionSourceChunks -> jobExecutionSourceChunks.isEmpty() ? Optional.empty() : Optional.of(jobExecutionSourceChunks.get(0)));
   }
 
   @Override
@@ -157,22 +155,20 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
 
   @Override
   public Future<Boolean> delete(String id, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
-    pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, id, promise);
-    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
+    return pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, id)
+      .map(updateResult -> updateResult.rowCount() == 1);
   }
 
   @Override
   public Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = String.format(IS_PROCESSING_COMPLETED_QUERY, jobExecutionId);
-      pgClientFactory.createInstance(tenantId).select(query, promise);
+      return pgClientFactory.createInstance(tenantId).select(query)
+        .map(resultSet -> resultSet.iterator().next().getBoolean(0));
     } catch (Exception e) {
       LOGGER.warn("isAllChunksProcessed:: Error while checking if processing is completed for JobExecution {}", jobExecutionId, e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future().map(resultSet -> resultSet.iterator().next().getBoolean(0));
   }
 
   @Override
@@ -180,7 +176,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = String.format(ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY, jobExecutionId);
-      pgClientFactory.createInstance(tenantId).select(query, promise);
+      pgClientFactory.createInstance(tenantId).select(query, promise::handle);
     } catch (Exception e) {
       LOGGER.warn("containsErrorChunks:: Error while checking if any errors occurred for JobExecution {}", jobExecutionId, e);
       promise.fail(e);
@@ -190,14 +186,13 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
 
   @Override
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       Criteria idCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
-      pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit), promise);
+      return pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit))
+        .map(updateResult -> updateResult.rowCount() != 0);
     } catch (Exception e) {
       LOGGER.warn("deleteByJobExecutionId:: Error deleting JobExecutionSourceChunks by JobExecution id {}", jobExecutionId, e);
-      promise.fail(e);
+      return Future.failedFuture(e);
     }
-    return promise.future().map(updateResult -> updateResult.rowCount() != 0);
   }
 }

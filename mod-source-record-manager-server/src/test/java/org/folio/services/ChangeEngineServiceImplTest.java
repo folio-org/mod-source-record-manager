@@ -139,6 +139,7 @@ public class ChangeEngineServiceImplTest {
 
   @Before
   public void setUp() {
+    ReflectionTestUtils.setField(service, "thresholdChunkSize", 100);
     ReflectionTestUtils.setField(service, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(service, "batchSize", 100);
     ReflectionTestUtils.setField(service, "journalRecordProducer", messageProducer);
