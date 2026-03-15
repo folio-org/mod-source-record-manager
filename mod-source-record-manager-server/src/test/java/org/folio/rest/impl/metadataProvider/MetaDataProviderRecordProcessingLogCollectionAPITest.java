@@ -980,7 +980,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("totalRecords", is(3))
         .extract().body().as(RecordProcessingLogDtoCollection.class).getEntries();
 
-      context.assertTrue(Integer.parseInt(recordProcessingLogDtos.get(0).getSourceRecordOrder()) > Integer.parseInt(recordProcessingLogDtos.get(1).getSourceRecordOrder()));
+      context.assertTrue(Integer.parseInt(recordProcessingLogDtos.getFirst().getSourceRecordOrder()) > Integer.parseInt(recordProcessingLogDtos.get(1).getSourceRecordOrder()));
       context.assertTrue(Integer.parseInt(recordProcessingLogDtos.get(1).getSourceRecordOrder()) > Integer.parseInt(recordProcessingLogDtos.get(2).getSourceRecordOrder()));
       async.complete();
     }));

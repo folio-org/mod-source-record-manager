@@ -398,7 +398,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+    List<File> limitedFilesList = filesList.stream().limit(1).toList();
 
     String stubUserId = UUID.randomUUID().toString();
     WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
@@ -1666,7 +1666,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
     List<File> filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() { });
 
-    requestDto.getFiles().addAll(filesList.stream().limit(1).collect(Collectors.toList()));
+    requestDto.getFiles().addAll(filesList.stream().limit(1).toList());
     requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
     RestAssured.given()
@@ -2397,7 +2397,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+    List<File> limitedFilesList = filesList.stream().limit(1).toList();
 
     String stubUserId = UUID.randomUUID().toString();
     WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
@@ -2439,7 +2439,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+    List<File> limitedFilesList = filesList.stream().limit(1).toList();
 
     String stubUserId = UUID.randomUUID().toString();
     WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));

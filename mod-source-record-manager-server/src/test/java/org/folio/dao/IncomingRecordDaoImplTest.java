@@ -40,7 +40,7 @@ public class IncomingRecordDaoImplTest extends AbstractRestTest {
     Async async = context.async();
 
     List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(1).getJobExecutions();
-    String jobExecutionId = createdJobExecutions.get(0).getId();
+    String jobExecutionId = createdJobExecutions.getFirst().getId();
 
     String id = UUID.randomUUID().toString();
     IncomingRecord incomingRecord = buildIncomingRecord(id, jobExecutionId);
@@ -65,7 +65,7 @@ public class IncomingRecordDaoImplTest extends AbstractRestTest {
     Async async = context.async();
 
     List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(1).getJobExecutions();
-    String jobExecutionId = createdJobExecutions.get(0).getId();
+    String jobExecutionId = createdJobExecutions.getFirst().getId();
 
     String id1 = UUID.randomUUID().toString();
     String id2 = UUID.randomUUID().toString();

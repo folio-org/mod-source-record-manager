@@ -131,7 +131,7 @@ public class DataImportJournalBatchConsumerVerticleTest {
     ArgumentCaptor<List<JournalRecord>> recordsCaptor = ArgumentCaptor.forClass(List.class);
     verify(batchJournalService).saveBatchWithResponse(recordsCaptor.capture(), eq(tenantId), any());
 
-    JournalRecord savedRecord = recordsCaptor.getValue().get(0);
+    JournalRecord savedRecord = recordsCaptor.getValue().getFirst();
     assertNotNull("JournalRecord ID should be set", savedRecord.getId());
     assertEquals("JobExecutionId should match", "job123", savedRecord.getJobExecutionId());
   }

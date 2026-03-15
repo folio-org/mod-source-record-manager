@@ -382,7 +382,7 @@ public class AdditionalFieldsUtilTest {
     boolean added = modifyDataFieldsForMarcRecord(record, tagsForAction, dataField -> {
       var subfields9 = dataField.getSubfields().stream()
         .filter(subfield -> '9' == subfield.getCode())
-        .collect(Collectors.toList());
+        .toList();
       subfields9.forEach(dataField::removeSubfield);
     });
     // then

@@ -73,7 +73,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
           .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals(INSTANCE_TITLE_FIELD_PATH))
           .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
           .map(Object::toString)
-          .collect(Collectors.toList());
+          .toList();
 
         return subfieldCodes.isEmpty()
           ? null

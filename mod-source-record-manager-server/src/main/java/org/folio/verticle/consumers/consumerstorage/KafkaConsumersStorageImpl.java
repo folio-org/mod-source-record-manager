@@ -33,6 +33,6 @@ public class KafkaConsumersStorageImpl implements KafkaConsumersStorage {
     return consumerWrappersMap.values()
       .stream()
       .flatMap(Collection::stream)
-      .collect(Collectors.toList());
+      .toList();
   }
 }

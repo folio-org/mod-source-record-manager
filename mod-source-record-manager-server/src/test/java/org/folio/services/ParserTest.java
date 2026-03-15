@@ -2,8 +2,12 @@ package org.folio.services;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import org.apache.commons.io.FileUtils;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.services.parsers.ParsedResult;
@@ -132,6 +136,30 @@ public class ParserTest {
 
   @Test
   public void parseRawEdifactRecords(TestContext testContext) {
+    Future.failedFuture("test fail")
+      .andThen(event -> System.err.println(event.succeeded()));
+
+
+    Vertx vertx = Vertx.vertx();
+    Promise<Integer> promise = Promise.promise();
+    Future<Future<Integer>> res = vertx.executeBlocking(() -> {
+      Promise<Integer> innerPromise = Promise.promise();
+      vertx.setTimer(1000l, l -> {
+        innerPromise.complete(7);
+        System.err.println("Promise completed");
+      });
+//      return innerPromise.future();
+      return Future.succeededFuture(1);
+    });
+
+    res.result();
+//      .onComplete(testContext.asyncAssertSuccess(v -> {
+//      System.out.println("Res: " + promise.future().result());
+//    }));
+
+
+
+    Charset.forName(StandardCharsets.UTF_8.name());
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
     File sourceRecordsDirectory = new File(EDIFACT_RECORD_FOLDER_PATH);
     String[] extensions = new String[] { "edi" };

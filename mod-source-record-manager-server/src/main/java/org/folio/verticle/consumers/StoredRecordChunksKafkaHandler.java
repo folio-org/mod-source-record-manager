@@ -119,8 +119,8 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
                 List<Record> storedRecords = recordsBatchResponse.getRecords();
 
                 // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
-                DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
-                  ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
+                DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.getFirst().getRecordType())
+                  ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.getFirst().getRecordType())
                   : DI_INCOMING_MARC_BIB_RECORD_PARSED;
 
                 LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
@@ -147,7 +147,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {
     LOGGER.debug("saveCreatedRecordsInfoToDataImportLog :: count: {}", storedRecords.size());
-    MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, storedRecords.get(0).getRecordType());
+    MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, storedRecords.getFirst().getRecordType());
 
     mappingRuleCache.get(cacheKey).onComplete(rulesAr -> {
       if (rulesAr.succeeded()) {
@@ -178,7 +178,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals(INSTANCE_TITLE_FIELD_PATH))
           .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
           .map(Object::toString)
-          .collect(Collectors.toList());
+          .toList();
       }
     }
 
@@ -210,7 +210,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   }
 
   private EntityType getEntityType(List<Record> storedRecords) {
-    return switch (storedRecords.get(0).getRecordType()) {
+    return switch (storedRecords.getFirst().getRecordType()) {
       case EDIFACT -> EntityType.EDIFACT;
       case MARC_AUTHORITY -> EntityType.MARC_AUTHORITY;
       case MARC_HOLDING -> EntityType.MARC_HOLDINGS;

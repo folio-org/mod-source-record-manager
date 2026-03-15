@@ -51,7 +51,7 @@ public class FieldModificationServiceTest {
     var initialRecord = record(Record.RecordType.MARC_BIB);
 
     var actualRecord = fieldModificationService.remove9Subfields(null, singletonList(initialRecord), null)
-      .result().get(0);
+      .result().getFirst();
 
     assertEquals(expectedParsedContent, actualRecord.getParsedRecord().getContent());
   }
@@ -70,7 +70,7 @@ public class FieldModificationServiceTest {
     var initialRecord = record(Record.RecordType.MARC_AUTHORITY);
 
     var actualRecord = fieldModificationService.remove9Subfields(null, singletonList(initialRecord), null)
-      .result().get(0);
+      .result().getFirst();
 
     assertEquals(expectedParsedContent, actualRecord.getParsedRecord().getContent());
   }
@@ -116,6 +116,6 @@ public class FieldModificationServiceTest {
     return Arrays.stream(tags)
       .map(tag -> new LinkingRuleDto()
         .withBibField(tag))
-      .collect(Collectors.toList());
+      .toList();
   }
 }

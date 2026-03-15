@@ -166,8 +166,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
   }
 
   @Test
@@ -184,10 +184,10 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
-    assertThat(actual.get(0).getExternalIdsHolder().getAuthorityId(), notNullValue());
-    assertThat(actual.get(0).getExternalIdsHolder().getAuthorityHrid(), notNullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getExternalIdsHolder().getAuthorityId(), notNullValue());
+    assertThat(actual.getFirst().getExternalIdsHolder().getAuthorityHrid(), notNullValue());
   }
 
   @Test
@@ -204,10 +204,10 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
-    assertThat(actual.get(0).getExternalIdsHolder().getAuthorityId(), equalTo("19a4f9f7-7f95-4519-a599-ba29aac00b4e"));
-    assertThat(actual.get(0).getExternalIdsHolder().getAuthorityHrid(), notNullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getExternalIdsHolder().getAuthorityId(), equalTo("19a4f9f7-7f95-4519-a599-ba29aac00b4e"));
+    assertThat(actual.getFirst().getExternalIdsHolder().getAuthorityHrid(), notNullValue());
   }
 
   @Test
@@ -234,8 +234,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
   }
 
   @Test
@@ -257,8 +257,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_BIB));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
     verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED.value()), any());
   }
 
@@ -286,8 +286,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
   }
 
   @Test
@@ -337,7 +337,7 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(0));
     verify(messageProducer, times(1)).write(any());
     verify(incomingRecordService)
-      .saveBatch(argThat(parseJournalRecord -> parseJournalRecord.size() == 1 && parseJournalRecord.get(0).getJobExecutionId().equals(jobExecution.getId())), any());
+      .saveBatch(argThat(parseJournalRecord -> parseJournalRecord.size() == 1 && parseJournalRecord.getFirst().getJobExecutionId().equals(jobExecution.getId())), any());
   }
 
   @Test
@@ -411,8 +411,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_BIB));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
   }
 
   @Test
@@ -439,8 +439,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.EDIFACT));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.EDIFACT));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
   }
 
   @Test
@@ -465,10 +465,10 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
-    assertThat(actual.get(0).getMatchedId(), nullValue());
-    assertThat(actual.get(0).getExternalIdsHolder().getInstanceId(), equalTo("29573076-a7ee-462a-8f9b-2659ab7df23c"));
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_BIB));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getMatchedId(), nullValue());
+    assertThat(actual.getFirst().getExternalIdsHolder().getInstanceId(), equalTo("29573076-a7ee-462a-8f9b-2659ab7df23c"));
   }
 
   @Test
@@ -487,10 +487,10 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
-    assertThat(actual.get(0).getMatchedId(), nullValue());
-    assertThat(actual.get(0).getExternalIdsHolder().getInstanceId(), equalTo("29573076-a7ee-462a-8f9b-2659ab7df23c"));
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_BIB));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getMatchedId(), nullValue());
+    assertThat(actual.getFirst().getExternalIdsHolder().getInstanceId(), equalTo("29573076-a7ee-462a-8f9b-2659ab7df23c"));
   }
 
   @Test
@@ -643,8 +643,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
     verify(fieldModificationService).remove9Subfields(eq(jobExecution.getId()), any(), any());
   }
 
@@ -673,8 +673,8 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(1));
-    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
-    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.getFirst().getErrorRecord(), nullValue());
     verifyNoInteractions(fieldModificationService);
   }
 

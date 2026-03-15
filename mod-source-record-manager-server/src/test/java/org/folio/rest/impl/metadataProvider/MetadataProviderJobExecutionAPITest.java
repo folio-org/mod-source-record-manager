@@ -181,7 +181,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     int expectedNotDiscardedNumber = 2;
     List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(numberOfFiles).getJobExecutions();
     List<JobExecution> children = createdJobExecutions.stream()
-      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).toList();
     StatusDto discardedStatus = new StatusDto().withStatus(StatusDto.Status.DISCARDED);
 
     for (int i = 0; i < children.size() - expectedNotDiscardedNumber; i++) {
@@ -208,7 +208,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     int expectedNotHiddenNumber = 2;
     List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(numberOfFiles).getJobExecutions();
     List<JobExecution> children = createdJobExecutions.stream()
-      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).toList();
 
     for (int i = 0; i < children.size() - expectedNotHiddenNumber; i++) {
       var jobExecution = children.get(i);
@@ -297,7 +297,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(8).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
       if (i % 2 == 0) {
@@ -336,7 +336,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
       putJobExecution(createdJobExecution.get(i)
@@ -366,7 +366,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
     List<JobExecution.Status> statuses = List.of(JobExecution.Status.COMMITTED, JobExecution.Status.CANCELLED, JobExecution.Status.CANCELLED, JobExecution.Status.ERROR, JobExecution.Status.ERROR);
 
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
@@ -401,7 +401,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
     List<JobExecution.Status> statuses = List.of(JobExecution.Status.COMMITTED, JobExecution.Status.CANCELLED, JobExecution.Status.CANCELLED, JobExecution.Status.ERROR, JobExecution.Status.ERROR);
 
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
@@ -436,7 +436,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
       putJobExecution(createdJobExecution.get(i)
@@ -552,7 +552,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     List<String> profilesNames = List.of("air", "Apple", "driver", "Zero");
 
@@ -628,7 +628,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
       String id = (i % 2 == 0) ? profileId : UUID.randomUUID().toString();
@@ -658,7 +658,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     List<JobExecution> childJobsToUpdate = constructAndPostInitJobExecutionRqDto(8).getJobExecutions().stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     Date dateFrom = new Date();
     Date dateTo = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
@@ -687,7 +687,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .extract().as(JobExecutionDtoCollection.class)
       .getJobExecutions().stream()
       .map(JobExecutionDto::getCompletedDate)
-      .collect(Collectors.toList());
+      .toList();
 
     assertThat(completedDates, everyItem(greaterThanOrEqualTo(dateFrom)));
     assertThat(completedDates, everyItem(lessThanOrEqualTo((dateTo))));
@@ -700,7 +700,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     String profileId2 = "91f9b8d6-d80e-4727-9783-73fb53e3c786";
     List<JobExecution> childJobsToUpdate = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     int expectedJobExecutionsNumber = 2;
     for (int i = 0; i < expectedJobExecutionsNumber; i++) {
@@ -731,7 +731,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     String userId = "d0ebb7b0-2f0f-11eb-adc1-0242ac120002";
     List<JobExecution> childJobsToUpdate = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
       if (i % 2 == 0) {
@@ -759,7 +759,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     List<String> profilesNames = List.of("air", "Apple", "driver", "Zero");
 
@@ -794,7 +794,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     JournalRecordCollection journalRecords = RestAssured.given()
       .spec(spec)
@@ -824,7 +824,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     RestAssured.given()
       .spec(spec)
@@ -853,15 +853,15 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String title = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 1, CREATE, INSTANCE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 2, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, title, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, title, 1, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, title, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, title, 2, CREATE, INSTANCE, COMPLETED, null))
       .onFailure(testContext::fail);
 
     future.onComplete(ar -> testContext.verify(v -> {
@@ -889,15 +889,15 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
     String expectedRecordTitle = "The Journal of ecclesiastical history.";
     String sourceRecordId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 1, CREATE, INSTANCE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 2, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, expectedRecordTitle, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, expectedRecordTitle, 1, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, expectedRecordTitle, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.getFirst().getId(), sourceRecordId, null, null, expectedRecordTitle, 2, CREATE, INSTANCE, COMPLETED, null))
       .onFailure(testContext::fail);
 
     future.onComplete(ar -> testContext.verify(v -> {
@@ -919,7 +919,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnCreatedRecordInstanceHoldingItemSummary(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -966,7 +966,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnCreatedRecordOrderSummary(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1006,7 +1006,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedEntityOrderSummary(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String errorMessage = "Error during creating";
@@ -1047,7 +1047,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnOnly1UpdatedInstanceIfSeveralActionsWereDoneForTheSameInstanceEntity(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1083,7 +1083,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnUpdatedSourceRecordSummaryWhenRecordWasUpdated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1112,7 +1112,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnEightUpdatedSourceRecordSummaryWhenRecordWasUpdated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     List<String> marcBibEntityIds = IntStream.range(0,8).mapToObj(i->UUID.randomUUID().toString()).toList();
     List<String> marcBibSourceIds = IntStream.range(0,8).mapToObj(i->UUID.randomUUID().toString()).toList();
 
@@ -1147,7 +1147,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldNotReturnUpdatedSourceRecordSummaryWhenRecordWasModified(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1176,7 +1176,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedInstanceWhenInstanceDidNotMatch(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
@@ -1213,7 +1213,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnCreatedInstanceWhenInstanceCreatedInNonMatchSection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String title = "title";
 
@@ -1252,7 +1252,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnInstanceDiscardedWithErrorsWhenInstanceCreationFailed(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
@@ -1284,7 +1284,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedForMarcBibAndInstanceIfMarcBibMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1317,7 +1317,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedForHoldingsIfHoldingsMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1346,7 +1346,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedForItemIfItemMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1375,7 +1375,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1404,7 +1404,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldNotReturnDiscardedForMarcBibAndInstanceIfHoldingsCreatedOnMatchByInstance(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String holdingsEntityId = UUID.randomUUID().toString();
@@ -1443,7 +1443,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedWithErrorAndOtherAuthorityUpdated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
     String authorityId = UUID.randomUUID().toString();
@@ -1483,7 +1483,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldNotReturnDiscardedForHoldingsIfItemCreatedOnMatchByHoldings(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String incomingRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1519,7 +1519,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnAuthoritySummaryWhenAuthorityWasCreated(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
@@ -1552,7 +1552,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnInvoiceSummaryWhenInvoiceWasCreated(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceTitle = "INVOICE";
     String invoiceLineDescription = "Some description";
@@ -1590,7 +1590,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnInvoiceSummaryWithErrorsWhenInvoiceCreationFailed(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceTitle = "INVOICE";
     String invoiceLineDescription = "Some description";
@@ -1622,7 +1622,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnInvoiceSummaryWithErrorsWhenAnyInvoiceLineCreationFailed(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceTitle = "INVOICE";
     String invoiceLineDescription = "Some description";
@@ -1655,7 +1655,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnOneInvoiceErrorWhenAllInvoiceLinesCreationFailed(TestContext context) {
     Async async = context.async();
-    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceTitle = "INVOICE";
     String invoiceLineDescription = "Some description";
@@ -1688,7 +1688,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnOneUpdatedSourceRecordWhenRecordWasModifiedAndUpdated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1716,7 +1716,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnMultipleDiscardedMarcBib(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
@@ -1743,7 +1743,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnMultipleErrorInstances(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String[] sourceRecordIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String errMessage = "error";
 
@@ -1784,7 +1784,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnMultipleErrorHoldings(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String[] sourceRecordIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] marcBibEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] instanceEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
@@ -1834,7 +1834,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnMultipleErrorItems(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String[] sourceRecordIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] marcBibEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] instanceEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
@@ -1893,7 +1893,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnMultipleDiscardedHoldings(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String[] sourceRecordIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] marcBibEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] instanceEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
@@ -1942,7 +1942,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnMultipleDiscardedHoldingsAndItems(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String[] sourceRecordIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] marcBibEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
     String[] instanceEntityIds = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
@@ -1998,7 +1998,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnDiscardedMarcBibAndInstance(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String title = "title";
 
@@ -2060,13 +2060,13 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldNotReturnDeletedJobExecutionRecords() {
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
 
     putJobExecution(createdJobExecution);
 
     DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{createdJobExecution.getId()});
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(createdJobExecution.getId()));
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getJobExecutionId(), is(createdJobExecution.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getIsDeleted(), is(true));
 
       RestAssured.given()
         .spec(spec)
@@ -2084,11 +2084,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{jobExec.getId()});
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
-    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().getFirst().getIsDeleted(), is(true));
 
 
     RestAssured.given()
@@ -2117,7 +2117,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution.Status> statuses = List.of(COMMITTED, JobExecution.Status.ERROR, CANCELLED, FILE_UPLOADED);
     List<JobExecution> childJobs = constructAndPostInitJobExecutionRqDto(statuses.size()).getJobExecutions().stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobs.size(); i++) {
       JobExecution.Status status = statuses.get(i);
@@ -2148,7 +2148,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
 
     List<JobExecution> children = createdJobExecution.stream()
-      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).toList();
     for (JobExecution jobExecution : children) {
       jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("Marc jobs profile"));
@@ -2183,7 +2183,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     String nonExpectedJobProfileId = UUID.randomUUID().toString();
     List<JobExecution> childJobs = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobs.size(); i++) {
       String id = (i % 2 == 0) ? nonExpectedJobProfileId : UUID.randomUUID().toString();
@@ -2198,7 +2198,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<String> jobIdsToMarkAsDeleted = childJobs.stream()
       .filter(job -> job.getJobProfileInfo().getId().equals(nonExpectedJobProfileId))
       .map(JobExecution::getId)
-      .collect(Collectors.toList());
+      .toList();
 
     // Marks job executions as deleted which contain nonExpectedJobProfileId in the jobProfileInfo
     RestAssured.given()
@@ -2238,7 +2238,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(statuses.size()).getJobExecutions();
 
     List<JobExecution> children = createdJobExecution.stream()
-      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).toList();
     for (int i = 0; i < children.size(); i++) {
       JobExecution jobExecution = children.get(i);
       putJobExecution(jobExecution.withStatus(statuses.get(i))
@@ -2268,7 +2268,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
 
     List<JobExecution> children = createdJobExecution.stream()
-      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).toList();
     for (JobExecution jobExecution : children) {
       putJobExecution(jobExecution.withStatus(COMMITTED));
     }
@@ -2291,7 +2291,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     // Creates 1 parent job and 4 child job executions
     List<JobExecution> childJobs = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
       .filter(job -> job.getSubordinationType().equals(CHILD))
-      .collect(Collectors.toList());
+      .toList();
 
     for (int i = 0; i < childJobs.size(); i++) {
       String userId = (i % 2 == 0) ? nonExpectedUserId : UUID.randomUUID().toString();
@@ -2302,7 +2302,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<String> jobIdsToMarkAsDeleted = childJobs.stream()
       .filter(job -> job.getUserId().equals(nonExpectedUserId))
       .map(JobExecution::getId)
-      .collect(Collectors.toList());
+      .toList();
 
     // Marks job executions as deleted which contain nonExpectedUserId
     RestAssured.given()
@@ -2333,7 +2333,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
       .filter(job -> job.getSubordinationType().equals(CHILD))
       .map(JobExecution::getId)
-      .collect(Collectors.toList());
+      .toList();
 
     // Marks child job executions as deleted which contain nonExpectedUserId
     RestAssured.given()
@@ -2403,7 +2403,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
       .filter(job -> job.getSubordinationType().equals(COMPOSITE_CHILD))
       .map(JobExecution::getId)
-      .collect(Collectors.toList());
+      .toList();
 
     // Marks child job executions as deleted which contain nonExpectedUserId
     RestAssured.given()

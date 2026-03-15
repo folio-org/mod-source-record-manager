@@ -288,7 +288,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
-      context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getAllValues().get(0).getStatus()));
+      context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getAllValues().getFirst().getStatus()));
       verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
       async.complete();
     });

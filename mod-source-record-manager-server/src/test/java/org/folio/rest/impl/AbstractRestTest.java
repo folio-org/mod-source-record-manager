@@ -568,7 +568,7 @@ public abstract class AbstractRestTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
+    List<File> limitedFilesList = filesList.stream().limit(filesNumber).toList();
     requestDto.getFiles().addAll(limitedFilesList);
     requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);

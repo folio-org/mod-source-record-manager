@@ -134,9 +134,9 @@ public class KafkaAdminClientServiceTest {
   }
 
   private List<String> getTopicNames(ArgumentCaptor<List<NewTopic>> createTopicsCaptor) {
-    return createTopicsCaptor.getAllValues().get(0).stream()
+    return createTopicsCaptor.getAllValues().getFirst().stream()
       .map(NewTopic::getName)
-      .collect(Collectors.toList());
+      .toList();
   }
 
   private Future<Void> createKafkaTopicsAsync(KafkaAdminClient client) {
