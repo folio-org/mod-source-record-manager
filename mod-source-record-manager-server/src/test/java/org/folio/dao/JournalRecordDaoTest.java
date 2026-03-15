@@ -78,7 +78,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertEquals(1, createdJobExecutions.size());
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     JournalRecord journalRecord1 = new JournalRecord()
       .withJobExecutionId(jobExec.getId())
@@ -124,7 +124,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
         assertTrue(ar.succeeded());
         List<JournalRecord> journalRecords = ar.result();
         assertEquals(3, journalRecords.size());
-        assertThat(journalRecords.get(0).getActionType(), lessThan(journalRecords.get(1).getActionType()));
+        assertThat(journalRecords.getFirst().getActionType(), lessThan(journalRecords.get(1).getActionType()));
         assertThat(journalRecords.get(1).getActionType(), lessThan(journalRecords.get(2).getActionType()));
       });
       async.complete();
@@ -152,7 +152,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertEquals(1, createdJobExecutions.size());
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     JournalRecord journalRecord = new JournalRecord()
       .withId(UUID.randomUUID().toString())
@@ -200,7 +200,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertEquals(1, createdJobExecutions.size());
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
 
     JournalRecord journalRecord1 = new JournalRecord()
       .withJobExecutionId(jobExec.getId())
@@ -246,7 +246,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
         assertTrue(ar.succeeded());
         List<JournalRecord> journalRecords = ar.result();
         assertEquals(3, journalRecords.size());
-        assertThat(journalRecords.get(0).getError(), greaterThan(journalRecords.get(1).getError()));
+        assertThat(journalRecords.getFirst().getError(), greaterThan(journalRecords.get(1).getError()));
         assertThat(journalRecords.get(1).getError(), greaterThan(journalRecords.get(2).getError()));
       });
       async.complete();
@@ -258,7 +258,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertEquals(1, createdJobExecutions.size());
-    JobExecution jobExec = createdJobExecutions.get(0);
+    JobExecution jobExec = createdJobExecutions.getFirst();
     String orderId = UUID.randomUUID().toString();
 
     JournalRecord journalRecord1 = new JournalRecord()

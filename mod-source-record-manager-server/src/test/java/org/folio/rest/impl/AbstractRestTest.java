@@ -52,7 +52,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.KafkaUtil;
@@ -568,7 +567,7 @@ public abstract class AbstractRestTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
+    List<File> limitedFilesList = filesList.stream().limit(filesNumber).toList();
     requestDto.getFiles().addAll(limitedFilesList);
     requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);

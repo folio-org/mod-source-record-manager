@@ -104,7 +104,7 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
     eventPayload.setProfileSnapshot(profileSnapshot);
     eventPayload.getEventsChain().add(eventPayload.getEventType());
     while (MAPPING_PROFILE != profileSnapshot.getContentType()) {
-      profileSnapshot = profileSnapshot.getChildSnapshotWrappers().get(0);
+      profileSnapshot = profileSnapshot.getChildSnapshotWrappers().getFirst();
     }
     eventPayload.setCurrentNode(profileSnapshot);
     eventPayload.getContext().put(INVOICE.value(), new JsonObject().encode());

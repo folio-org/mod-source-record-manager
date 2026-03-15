@@ -108,7 +108,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     // sends di_error event only for one record from incoming chunk to provide only one entry in the import log
     List<Record> records = exception.getRecords();
     if (!records.isEmpty()) {
-      sendDiError(exception, jobExecutionId, okapiParams, records.get(0));
+      sendDiError(exception, jobExecutionId, okapiParams, records.getFirst());
     } else {
       sendDiError(exception, jobExecutionId, okapiParams, null);
     }

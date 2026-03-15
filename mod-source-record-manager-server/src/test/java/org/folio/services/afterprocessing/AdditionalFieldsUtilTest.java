@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.TestUtil;
@@ -382,7 +381,7 @@ public class AdditionalFieldsUtilTest {
     boolean added = modifyDataFieldsForMarcRecord(record, tagsForAction, dataField -> {
       var subfields9 = dataField.getSubfields().stream()
         .filter(subfield -> '9' == subfield.getCode())
-        .collect(Collectors.toList());
+        .toList();
       subfields9.forEach(dataField::removeSubfield);
     });
     // then
