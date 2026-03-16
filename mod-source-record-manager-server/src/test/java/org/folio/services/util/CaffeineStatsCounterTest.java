@@ -3,7 +3,7 @@ package org.folio.services.util;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.micrometer.core.instrument.Tag;
-import io.vertx.core.VertxOptions;
+import io.vertx.core.Vertx;
 import org.folio.okapi.common.MetricsUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +25,9 @@ public class CaffeineStatsCounterTest {
     // Setup MetricsUtil and mock counters
     System.setProperty("vertx.metrics.options.enabled", "true");
     System.setProperty("jmxMetricsOptions", "{\"domain\":\"org.folio\"}");
-    if(!MetricsUtil.isEnabled()) MetricsUtil.init(new VertxOptions());
+    if (!MetricsUtil.isEnabled()) {
+      MetricsUtil.init(Vertx.builder());
+    }
 
     statsCounter = new CaffeineStatsCounter(cacheName, tags);
   }

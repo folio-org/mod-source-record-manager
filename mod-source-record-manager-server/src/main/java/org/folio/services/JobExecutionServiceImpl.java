@@ -19,7 +19,6 @@ import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
@@ -57,7 +56,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
@@ -123,7 +121,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
           Future<List<String>> savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
           Future<List<String>> savedSnapshotsFuture = saveSnapshots(snapshots, params);
-          return GenericCompositeFuture.all(Arrays.asList(savedJsonExecutionsFuture, savedSnapshotsFuture))
+          return Future.all(Arrays.asList(savedJsonExecutionsFuture, savedSnapshotsFuture))
             .map(new InitJobExecutionsRsDto()
               .withParentJobExecutionId(parentJobExecutionId)
               .withJobExecutions(jobExecutions));
@@ -552,13 +550,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    */
   private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions, String tenantId) {
     LOGGER.debug("saveJobExecutions:: jobExecutionIds {}, tenantId {}",
-      jobExecutions.stream().map(JobExecution::getId).collect(Collectors.toList()), tenantId);
+      jobExecutions.stream().map(JobExecution::getId).toList(), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }
-    return GenericCompositeFuture.all(savedJobExecutionFutures).map(genericCompositeFuture -> genericCompositeFuture.result().list());
+    return Future.all(savedJobExecutionFutures).map(compositeFuture -> compositeFuture.result().list());
   }
 
   /**
@@ -575,7 +573,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       Future<String> postedSnapshotFuture = postSnapshot(snapshot, params);
       postedSnapshotFutures.add(postedSnapshotFuture);
     }
-    return GenericCompositeFuture.all(postedSnapshotFutures).map(genericCompositeFuture -> genericCompositeFuture.result().list());
+    return Future.all(postedSnapshotFutures).map(compositeFuture -> compositeFuture.result().list());
   }
 
   /**
@@ -591,18 +589,20 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       return client.postSourceStorageSnapshots(snapshot)
-        .onFailure(e -> LOGGER.warn("postSnapshot:: Error during post for new Snapshot", e))
+        .onFailure(e -> LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
+          snapshot.getJobExecutionId(), e))
         .compose(response -> {
         if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
-          LOGGER.warn("postSnapshot:: Error during post for new Snapshot. Status code: {}, body: '{}'",
-            response.statusCode(), response.bodyAsString());
+          LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}. Status code: {}, body: '{}'",
+            snapshot.getJobExecutionId(), response.statusCode(), response.bodyAsString());
           return Future.failedFuture(new HttpException(response.statusCode(), "Error during post for new Snapshot."));
         } else {
           return Future.succeededFuture(response.bodyAsString());
         }
       });
     } catch (Exception e) {
-      LOGGER.warn("postSnapshot:: Error during post for new Snapshot", e);
+      LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
+        snapshot.getJobExecutionId(), e);
       return Future.failedFuture(e);
     }
   }

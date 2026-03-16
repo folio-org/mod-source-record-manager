@@ -169,7 +169,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       new JsonObject(json);
       return true;
     } catch (Exception e) {
-      LOGGER.warn(e.getMessage());
+      LOGGER.warn("isValidJson:: The specified json is invalid", e);
       return false;
     }
   }
@@ -186,7 +186,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     try {
       return Optional.of(Resources.toString(url, DEFAULT_RULES_ENCODING));
     } catch (IOException e) {
-      LOGGER.warn(e.getMessage());
+      LOGGER.warn("readResourceFromPath:: Failed to get resource from path: '{}'", path, e);
       return Optional.empty();
     }
   }

@@ -1,6 +1,5 @@
 package org.folio.dao;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.SortField;
@@ -12,7 +11,7 @@ import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.Progress;
-import org.folio.rest.persist.SQLConnection;
+import org.folio.rest.persist.Conn;
 
 import java.util.List;
 import java.util.Optional;
@@ -84,7 +83,7 @@ public interface JobExecutionDao {
    * @param tenantId    tenant id
    * @return future of Void
    */
-  Future<Void> updateJobExecutionProgress(AsyncResult<SQLConnection> connection, Progress progress, String tenantId);
+  Future<Void> updateJobExecutionProgress(Conn connection, Progress progress, String tenantId);
 
   /**
    * Updates {@link JobExecution} in the db with row blocking

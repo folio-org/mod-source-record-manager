@@ -11,7 +11,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -1611,7 +1610,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String invoiceLineDescription = "Some description";
     String invoiceLineId = "0704159";
 
-    CompositeFuture future = GenericCompositeFuture.all(List.of(
+    CompositeFuture future = Future.all(List.of(
         createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "228D126", "INVOICE", 0, CREATE, INVOICE, COMPLETED, null, null).map(JournalRecord::getId),
         createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null, null).map(JournalRecord::getId),
         createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null, null).map(JournalRecord::getId),

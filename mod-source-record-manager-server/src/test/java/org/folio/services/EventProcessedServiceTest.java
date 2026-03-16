@@ -33,7 +33,7 @@ public class EventProcessedServiceTest {
   private EventProcessedDao eventProcessedDao;
 
   @InjectMocks
-  private EventProcessedService eventProcessedService = new EventProcessedServiceImpl(eventProcessedDao);
+  private EventProcessedServiceImpl eventProcessedService;
 
   @Before
   public void setUp() {
@@ -83,7 +83,6 @@ public class EventProcessedServiceTest {
     verify(eventProcessedDao).save(HANDLER_ID, EVENT_ID, TENANT_ID);
     assertTrue(future.failed());
     assertTrue(future.cause() instanceof PgException);
-
   }
 
   @Test

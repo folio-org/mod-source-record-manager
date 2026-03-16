@@ -4,7 +4,6 @@ import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
@@ -119,8 +118,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private static final String MESSAGE_KEY = "message";
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final int THRESHOLD_CHUNK_SIZE =
-    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
   private static final String TAG_001 = "001";
   private static final String TAG_004 = "004";
   private static final String MARC_FORMAT = "MARC_";
@@ -146,8 +143,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final IncomingRecordService incomingRecordService;
   private final ConsortiumDataCache consortiumDataCache;
   private final Vertx vertx;
-  private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
+  private final MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
   private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
+
+  @Value("${chunk.processing.threshold.chunk.size:100}")
+  private int thresholdChunkSize;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -203,8 +203,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
       }).onFailure(th -> {
-        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, cause: {}, jobExecutionId: {}",
-          th.getMessage(), jobExecution.getId());
+        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, jobExecutionId: {}",
+         jobExecution.getId(), th);
         promise.fail(th);
       });
     return promise.future();
@@ -267,7 +267,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (parsedRecords.isEmpty()) {
       return ActionType.SAVE_RECORD;
     }
-    RecordType recordType = parsedRecords.get(0).getRecordType();
+    RecordType recordType = parsedRecords.getFirst().getRecordType();
     if (recordType == RecordType.MARC_BIB) {
       return ActionType.SEND_MARC_BIB;
     }
@@ -365,7 +365,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (records.isEmpty()) {
       return true;
     }
-    RecordType recordType = records.get(0).getRecordType();
+    RecordType recordType = records.getFirst().getRecordType();
     return recordType == null || jobProfileSnapshotValidationService.isJobProfileCompatibleWithRecordType(jobProfileSnapshot, recordType);
   }
 
@@ -454,7 +454,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       containsMarcActionProfile(jobProfileSnapshotWrapper, itemAndHoldingsList, Action.UPDATE)) &&
       !containsMarcActionProfile(jobProfileSnapshotWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE) &&
       !CollectionUtils.isEmpty(parsedRecords) &&
-      parsedRecords.get(0).getRecordType() == MARC_BIB;
+      parsedRecords.getFirst().getRecordType() == MARC_BIB;
   }
 
   private boolean deleteMarcActionExists(JobExecution jobExecution) {
@@ -584,9 +584,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       return Future.succeededFuture(Collections.emptyList());
     }
     var counter = new MutableInt();
-    // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
+    // if number of records is more than thresholdChunkSize update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
-    int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
+    int partition = rawRecords.size() > thresholdChunkSize ? rawRecords.size() / 5 : rawRecords.size();
     var records = getParsedRecordsFromInitialRecords(rawRecords, recordContentType, jobExecution, acceptInstanceId, sourceChunkId).stream()
       .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
@@ -773,7 +773,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         promise.complete(invalidMarcBibIds);
       });
     } catch (Exception e) {
-      LOGGER.warn("verifyMarcHoldings004Field:: Error during call post request to SRS: {}", e.getMessage());
+      LOGGER.warn("verifyMarcHoldings004Field:: Error during call post request to SRS", e);
       promise.complete(Collections.emptyList());
     }
     return promise.future();

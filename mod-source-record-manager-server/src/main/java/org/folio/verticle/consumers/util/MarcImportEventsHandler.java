@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
@@ -73,7 +72,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
           .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals(INSTANCE_TITLE_FIELD_PATH))
           .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
           .map(Object::toString)
-          .collect(Collectors.toList());
+          .toList();
 
         return subfieldCodes.isEmpty()
           ? null

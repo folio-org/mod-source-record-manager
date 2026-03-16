@@ -9,12 +9,12 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.flowables.ConnectableFlowable;
 import io.reactivex.rxjava3.flowables.GroupedFlowable;
 import io.vertx.core.Promise;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.common.TopicPartition;
 import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.core.RxHelper;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.eventbus.MessageConsumer;
 import io.vertx.rxjava3.impl.AsyncResultCompletable;
 import io.vertx.rxjava3.impl.AsyncResultSingle;
@@ -250,14 +250,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     // combine all event subscription pattern into one pattern
     Pattern pattern = combinePatterns(subPatterns);
 
-    // KafkaConsumer.subscribe(Pattern) is not exposed for the rxified api
-    // it should have been resolved here https://github.com/vert-x3/vertx-kafka-client/issues/156,
-    // the code below is the equivalent if the method was exposed. when the issue is resolved, regular APIs can be
-    // used.
-    io.reactivex.rxjava3.core.Completable ret = AsyncResultCompletable.toCompletable(completionHandler ->
-      kafkaConsumer.getDelegate().subscribe(pattern, completionHandler)
-    );
-    ret = ret.cache();
+    Completable ret = kafkaConsumer.subscribe(pattern).cache();
     ret.subscribe(io.vertx.rxjava3.CompletableHelper.nullObserver());
     return ret;
   }
@@ -283,7 +276,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
           // Successfully create and return a Bundle object containing the record and event details
           return Optional.of(new Bundle(consumerRecord, event, okapiConnectionParams));
         } catch (Exception e) {
-          LOGGER.error("Error processing Kafka event with exception: {}", e.getMessage());
+          LOGGER.error("Error processing Kafka event with exception", e);
           // Return empty Optional to skip this record and continue processing
           return Optional.<Bundle>empty();
         }
@@ -403,9 +396,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
   private Completable commitOffset(Map<TopicPartition, OffsetAndMetadata> offsets) {
     LOGGER.info("Committing offsets: {}", offsets);
-    return AsyncResultCompletable.toCompletable(handler ->
-        kafkaConsumer.getDelegate().commit(offsets, handler)
-      )
+    return AsyncResultCompletable.toCompletable(kafkaConsumer.getDelegate().commit(offsets))
       .onErrorResumeNext(error -> {
         if (error instanceof RebalanceInProgressException) {
           LOGGER.warn("Rebalance in progress. Waiting for the re-balance to complete...");

@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Component
 public class KafkaConsumersStorageImpl implements KafkaConsumersStorage {
@@ -33,6 +32,6 @@ public class KafkaConsumersStorageImpl implements KafkaConsumersStorage {
     return consumerWrappersMap.values()
       .stream()
       .flatMap(Collection::stream)
-      .collect(Collectors.toList());
+      .toList();
   }
 }

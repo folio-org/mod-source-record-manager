@@ -63,11 +63,11 @@ public class JobExecutionSourceChunkDaoImplTest {
   @Test
   public void shouldReturnFutureWithEntityOnGettingById() {
     // given
-    Results<Object> queryResults = new Results<>();
+    Results<JobExecutionSourceChunk> queryResults = new Results<>();
     queryResults.setResults(Collections.singletonList(jobExecutionSourceChunk));
 
-    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(queryResults), 5))
-      .when(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
+    when(pgClient.get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true)))
+      .thenReturn(Future.succeededFuture(queryResults));
     // when
     jobExecutionSourceChunkDao.getById(jobExecutionSourceChunk.getId(), TENANT_ID)
       // then
@@ -82,7 +82,7 @@ public class JobExecutionSourceChunkDaoImplTest {
         Assert.assertEquals(jobExecutionSourceChunk.getChunkSize(), receivedEntity.getChunkSize());
         Assert.assertEquals(jobExecutionSourceChunk.getProcessedAmount(), receivedEntity.getProcessedAmount());
 
-        verify(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
+        verify(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true));
       });
   }
 
@@ -90,14 +90,13 @@ public class JobExecutionSourceChunkDaoImplTest {
   public void shouldReturnFailedFutureWhenPgClientThrewExceptionOnGettingById() {
     // given
     doThrow(RuntimeException.class)
-      .when(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
+      .when(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true));
     // when
     jobExecutionSourceChunkDao.getById(jobExecutionSourceChunk.getId(), TENANT_ID)
       // then
       .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
-
-        verify(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
+        verify(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true));
       });
   }
 
@@ -106,9 +105,8 @@ public class JobExecutionSourceChunkDaoImplTest {
     // given
     int updatedRowsNumber = 1;
     RowSet<Row> updateResult = new LocalRowSet(updatedRowsNumber);
-
-    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(updateResult), 2))
-      .when(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
+    when(pgClient.delete(TABLE_NAME, jobExecutionSourceChunk.getId()))
+      .thenReturn(Future.succeededFuture(updateResult));
 
     // when
     jobExecutionSourceChunkDao.delete(jobExecutionSourceChunk.getId(), TENANT_ID)
@@ -116,7 +114,7 @@ public class JobExecutionSourceChunkDaoImplTest {
       .onComplete(ar -> {
         Assert.assertTrue(ar.succeeded());
         Assert.assertEquals(true, ar.result());
-        verify(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
+        verify(pgClient).delete(TABLE_NAME, jobExecutionSourceChunk.getId());
       });
   }
 
@@ -125,9 +123,7 @@ public class JobExecutionSourceChunkDaoImplTest {
     // given
     int numberUpdatedRows = 0;
     RowSet<Row> sqlUpdateResult = when(mock(RowSet.class).rowCount()).thenReturn(numberUpdatedRows).getMock();
-    AsyncResult updateResult = mock(AsyncResult.class);
-    when(updateResult.failed()).thenReturn(false);
-    when(updateResult.result()).thenReturn(sqlUpdateResult);
+    AsyncResult<RowSet<Row>> updateResult = Future.succeededFuture(sqlUpdateResult);
 
     doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
@@ -137,7 +133,6 @@ public class JobExecutionSourceChunkDaoImplTest {
       .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
-        ;
       });
   }
 

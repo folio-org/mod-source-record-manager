@@ -1,12 +1,11 @@
 package org.folio.dao;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.persist.SQLConnection;
+import org.folio.rest.persist.Conn;
 
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -34,7 +33,7 @@ public interface JobExecutionProgressDao {
    * @param tenantId       tenant id
    * @return future with created JobExecutionProgress
    */
-  Future<JobExecutionProgress> initializeJobExecutionProgress(AsyncResult<SQLConnection> connection, String jobExecutionId, Integer totalRecords, String tenantId);
+  Future<JobExecutionProgress> initializeJobExecutionProgress(Conn connection, String jobExecutionId, Integer totalRecords, String tenantId);
 
   /**
    * Saves jobExecutionProgress entity to database

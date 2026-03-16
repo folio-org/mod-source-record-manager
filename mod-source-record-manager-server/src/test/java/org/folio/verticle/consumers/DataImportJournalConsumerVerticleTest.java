@@ -87,20 +87,20 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     }};
 
-    jobExecutionDao = getBeanFromSpringContext(vertx, org.folio.dao.JobExecutionDaoImpl.class);
+    jobExecutionDao = getBeanFromSpringContext(org.folio.dao.JobExecutionDaoImpl.class);
     Assert.assertNotNull(jobExecutionDao);
     jobExecutionDao.save(jobExecution, TENANT_ID);
 
-    journalRecordDao = getBeanFromSpringContext(vertx, org.folio.dao.JournalRecordDaoImpl.class);
+    journalRecordDao = getBeanFromSpringContext(org.folio.dao.JournalRecordDaoImpl.class);
     Assert.assertNotNull(journalRecordDao);
 
-    journalService = getBeanFromSpringContext(vertx, org.folio.services.journal.JournalServiceImpl.class);
+    journalService = getBeanFromSpringContext(org.folio.services.journal.JournalServiceImpl.class);
     Assert.assertNotNull(journalService);
 
-    eventProcessedService = getBeanFromSpringContext(vertx, EventProcessedServiceImpl.class);
+    eventProcessedService = getBeanFromSpringContext(EventProcessedServiceImpl.class);
     Assert.assertNotNull(eventProcessedService);
 
-    EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(vertx, EventTypeHandlerSelector.class);
+    EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(EventTypeHandlerSelector.class);
     Assert.assertNotNull(eventTypeHandlerSelector);
   }
 
