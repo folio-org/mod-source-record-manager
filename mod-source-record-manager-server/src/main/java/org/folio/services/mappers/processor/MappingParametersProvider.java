@@ -25,70 +25,70 @@ import io.vertx.core.json.jackson.DatabindCodec;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.AlternativeTitleType;
-import org.folio.Alternativetitletypes;
 import org.folio.AuthorityNoteType;
 import org.folio.AuthoritySourceFile;
 import org.folio.Authoritynotetypes;
 import org.folio.Authoritysourcefiles;
-import org.folio.CallNumberType;
-import org.folio.Callnumbertypes;
-import org.folio.ClassificationType;
-import org.folio.Classificationtypes;
-import org.folio.ContributorNameType;
-import org.folio.ContributorType;
-import org.folio.Contributornametypes;
-import org.folio.Contributortypes;
-import org.folio.ElectronicAccessRelationship;
-import org.folio.Electronicaccessrelationships;
-import org.folio.HoldingsNoteType;
-import org.folio.HoldingsType;
-import org.folio.Holdingsnotetypes;
-import org.folio.Holdingstypes;
-import org.folio.IdentifierType;
-import org.folio.Identifiertypes;
-import org.folio.IllPolicy;
-import org.folio.Illpolicies;
-import org.folio.InstanceDateType;
-import org.folio.InstanceDateTypes;
-import org.folio.InstanceFormat;
-import org.folio.InstanceNoteType;
-import org.folio.InstanceRelationshipType;
-import org.folio.InstanceStatus;
-import org.folio.InstanceType;
-import org.folio.Instanceformats;
-import org.folio.Instancenotetypes;
-import org.folio.Instancerelationshiptypes;
-import org.folio.Instancestatuses;
-import org.folio.Instancetypes;
-import org.folio.IssuanceMode;
-import org.folio.Issuancemodes;
-import org.folio.ItemDamageStatus;
-import org.folio.ItemNoteType;
-import org.folio.Itemdamagedstatuses;
-import org.folio.Itemnotetypes;
 import org.folio.LinkingRuleDto;
-import org.folio.Loantype;
-import org.folio.Loantypes;
-import org.folio.Location;
-import org.folio.Locations;
 import org.folio.MarcFieldProtectionSettingsCollection;
-import org.folio.Materialtypes;
-import org.folio.Mtype;
-import org.folio.NatureOfContentTerm;
-import org.folio.Natureofcontentterms;
-import org.folio.StatisticalCode;
-import org.folio.StatisticalCodeType;
-import org.folio.Statisticalcodes;
-import org.folio.Statisticalcodetypes;
-import org.folio.SubjectSource;
-import org.folio.SubjectSources;
-import org.folio.SubjectType;
-import org.folio.SubjectTypes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.jaxrs.model.AlternativeTitleType;
+import org.folio.rest.jaxrs.model.AlternativeTitleTypes;
+import org.folio.rest.jaxrs.model.CallNumberType;
+import org.folio.rest.jaxrs.model.CallNumberTypes;
+import org.folio.rest.jaxrs.model.ClassificationType;
+import org.folio.rest.jaxrs.model.ClassificationTypes;
+import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ContributorNameTypes;
+import org.folio.rest.jaxrs.model.ContributorType;
+import org.folio.rest.jaxrs.model.ContributorTypes;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationships;
+import org.folio.rest.jaxrs.model.HoldingsNoteType;
+import org.folio.rest.jaxrs.model.HoldingsNoteTypes;
+import org.folio.rest.jaxrs.model.HoldingsType;
+import org.folio.rest.jaxrs.model.HoldingsTypes;
+import org.folio.rest.jaxrs.model.IdentifierType;
+import org.folio.rest.jaxrs.model.IdentifierTypes;
+import org.folio.rest.jaxrs.model.IllPolicies;
+import org.folio.rest.jaxrs.model.IllPolicy;
+import org.folio.rest.jaxrs.model.InstanceDateType;
+import org.folio.rest.jaxrs.model.InstanceDateTypes;
+import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceFormats;
+import org.folio.rest.jaxrs.model.InstanceNoteType;
+import org.folio.rest.jaxrs.model.InstanceNoteTypes;
+import org.folio.rest.jaxrs.model.InstanceRelationshipType;
+import org.folio.rest.jaxrs.model.InstanceRelationshipTypes;
+import org.folio.rest.jaxrs.model.InstanceStatus;
+import org.folio.rest.jaxrs.model.InstanceStatuses;
+import org.folio.rest.jaxrs.model.InstanceType;
+import org.folio.rest.jaxrs.model.InstanceTypes;
+import org.folio.rest.jaxrs.model.IssuanceMode;
+import org.folio.rest.jaxrs.model.IssuanceModes;
+import org.folio.rest.jaxrs.model.ItemDamageStatus;
+import org.folio.rest.jaxrs.model.ItemDamageStatuses;
+import org.folio.rest.jaxrs.model.ItemNoteType;
+import org.folio.rest.jaxrs.model.ItemNoteTypes;
+import org.folio.rest.jaxrs.model.LoanType;
+import org.folio.rest.jaxrs.model.LoanTypes;
+import org.folio.rest.jaxrs.model.Location;
+import org.folio.rest.jaxrs.model.Locations;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
+import org.folio.rest.jaxrs.model.MaterialType;
+import org.folio.rest.jaxrs.model.MaterialTypes;
+import org.folio.rest.jaxrs.model.NatureOfContentTerm;
+import org.folio.rest.jaxrs.model.NatureOfContentTerms;
+import org.folio.rest.jaxrs.model.StatisticalCode;
+import org.folio.rest.jaxrs.model.StatisticalCodeType;
+import org.folio.rest.jaxrs.model.StatisticalCodeTypes;
+import org.folio.rest.jaxrs.model.StatisticalCodes;
+import org.folio.rest.jaxrs.model.SubjectSource;
+import org.folio.rest.jaxrs.model.SubjectSources;
+import org.folio.rest.jaxrs.model.SubjectType;
+import org.folio.rest.jaxrs.model.SubjectTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -189,9 +189,9 @@ public class MappingParametersProvider {
     Future<List<StatisticalCode>> statisticalCodesFuture = getStatisticalCodes(okapiParams);
     Future<List<StatisticalCodeType>> statisticalCodeTypesFuture = getStatisticalCodeTypes(okapiParams);
     Future<List<Location>> locationsFuture = getLocations(okapiParams);
-    Future<List<Mtype>> materialTypesFuture = getMaterialTypes(okapiParams);
+    Future<List<MaterialType>> materialTypesFuture = getMaterialTypes(okapiParams);
     Future<List<ItemDamageStatus>> itemDamagedStatusesFuture = getItemDamagedStatuses(okapiParams);
-    Future<List<Loantype>> loanTypesFuture = getLoanTypes(okapiParams);
+    Future<List<LoanType>> loanTypesFuture = getLoanTypes(okapiParams);
     Future<List<ItemNoteType>> itemNoteTypesFuture = getItemNoteTypes(okapiParams);
     Future<List<AuthorityNoteType>> authorityNoteTypesFuture = getAuthorityNoteTypes(okapiParams);
     Future<List<AuthoritySourceFile>> authoritySourceFilesFuture = getAuthoritySourceFiles(okapiParams);
@@ -257,7 +257,7 @@ public class MappingParametersProvider {
   private Future<List<IdentifierType>> getIdentifierTypes(OkapiConnectionParams params) {
     String identifierTypesUrl = "/identifier-types?limit=" + settingsLimit;
     return loadData(params, identifierTypesUrl, IDENTIFIER_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Identifiertypes.class).getIdentifierTypes());
+      response -> response.mapTo(IdentifierTypes.class).getIdentifierTypes());
   }
 
   /**
@@ -269,7 +269,7 @@ public class MappingParametersProvider {
   private Future<List<ClassificationType>> getClassificationTypes(OkapiConnectionParams params) {
     String classificationTypesUrl = "/classification-types?limit=" + settingsLimit;
     return loadData(params, classificationTypesUrl, CLASSIFICATION_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Classificationtypes.class).getClassificationTypes());
+      response -> response.mapTo(ClassificationTypes.class).getClassificationTypes());
   }
 
   /**
@@ -281,7 +281,7 @@ public class MappingParametersProvider {
   private Future<List<InstanceType>> getInstanceTypes(OkapiConnectionParams params) {
     String instanceTypesUrl = "/instance-types?limit=" + settingsLimit;
     return loadData(params, instanceTypesUrl, INSTANCE_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Instancetypes.class).getInstanceTypes());
+      response -> response.mapTo(InstanceTypes.class).getInstanceTypes());
   }
 
   /**
@@ -293,7 +293,7 @@ public class MappingParametersProvider {
   private Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(OkapiConnectionParams params) {
     String electronicAccessUrl = "/electronic-access-relationships?limit=" + settingsLimit;
     return loadData(params, electronicAccessUrl, ELECTRONIC_ACCESS_PARAM,
-      response -> response.mapTo(Electronicaccessrelationships.class).getElectronicAccessRelationships());
+      response -> response.mapTo(ElectronicAccessRelationships.class).getElectronicAccessRelationships());
   }
 
   /**
@@ -305,7 +305,7 @@ public class MappingParametersProvider {
   private Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
     String instanceFormatsUrl = "/instance-formats?limit=" + settingsLimit;
     return loadData(params, instanceFormatsUrl, INSTANCE_FORMATS_RESPONSE_PARAM,
-      response -> response.mapTo(Instanceformats.class).getInstanceFormats());
+      response -> response.mapTo(InstanceFormats.class).getInstanceFormats());
   }
 
   /**
@@ -317,7 +317,7 @@ public class MappingParametersProvider {
   private Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
     String contributorTypesUrl = "/contributor-types?limit=" + settingsLimit;
     return loadData(params, contributorTypesUrl, CONTRIBUTOR_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Contributortypes.class).getContributorTypes());
+      response -> response.mapTo(ContributorTypes.class).getContributorTypes());
   }
 
   /**
@@ -329,7 +329,7 @@ public class MappingParametersProvider {
   private Future<List<ContributorNameType>> getContributorNameTypes(OkapiConnectionParams params) {
     String contributorNameTypesUrl = "/contributor-name-types?limit=" + settingsLimit;
     return loadData(params, contributorNameTypesUrl, CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Contributornametypes.class).getContributorNameTypes());
+      response -> response.mapTo(ContributorNameTypes.class).getContributorNameTypes());
   }
 
   /**
@@ -342,67 +342,67 @@ public class MappingParametersProvider {
   private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params) {
     String instanceNoteTypesUrl = "/instance-note-types?limit=" + settingsLimit;
     return loadData(params, instanceNoteTypesUrl, INSTANCE_NOTE_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Instancenotetypes.class).getInstanceNoteTypes());
+      response -> response.mapTo(InstanceNoteTypes.class).getInstanceNoteTypes());
   }
 
   private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params) {
     String instanceAlternativeTitleTypesUrl = "/alternative-title-types?limit=" + settingsLimit;
     return loadData(params, instanceAlternativeTitleTypesUrl, INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Alternativetitletypes.class).getAlternativeTitleTypes());
+      response -> response.mapTo(AlternativeTitleTypes.class).getAlternativeTitleTypes());
   }
 
   private Future<List<NatureOfContentTerm>> getNatureOfContentTerms(OkapiConnectionParams params) {
     String natureOfContentTermsUrl = "/nature-of-content-terms?limit=" + settingsLimit;
     return loadData(params, natureOfContentTermsUrl, NATURE_OF_CONTENT_TERMS_RESPONSE_PARAM,
-      response -> response.mapTo(Natureofcontentterms.class).getNatureOfContentTerms());
+      response -> response.mapTo(NatureOfContentTerms.class).getNatureOfContentTerms());
   }
 
   private Future<List<InstanceStatus>> getInstanceStatuses(OkapiConnectionParams params) {
     String instanceStatusesUrl = "/instance-statuses?limit=" + settingsLimit;
     return loadData(params, instanceStatusesUrl, INSTANCE_STATUSES_RESPONSE_PARAM,
-      response -> response.mapTo(Instancestatuses.class).getInstanceStatuses());
+      response -> response.mapTo(InstanceStatuses.class).getInstanceStatuses());
   }
 
   private Future<List<InstanceRelationshipType>> getInstanceRelationshipTypes(OkapiConnectionParams params) {
     String instanceRelationshipTypesUrl = "/instance-relationship-types?limit=" + settingsLimit;
     return loadData(params, instanceRelationshipTypesUrl, INSTANCE_RELATIONSHIP_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Instancerelationshiptypes.class).getInstanceRelationshipTypes());
+      response -> response.mapTo(InstanceRelationshipTypes.class).getInstanceRelationshipTypes());
   }
 
   private Future<List<HoldingsType>> getHoldingsTypes(OkapiConnectionParams params) {
     String holdingsTypesUrl = "/holdings-types?limit=" + settingsLimit;
     return loadData(params, holdingsTypesUrl, HOLDINGS_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Holdingstypes.class).getHoldingsTypes());
+      response -> response.mapTo(HoldingsTypes.class).getHoldingsTypes());
   }
 
   private Future<List<HoldingsNoteType>> getHoldingsNoteTypes(OkapiConnectionParams params) {
     String holdingsNoteTypesUrl = "/holdings-note-types?limit=" + settingsLimit;
     return loadData(params, holdingsNoteTypesUrl, HOLDINGS_NOTE_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Holdingsnotetypes.class).getHoldingsNoteTypes());
+      response -> response.mapTo(HoldingsNoteTypes.class).getHoldingsNoteTypes());
   }
 
   private Future<List<IllPolicy>> getIllPolicies(OkapiConnectionParams params) {
     String illPoliciesUrl = "/ill-policies?limit=" + settingsLimit;
     return loadData(params, illPoliciesUrl, ILL_POLICIES_RESPONSE_PARAM,
-      response -> response.mapTo(Illpolicies.class).getIllPolicies());
+      response -> response.mapTo(IllPolicies.class).getIllPolicies());
   }
 
   private Future<List<CallNumberType>> getCallNumberTypes(OkapiConnectionParams params) {
     String callNumberTypesUrl = "/call-number-types?limit=" + settingsLimit;
     return loadData(params, callNumberTypesUrl, CALL_NUMBER_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Callnumbertypes.class).getCallNumberTypes());
+      response -> response.mapTo(CallNumberTypes.class).getCallNumberTypes());
   }
 
   private Future<List<StatisticalCode>> getStatisticalCodes(OkapiConnectionParams params) {
     String statisticalCodesUrl = "/statistical-codes?limit=" + settingsLimit;
     return loadData(params, statisticalCodesUrl, STATISTICAL_CODES_RESPONSE_PARAM,
-      response -> response.mapTo(Statisticalcodes.class).getStatisticalCodes());
+      response -> response.mapTo(StatisticalCodes.class).getStatisticalCodes());
   }
 
   private Future<List<StatisticalCodeType>> getStatisticalCodeTypes(OkapiConnectionParams params) {
     String statisticalCodeTypesUrl = "/statistical-code-types?limit=" + settingsLimit;
     return loadData(params, statisticalCodeTypesUrl, STATISTICAL_CODE_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Statisticalcodetypes.class).getStatisticalCodeTypes());
+      response -> response.mapTo(StatisticalCodeTypes.class).getStatisticalCodeTypes());
   }
 
   private Future<List<Location>> getLocations(OkapiConnectionParams params) {
@@ -411,28 +411,28 @@ public class MappingParametersProvider {
       response -> response.mapTo(Locations.class).getLocations());
   }
 
-  private Future<List<Mtype>> getMaterialTypes(OkapiConnectionParams params) {
+  private Future<List<MaterialType>> getMaterialTypes(OkapiConnectionParams params) {
     String materialTypesUrl = "/material-types?limit=" + settingsLimit;
     return loadData(params, materialTypesUrl, MATERIALS_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Materialtypes.class).getMtypes());
+      response -> response.mapTo(MaterialTypes.class).getMtypes());
   }
 
   private Future<List<ItemDamageStatus>> getItemDamagedStatuses(OkapiConnectionParams params) {
     String itemDamagedStatusesUrl = "/item-damaged-statuses?limit=" + settingsLimit;
     return loadData(params, itemDamagedStatusesUrl, ITEM_DAMAGED_STATUSES_RESPONSE_PARAM,
-      response -> response.mapTo(Itemdamagedstatuses.class).getItemDamageStatuses());
+      response -> response.mapTo(ItemDamageStatuses.class).getItemDamageStatuses());
   }
 
-  private Future<List<Loantype>> getLoanTypes(OkapiConnectionParams params) {
+  private Future<List<LoanType>> getLoanTypes(OkapiConnectionParams params) {
     String loanTypesUrl = "/loan-types?limit=" + settingsLimit;
     return loadData(params, loanTypesUrl, LOAN_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Loantypes.class).getLoantypes());
+      response -> response.mapTo(LoanTypes.class).getLoantypes());
   }
 
   private Future<List<ItemNoteType>> getItemNoteTypes(OkapiConnectionParams params) {
     String itemNoteTypesUrl = "/item-note-types?limit=" + settingsLimit;
     return loadData(params, itemNoteTypesUrl, ITEM_NOTE_TYPES_RESPONSE_PARAM,
-      response -> response.mapTo(Itemnotetypes.class).getItemNoteTypes());
+      response -> response.mapTo(ItemNoteTypes.class).getItemNoteTypes());
   }
 
   private Future<List<MarcFieldProtectionSetting>> getMarcFieldProtectionSettings(OkapiConnectionParams params) {
@@ -463,7 +463,7 @@ public class MappingParametersProvider {
   private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params) {
     String issuanceModesUrl = "/modes-of-issuance?limit=" + settingsLimit;
     return loadData(params, issuanceModesUrl, ISSUANCE_MODES_RESPONSE_PARAM,
-      response -> response.mapTo(Issuancemodes.class).getIssuanceModes());
+      response -> response.mapTo(IssuanceModes.class).getIssuanceModes());
   }
 
   /**
