@@ -2,6 +2,8 @@ package org.folio.services.mappers.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Objects;
@@ -33,6 +35,7 @@ import org.folio.LinkingRuleDto;
 import org.folio.MarcFieldProtectionSettingsCollection;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
+import org.folio.dbschema.ObjectMapperTool;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.AlternativeTitleType;
 import org.folio.rest.jaxrs.model.AlternativeTitleTypes;
@@ -100,6 +103,11 @@ import org.springframework.stereotype.Component;
 public class MappingParametersProvider {
 
   private static final Logger LOGGER = LogManager.getLogger();
+  private static final ObjectMapper mapper = ObjectMapperTool.getMapper();
+
+  static {
+    DatabindCodec.mapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  }
 
   @Value("${srm.mapping.parameters.settings.limit:1000}")
   private int settingsLimit;
