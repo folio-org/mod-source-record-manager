@@ -46,7 +46,7 @@ public class RuleMigrationChangeLogDaoImpl implements RuleMigrationChangeLogDao 
     Promise<RowSet<Row>> promise = Promise.promise();
     var query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
 
-    pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.tuple(), promise);
+    pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.tuple(), promise::handle);
 
     return promise.future().map(rows -> {
       if (rows == null) {

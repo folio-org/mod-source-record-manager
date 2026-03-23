@@ -87,20 +87,20 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     }};
 
-    jobExecutionDao = getBeanFromSpringContext(vertx, org.folio.dao.JobExecutionDaoImpl.class);
+    jobExecutionDao = getBeanFromSpringContext(org.folio.dao.JobExecutionDaoImpl.class);
     Assert.assertNotNull(jobExecutionDao);
     jobExecutionDao.save(jobExecution, TENANT_ID);
 
-    journalRecordDao = getBeanFromSpringContext(vertx, org.folio.dao.JournalRecordDaoImpl.class);
+    journalRecordDao = getBeanFromSpringContext(org.folio.dao.JournalRecordDaoImpl.class);
     Assert.assertNotNull(journalRecordDao);
 
-    journalService = getBeanFromSpringContext(vertx, org.folio.services.journal.JournalServiceImpl.class);
+    journalService = getBeanFromSpringContext(org.folio.services.journal.JournalServiceImpl.class);
     Assert.assertNotNull(journalService);
 
-    eventProcessedService = getBeanFromSpringContext(vertx, EventProcessedServiceImpl.class);
+    eventProcessedService = getBeanFromSpringContext(EventProcessedServiceImpl.class);
     Assert.assertNotNull(eventProcessedService);
 
-    EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(vertx, EventTypeHandlerSelector.class);
+    EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(EventTypeHandlerSelector.class);
     Assert.assertNotNull(eventTypeHandlerSelector);
   }
 
@@ -362,13 +362,20 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     sendEvent(producerRecord);
 
     // then
-    assertJournalRecord(context, jobExecution.getId(), journalRecords -> journalRecords.stream().anyMatch(journalRecord -> {
-      Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, journalRecord.getEntityType());
-      Assert.assertEquals("Action Type:", JournalRecord.ActionType.MODIFY, journalRecord.getActionType());
-      Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
-      Assert.assertEquals("Title:", "The Journal of ecclesiastical history.", journalRecord.getTitle());
+    assertJournalRecord(context, jobExecution.getId(), journalRecords -> {
+      List<JournalRecord> marcRecords = journalRecords.stream()
+        .filter(jr -> jr.getEntityType() == JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
+        .toList();
+      Assert.assertFalse("Expected MARC_BIBLIOGRAPHIC record", marcRecords.isEmpty());
+
+      JournalRecord marcRecord = marcRecords.getFirst();
+      Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, marcRecord.getEntityType());
+      Assert.assertEquals("Action Type:", JournalRecord.ActionType.MODIFY, marcRecord.getActionType());
+      Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.COMPLETED, marcRecord.getActionStatus());
+      Assert.assertEquals("Title:","The Journal of ecclesiastical history.", marcRecord.getTitle());
       return true;
-    }));
+    });
+
     async.complete();
   }
 

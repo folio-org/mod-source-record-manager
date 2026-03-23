@@ -131,7 +131,7 @@ public class DataImportJournalBatchConsumerVerticleTest {
     ArgumentCaptor<List<JournalRecord>> recordsCaptor = ArgumentCaptor.forClass(List.class);
     verify(batchJournalService).saveBatchWithResponse(recordsCaptor.capture(), eq(tenantId), any());
 
-    JournalRecord savedRecord = recordsCaptor.getValue().get(0);
+    JournalRecord savedRecord = recordsCaptor.getValue().getFirst();
     assertNotNull("JournalRecord ID should be set", savedRecord.getId());
     assertEquals("JobExecutionId should match", "job123", savedRecord.getJobExecutionId());
   }
@@ -201,7 +201,7 @@ public class DataImportJournalBatchConsumerVerticleTest {
     // 2. Verify commit was attempted with correct offset
     ArgumentCaptor<Map<TopicPartition, OffsetAndMetadata>> offsetsCaptor =
       ArgumentCaptor.forClass(Map.class);
-    verify(vertxConsumerMock, timeout(1000)).commit(offsetsCaptor.capture(), any());
+    verify(vertxConsumerMock, timeout(1000)).commit(offsetsCaptor.capture());
 
     TopicPartition expectedTp = new TopicPartition("test-topic", 0);
     OffsetAndMetadata expectedOffset = new OffsetAndMetadata(124L, null);

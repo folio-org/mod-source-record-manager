@@ -58,15 +58,15 @@ public class ConsortiumDataCache {
     try {
       // Ensure we're running in Vert.x context
       if (Vertx.currentContext() == null) {
-        return vertx.executeBlocking(promise ->
+        Promise<Optional<ConsortiumConfiguration>> promise = Promise.promise();
+        vertx.runOnContext(v ->
           cache.get(tenantId, (key, executor) -> loadData(params))
             .thenAccept(promise::complete)
             .exceptionally(e -> {
               promise.fail(e);
               return null;
-            })
-        );
-
+            }));
+        return promise.future();
       }
       return Future.fromCompletionStage(cache.get(tenantId, (key, executor) -> loadData(params)));
     } catch (Exception e) {

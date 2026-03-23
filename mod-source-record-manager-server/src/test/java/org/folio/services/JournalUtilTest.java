@@ -64,15 +64,15 @@ public class JournalUtilTest {
     List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
 
     assertThat(journalRecords).hasSize(1);
-    assertThat(journalRecords.get(0).getId()).isNotBlank();
-    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
-    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
-    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
-    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
-    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
-    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(JournalRecord.ActionStatus.COMPLETED);
-    assertThat(journalRecords.get(0).getEntityType()).isNull();
-    assertThat(journalRecords.get(0).getError()).isNull();
+    assertThat(journalRecords.getFirst().getId()).isNotBlank();
+    assertThat(journalRecords.getFirst().getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(journalRecords.getFirst().getSourceId()).isEqualTo(recordId);
+    assertThat(journalRecords.getFirst().getSourceRecordOrder()).isEqualTo(record.getOrder());
+    assertThat(journalRecords.getFirst().getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
+    assertThat(journalRecords.getFirst().getActionDate()).isNotNull();
+    assertThat(journalRecords.getFirst().getActionStatus()).isEqualTo(JournalRecord.ActionStatus.COMPLETED);
+    assertThat(journalRecords.getFirst().getEntityType()).isNull();
+    assertThat(journalRecords.getFirst().getError()).isNull();
   }
 
   @Test
@@ -91,15 +91,15 @@ public class JournalUtilTest {
     List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
 
     assertThat(journalRecords).hasSize(1);
-    assertThat(journalRecords.get(0).getId()).isNotBlank();
-    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
-    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
-    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
-    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
-    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
-    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(ERROR);
-    assertThat(journalRecords.get(0).getEntityType()).isNull();
-    assertThat(journalRecords.get(0).getError()).isEqualTo(errorRecord.getDescription());
+    assertThat(journalRecords.getFirst().getId()).isNotBlank();
+    assertThat(journalRecords.getFirst().getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(journalRecords.getFirst().getSourceId()).isEqualTo(recordId);
+    assertThat(journalRecords.getFirst().getSourceRecordOrder()).isEqualTo(record.getOrder());
+    assertThat(journalRecords.getFirst().getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
+    assertThat(journalRecords.getFirst().getActionDate()).isNotNull();
+    assertThat(journalRecords.getFirst().getActionStatus()).isEqualTo(ERROR);
+    assertThat(journalRecords.getFirst().getEntityType()).isNull();
+    assertThat(journalRecords.getFirst().getError()).isEqualTo(errorRecord.getDescription());
   }
 
   @Test
@@ -118,12 +118,12 @@ public class JournalUtilTest {
     List<IncomingRecord> incomingRecords = JournalUtil.buildIncomingRecordsByRecords(List.of(record));
 
     assertThat(incomingRecords).hasSize(1);
-    assertThat(incomingRecords.get(0).getId()).isEqualTo(record.getId());
-    assertThat(incomingRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
-    assertThat(incomingRecords.get(0).getOrder()).isEqualTo(record.getOrder());
-    assertThat(incomingRecords.get(0).getRawRecordContent()).isEqualTo("rawRecord");
-    assertThat(incomingRecords.get(0).getRecordType()).isEqualTo(IncomingRecord.RecordType.MARC_BIB);
-    assertThat(incomingRecords.get(0).getParsedRecordContent()).isEqualTo("parsedRecord");
+    assertThat(incomingRecords.getFirst().getId()).isEqualTo(record.getId());
+    assertThat(incomingRecords.getFirst().getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(incomingRecords.getFirst().getOrder()).isEqualTo(record.getOrder());
+    assertThat(incomingRecords.getFirst().getRawRecordContent()).isEqualTo("rawRecord");
+    assertThat(incomingRecords.getFirst().getRecordType()).isEqualTo(IncomingRecord.RecordType.MARC_BIB);
+    assertThat(incomingRecords.getFirst().getParsedRecordContent()).isEqualTo("parsedRecord");
   }
 
   @Test
@@ -157,15 +157,15 @@ public class JournalUtilTest {
       CREATE, INSTANCE, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
-    Assert.assertEquals(instanceHrid, journalRecord.get(0).getEntityHrId());
-    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecord.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecord.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(instanceId, journalRecord.getFirst().getEntityId());
+    Assert.assertEquals(instanceHrid, journalRecord.getFirst().getEntityHrId());
+    Assert.assertEquals(CREATE, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecord.getFirst().getActionDate());
   }
 
   @Test
@@ -201,15 +201,15 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(2, journalRecord.size());
-    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
-    Assert.assertEquals(instanceHrid, journalRecord.get(0).getEntityHrId());
-    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecord.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecord.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(instanceId, journalRecord.getFirst().getEntityId());
+    Assert.assertEquals(instanceHrid, journalRecord.getFirst().getEntityHrId());
+    Assert.assertEquals(CREATE, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecord.getFirst().getActionDate());
   }
 
   @Test
@@ -241,15 +241,15 @@ public class JournalUtilTest {
       CREATE, AUTHORITY, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(AUTHORITY, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(authorityId, journalRecord.get(0).getEntityId());
-    Assert.assertNull(journalRecord.get(0).getEntityHrId());
-    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecord.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecord.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(AUTHORITY, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(authorityId, journalRecord.getFirst().getEntityId());
+    Assert.assertNull(journalRecord.getFirst().getEntityHrId());
+    Assert.assertEquals(CREATE, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecord.getFirst().getActionDate());
   }
 
   @Test(expected = JournalRecordMapperException.class)
@@ -298,13 +298,13 @@ public class JournalUtilTest {
       NON_MATCH, HOLDINGS, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(HOLDINGS, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(NON_MATCH, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecord.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecord.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(HOLDINGS, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecord.getFirst().getActionDate());
   }
 
   @Test
@@ -383,16 +383,16 @@ public class JournalUtilTest {
   private static void assertForHoldings(String instanceId, String holdingsId, String holdingsHrid, String recordId,
                                         String snapshotId, List<JournalRecord> journalRecords, String incomingRecordId) {
     Assert.assertNotNull(journalRecords);
-    Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(HOLDINGS, journalRecords.get(0).getEntityType());
-    Assert.assertEquals(holdingsId, journalRecords.get(0).getEntityId());
-    Assert.assertEquals(holdingsHrid, journalRecords.get(0).getEntityHrId());
-    Assert.assertEquals(instanceId, journalRecords.get(0).getInstanceId());
-    Assert.assertEquals(CREATE, journalRecords.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecords.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecords.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecords.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecords.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(HOLDINGS, journalRecords.getFirst().getEntityType());
+    Assert.assertEquals(holdingsId, journalRecords.getFirst().getEntityId());
+    Assert.assertEquals(holdingsHrid, journalRecords.getFirst().getEntityHrId());
+    Assert.assertEquals(instanceId, journalRecords.getFirst().getInstanceId());
+    Assert.assertEquals(CREATE, journalRecords.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecords.getFirst().getActionDate());
   }
 
   @Test
@@ -438,17 +438,17 @@ public class JournalUtilTest {
       CREATE, ITEM, COMPLETED);
 
     Assert.assertNotNull(journalRecords);
-    Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
-    Assert.assertEquals(itemId, journalRecords.get(0).getEntityId());
-    Assert.assertEquals(itemHrid, journalRecords.get(0).getEntityHrId());
-    Assert.assertEquals(instanceId, journalRecords.get(0).getInstanceId());
-    Assert.assertEquals(holdingsId, journalRecords.get(0).getHoldingsId());
-    Assert.assertEquals(CREATE, journalRecords.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecords.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecords.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecords.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecords.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(ITEM, journalRecords.getFirst().getEntityType());
+    Assert.assertEquals(itemId, journalRecords.getFirst().getEntityId());
+    Assert.assertEquals(itemHrid, journalRecords.getFirst().getEntityHrId());
+    Assert.assertEquals(instanceId, journalRecords.getFirst().getInstanceId());
+    Assert.assertEquals(holdingsId, journalRecords.getFirst().getHoldingsId());
+    Assert.assertEquals(CREATE, journalRecords.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecords.getFirst().getActionDate());
   }
 
   @Test
@@ -498,17 +498,17 @@ public class JournalUtilTest {
       CREATE, ITEM, COMPLETED);
 
     Assert.assertNotNull(journalRecords);
-    Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
-    Assert.assertEquals(itemId, journalRecords.get(0).getEntityId());
-    Assert.assertEquals(itemHrid, journalRecords.get(0).getEntityHrId());
-    Assert.assertEquals(instanceId, journalRecords.get(0).getInstanceId());
-    Assert.assertEquals(holdingsId, journalRecords.get(0).getHoldingsId());
-    Assert.assertEquals(CREATE, journalRecords.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecords.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecords.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecords.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecords.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(ITEM, journalRecords.getFirst().getEntityType());
+    Assert.assertEquals(itemId, journalRecords.getFirst().getEntityId());
+    Assert.assertEquals(itemHrid, journalRecords.getFirst().getEntityHrId());
+    Assert.assertEquals(instanceId, journalRecords.getFirst().getInstanceId());
+    Assert.assertEquals(holdingsId, journalRecords.getFirst().getHoldingsId());
+    Assert.assertEquals(CREATE, journalRecords.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecords.getFirst().getActionDate());
   }
 
   @Test
@@ -527,13 +527,13 @@ public class JournalUtilTest {
       CREATE, JournalRecord.EntityType.EDIFACT, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(0, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(testError, journalRecord.get(0).getError());
-    Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(JournalRecord.EntityType.EDIFACT, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+    Assert.assertEquals(0, journalRecord.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(testError, journalRecord.getFirst().getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(JournalRecord.EntityType.EDIFACT, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecord.getFirst().getActionDate());
   }
 
   @Test
@@ -558,13 +558,13 @@ public class JournalUtilTest {
       CREATE, INSTANCE, ERROR);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(testError, journalRecord.get(0).getError());
-    Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(ERROR, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+    Assert.assertEquals(1, journalRecord.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(testError, journalRecord.getFirst().getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(INSTANCE, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(ERROR, journalRecord.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecord.getFirst().getActionDate());
   }
 
   @Test
@@ -686,11 +686,11 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(1, journalRecord.size());
-    Assert.assertEquals(testError, journalRecord.get(0).getError());
-    Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(DELETE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(ERROR, journalRecord.get(0).getActionStatus());
+    Assert.assertEquals(testError, journalRecord.getFirst().getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(INSTANCE, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(DELETE, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(ERROR, journalRecord.getFirst().getActionStatus());
   }
 
   @Test
@@ -716,13 +716,13 @@ public class JournalUtilTest {
       CREATE, INSTANCE, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+    Assert.assertEquals(snapshotId, journalRecord.getFirst().getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecord.getFirst().getSourceId());
+    Assert.assertEquals(1, journalRecord.getFirst().getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecord.getFirst().getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.getFirst().getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getFirst().getActionStatus());
+    Assert.assertNotNull(journalRecord.getFirst().getActionDate());
   }
 
   @Test

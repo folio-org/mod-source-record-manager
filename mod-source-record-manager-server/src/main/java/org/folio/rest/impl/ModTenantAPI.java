@@ -82,7 +82,7 @@ public class ModTenantAPI extends TenantAPI {
       .append('_')
       .append(PostgresClient.getModuleName()).toString();
     String preparedSql = String.format(GRANT_SEQUENCES_PERMISSION_PATTERN, dbSchemaName, dbSchemaName);
-    PostgresClient.getInstance(context.owner()).execute(preparedSql, promise);
+    PostgresClient.getInstance(context.owner()).execute(preparedSql, promise::handle);
     return promise.future();
   }
 

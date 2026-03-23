@@ -11,7 +11,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -84,7 +83,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID().toString())
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("entries", empty())
@@ -94,7 +93,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibUpdatedWhenMarcBibWasCreatedAndUpdated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -127,7 +126,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnOneEntryIfWithAllMultipleHoldingsTwoErrorsDuringMultipleCreation(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -186,7 +185,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibUpdatedWhenMarcBibWasModified(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -218,7 +217,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibCreatedWhenMarcBibWasCreatedInNonMatchSection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -250,7 +249,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcAuthorityCreatedWhenMarcAuthorityWasCreatedInNonMatchSection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcAuthorityEntityId = UUID.randomUUID().toString();
@@ -286,7 +285,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedWithErrorAndOtherAuthorityUpdated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
     String authorityId = UUID.randomUUID().toString();
@@ -334,7 +333,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForMarcBibAndInstanceIfMarcBibMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String recordTitle = "test title";
@@ -366,7 +365,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForMarcBibAndInstanceIfMarcBibNotMatched(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -397,7 +396,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForHoldingsIfHoldingsMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String entityId = UUID.randomUUID().toString();
@@ -429,7 +428,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForItemIfItemMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String recordTitle = "test title";
@@ -461,7 +460,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String recordTitle = "test title";
@@ -493,7 +492,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnInstanceDiscardedWhenInstanceWasNotMatched(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -528,7 +527,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   public void shouldReturnInstanceDiscardedWhenInstanceCreationFailed(TestContext context) {
     //test
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -561,7 +560,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnInstanceCreatedWhenMarcModify(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -597,7 +596,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnPoLineCreatedWhenMarcCreate(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -629,10 +628,9 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnAuthorityDiscardedWhenErrorOnMatch(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
-    String authorityEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, "errorMsg", null))
@@ -661,7 +659,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnInstanceCreatedIfInstanceNonMatchAndCreated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String instanceId = UUID.randomUUID().toString();
@@ -698,7 +696,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnHoldingsDiscardedIfInstanceUpdatedAndHoldingsNotMatched(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String instanceId = UUID.randomUUID().toString();
@@ -738,8 +736,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnInstanceIdWhenHoldingsCreatedRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution instanceCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
-    JobExecution holdingsCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution instanceCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    JobExecution holdingsCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
 
     String instanceCreationSourceRecordId = UUID.randomUUID().toString();
     String holdingsCreationSourceRecordId = UUID.randomUUID().toString();
@@ -791,7 +789,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnPoLineWithOrderIdWhenMarcCreateRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String orderId = UUID.randomUUID().toString();
@@ -827,7 +825,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnOneInstanceIdWhenMarcBibUpdatedAndInstanceUpdatedRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution marcBibAndInstanceUpdateJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution marcBibAndInstanceUpdateJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
 
     String marcBibAndInstanceUpdateSourceRecordId = UUID.randomUUID().toString();
 
@@ -864,7 +862,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnHoldingsMultipleWhenMultipleHoldingsWereProcessed(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String recordTitle = "test title";
@@ -894,7 +892,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnHoldingsTitleWithHoldingsHrid(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
@@ -923,7 +921,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnCorrectInstanceTitle(TestContext context) {
     var async = context.async();
-    var createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    var createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     var sourceRecordId = UUID.randomUUID().toString();
     var entityId = UUID.randomUUID().toString();
     var instanceTitle = "instance title";
@@ -955,7 +953,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnSortedEntriesWhenSortByParameterSpecified(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
     String sourceRecordId3 = UUID.randomUUID().toString();
@@ -1003,7 +1001,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnLimitedCollectionOnGetWithLimitAndOffset(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
     String sourceRecordId3 = UUID.randomUUID().toString();
@@ -1049,7 +1047,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnAuthorityCreated(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
 
@@ -1078,10 +1076,149 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     }));
   }
 
+  //Profile: Default - Create SRS MARC Authority
+  @Test
+  public void shouldReturnAuthorityTitles(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String marcAuthEntityId = UUID.randomUUID().toString();
+    String authEntityId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcAuthEntityId, null, null, 0, CREATE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcAuthEntityId, null, recordTitle, 0, CREATE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, authEntityId, null, null, 0, CREATE, AUTHORITY, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      ValidatableResponse r = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].sourceRecordId", is(marcAuthEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+        .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.CREATED.value()));
+      async.complete();
+    }));
+  }
+
+  //MODSOURMAN-1385: 'No action' records do not display title
+  //Profile: Match: no action; non-match: Default - Create SRS MARC Authority
+  //Case: matched
+  @Test
+  public void shouldReturnAuthorityTitleForDiscarded(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, MATCH, AUTHORITY, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      ValidatableResponse r = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
+      async.complete();
+    }));
+  }
+
+  //Profile: Match: no action; non-match: Default - Create SRS MARC Authority
+  //Case: matched with error
+  @Test
+  public void shouldReturnAuthorityTitleForMatchedWithError(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String errorMessage = "org.folio.services.exceptions.DuplicateRecordException: Incoming file may contain duplicates";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, MATCH, AUTHORITY, ERROR, errorMessage, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      ValidatableResponse r = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].error", is(errorMessage))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.error", is(errorMessage));
+      async.complete();
+    }));
+  }
+
+  //MODSOURMAN-1385: 'No action' records do not display title
+  //Profile: Match: no action; non-match: Default - Create instance
+  //Case: matched
+  @Test
+  public void shouldReturnMarcBibTitleForMatchedWithoutAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      ValidatableResponse r = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedInstanceInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
+      async.complete();
+    }));
+  }
+
   @Test
   public void shouldReturnMarcBibUpdatedByJobAndRecordIdsRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -1114,7 +1251,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnEmptyMarcBibErrorAndInstanceDiscardedWhenInstanceCreationFailedRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String entityHrid = "001";
@@ -1152,7 +1289,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnNotEmptyMarcBibErrorWhenMarcBibFailedRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String marcBibEntityId = UUID.randomUUID().toString();
@@ -1184,7 +1321,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibAndAllEntitiesWithoutErrorsRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1245,7 +1382,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForHoldingsIfNoHoldingsCreatedRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1288,7 +1425,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDiscardedForItemsIfNoItemsCreatedRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1336,7 +1473,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnDataForInvoiceLinesRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceId = "aa67ab97-ec97-4145-beb8-0572dd60dd87";
     String invoiceHrid = "228D126";
@@ -1410,7 +1547,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnInvoiceLineInfoWithErrorRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceId = UUID.randomUUID().toString();
     String invoiceHrid = "228D126";
@@ -1467,13 +1604,13 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnNotEmptyListWithInvoicesLines(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
 
     String invoiceLineDescription = "Some description";
     String invoiceLineId = "0704159";
 
-    CompositeFuture future = GenericCompositeFuture.all(List.of(
+    CompositeFuture future = Future.all(List.of(
         createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "228D126", "INVOICE", 0, CREATE, INVOICE, COMPLETED, null, null).map(JournalRecord::getId),
         createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null, null).map(JournalRecord::getId),
         createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null, null).map(JournalRecord::getId),
@@ -1509,7 +1646,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnNotEmptyListWithInvoicesLinesThatContainsError(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
 
     String invoiceLineDescription = "Some description";
@@ -1550,7 +1687,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldNotReturnMarcBibRecordsWhenInstanceDiscarderRetrievingWithErrorsOnlyParam(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
 
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
@@ -1595,7 +1732,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnOnlyInvoiceLinesWithErrorWhenRetrieveWithErrorsOnlyParam(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceLineDescription = "Some description";
     String invoiceLineId = "246816";
@@ -1621,8 +1758,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries[0].sourceRecordId", is(sourceRecordId))
         .extract().body().as(RecordProcessingLogDtoCollection.class).getEntries();
 
-      Assert.assertEquals("Exception", jobLogEntries.get(0).getRelatedInvoiceLineInfo().getError());
-      Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.get(0).getRelatedInvoiceInfo().getActionStatus());
+      Assert.assertEquals("Exception", jobLogEntries.getFirst().getRelatedInvoiceLineInfo().getError());
+      Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.getFirst().getRelatedInvoiceInfo().getActionStatus());
 
       async.complete();
     }));
@@ -1631,7 +1768,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnOnlyOneSummaryEntityWhenRetrieveUsingEntityTypeParamWithValueHoldings(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
 
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
@@ -1675,7 +1812,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldNotReturnWhenRetrieveFromJobWhichInitializedByInvoiceUsingEntityTypeParamWithValueMARC(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String invoiceLineDescription = "Some description";
     String invoiceLineId = "246816";
@@ -1715,7 +1852,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsAndHoldings(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1764,7 +1901,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibAndAllEntitiesWithItemsHoldingsWithoutDiscardedRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1831,7 +1968,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibAndAllEntitiesWithDiscardedItemsHoldingsRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
@@ -1883,10 +2020,9 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldNotReturnDiscardedForMarcBibAndInstanceIfHoldingsCreatedOnMatchByInstance(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
-    String instanceEntityId = UUID.randomUUID().toString();
     String holdingsEntityId = UUID.randomUUID().toString();
     String holdingsHrId = "holdingsHrid";
 
@@ -1925,10 +2061,9 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldNotReturnDiscardedForHoldingsIfItemCreatedOnMatchByHoldings(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
-    String holdingsEntityId = UUID.randomUUID().toString();
 
     String itemEntityId = UUID.randomUUID().toString();
     String itemHrId = "itemHrid";
@@ -1968,7 +2103,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   @Test
   public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsUpdateRecordProcessingLogDTOCollection(TestContext context) {
     Async async = context.async();
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String instanceId = UUID.randomUUID().toString();
@@ -2020,7 +2155,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
 
   @Test
   public void shouldReturnCentralTenantIdForMarcRecordAndInstanceIfItIsSavedInJournalRecordRecordProcessingLogDTOCollection(TestContext context) {
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
     String instanceId = UUID.randomUUID().toString();
     String recordTitle = "test title";
@@ -2054,7 +2189,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
 
   @Test
   public void shouldReturnMarcHoldingsRecordsAndKeepTheOrderSequence(TestContext context) {
-    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String recordTitle = "No Content";
     String errMessage = "{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}";
     String recordOneSourceRecordId = UUID.randomUUID().toString();

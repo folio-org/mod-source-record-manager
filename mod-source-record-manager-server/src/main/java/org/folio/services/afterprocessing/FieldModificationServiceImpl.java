@@ -4,7 +4,6 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.modifyData
 
 import io.vertx.core.Future;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.folio.LinkingRuleDto;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Log4j2
 @Service
 public class FieldModificationServiceImpl implements FieldModificationService {
-  
+
   private static final char SUBFIELD_9 = '9';
 
   private final MappingParametersProvider mappingParametersProvider;
@@ -38,7 +37,7 @@ public class FieldModificationServiceImpl implements FieldModificationService {
         mappingParameters.getLinkingRules().size());
       var linkableFields = mappingParameters.getLinkingRules().stream()
         .map(LinkingRuleDto::getBibField)
-        .collect(Collectors.toList());
+        .toList();
 
       folioRecords.stream()
         .filter(folioRecord -> Record.RecordType.MARC_BIB.equals(folioRecord.getRecordType()))
@@ -47,11 +46,11 @@ public class FieldModificationServiceImpl implements FieldModificationService {
       return folioRecords;
     });
   }
-  
+
   private void removeSubfields(DataField dataField) {
     var subfields9 = dataField.getSubfields().stream()
       .filter(subfield -> SUBFIELD_9 == subfield.getCode())
-      .collect(Collectors.toList());
+      .toList();
     subfields9.forEach(dataField::removeSubfield);
   }
 }

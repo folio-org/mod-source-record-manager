@@ -89,9 +89,9 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, byte[]
   private void handleLocalEvent(Promise<String> result, OkapiConnectionParams okapiConnectionParams, Event event) {
     eventHandlingService.handle(event.getEventPayload(), okapiConnectionParams)
       .onSuccess(ar -> result.complete())
-      .onFailure(ar -> {
-        LOGGER.warn("handleLocalEvent:: Error during processing DataImport Result: ", ar.getCause());
-        result.fail(ar.getCause());
+      .onFailure(e -> {
+        LOGGER.warn("handleLocalEvent:: Error during processing DataImport Result: ", e);
+        result.fail(e);
       });
   }
 

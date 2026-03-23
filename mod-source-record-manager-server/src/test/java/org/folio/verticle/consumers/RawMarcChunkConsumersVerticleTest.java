@@ -288,7 +288,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   public void shouldNotSendAnyEventsForDuplicates() throws InterruptedException, ExecutionException {
     // given
     RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, CORRECT_RAW_RECORD);
-    JobExecutionSourceChunkDao jobExecutionSourceChunkDao = getBeanFromSpringContext(vertx, org.folio.dao.JobExecutionSourceChunkDao.class);
+    JobExecutionSourceChunkDao jobExecutionSourceChunkDao = getBeanFromSpringContext(org.folio.dao.JobExecutionSourceChunkDao.class);
     jobExecutionSourceChunkDao.save(new JobExecutionSourceChunk()
       .withId(chunk.getId())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS), TENANT_ID);

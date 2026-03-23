@@ -40,7 +40,7 @@ public class CustomMigrationService {
         return result;
       })
       .onSuccess(v -> log.info("Custom migrations completed successfully for tenant {}", tenantId))
-      .onFailure(e -> log.error("Custom migrations failed for tenant {}: {}", tenantId, e.getMessage()));
+      .onFailure(e -> log.error("Custom migrations failed for tenant: {}", tenantId, e));
   }
 
 

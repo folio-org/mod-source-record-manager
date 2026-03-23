@@ -52,7 +52,7 @@ public class MappingParamsSnapshotDaoImplTest extends AbstractRestTest {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExecution = createdJobExecutions.get(0);
+    JobExecution jobExecution = createdJobExecutions.getFirst();
 
     Async async = context.async();
     Future<String> future = mappingParamsSnapshotDao.save(mappingParameters, jobExecution.getId(), TENANT_ID)
