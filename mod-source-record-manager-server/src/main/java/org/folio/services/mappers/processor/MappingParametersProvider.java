@@ -27,8 +27,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.AlternativeTitleType;
 import org.folio.Alternativetitletypes;
+import org.folio.AuthorityIdentifierType;
 import org.folio.AuthorityNoteType;
 import org.folio.AuthoritySourceFile;
+import org.folio.Authorityidentifiertypes;
 import org.folio.Authoritynotetypes;
 import org.folio.Authoritysourcefiles;
 import org.folio.CallNumberType;
@@ -201,6 +203,7 @@ public class MappingParametersProvider {
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantSettingsTimeZoneFuture = getTenantSettingsTimeZone(okapiParams);
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
+    Future<List<AuthorityIdentifierType>> authorityIdentifierTypesFuture = getAuthorityIdentifierTypes(okapiParams);
 
 
     return Future.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
@@ -237,6 +240,7 @@ public class MappingParametersProvider {
           .withItemDamagedStatuses(itemDamagedStatusesFuture.result())
           .withLoanTypes(loanTypesFuture.result())
           .withItemNoteTypes(itemNoteTypesFuture.result())
+          .withAuthorityIdentifierTypes(authorityIdentifierTypesFuture.result())
           .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
           .withAuthoritySourceFiles(authoritySourceFilesFuture.result())
           .withSubjectSources(subjectSourcesFuture.result())
@@ -246,6 +250,19 @@ public class MappingParametersProvider {
           .withTenantConfigurationZone(tenantSettingsTimeZoneFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
       ).onFailure(e -> LOGGER.error("initializeParameters:: Something happened while initializing mapping parameters", e));
+  }
+
+  /**
+   * Requests for Authority Identifier types from application Settings (mod-entities-links)
+   *
+   * @param params connection parameters
+   * @return List of Authority Identifier types
+   */
+  private Future<List<AuthorityIdentifierType>> getAuthorityIdentifierTypes(OkapiConnectionParams params) {
+    String identifierTypesUrl = "/authority-identifier-types?limit=" + settingsLimit;
+    return loadData(params, identifierTypesUrl, IDENTIFIER_TYPES_RESPONSE_PARAM,
+      response -> response.mapTo(Authorityidentifiertypes.class).getIdentifierTypes())
+      .recover(throwable -> Future.succeededFuture(Collections.emptyList()));
   }
 
   /**

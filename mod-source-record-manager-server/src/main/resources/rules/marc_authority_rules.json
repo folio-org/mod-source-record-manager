@@ -14,9 +14,9 @@
         {
           "conditions": [
             {
-              "type": "set_identifier_type_id_by_name",
+              "type": "set_authority_identifier_type_id_by_code",
               "parameter": {
-                "name": "Control number"
+                "code": "control-number"
               }
             }
           ]
@@ -59,9 +59,9 @@
             {
               "conditions": [
                 {
-                  "type": "set_identifier_type_id_by_name",
+                  "type": "set_authority_identifier_type_id_by_code",
                   "parameter": {
-                    "name": "LCCN"
+                    "code": "lccn"
                   }
                 }
               ]
@@ -94,9 +94,9 @@
             {
               "conditions": [
                 {
-                  "type": "set_identifier_type_id_by_name",
+                  "type": "set_authority_identifier_type_id_by_code",
                   "parameter": {
-                    "name": "Canceled LCCN"
+                    "code": "canceled-lccn"
                   }
                 }
               ]
@@ -143,9 +143,9 @@
             {
               "conditions": [
                 {
-                  "type": "set_identifier_type_id_by_name",
+                  "type": "set_authority_identifier_type_id_by_code",
                   "parameter": {
-                    "name": "Other standard identifier"
+                    "code": "other-standard-identifier"
                   }
                 }
               ]
@@ -186,11 +186,9 @@
             {
               "conditions": [
                 {
-                  "type": "set_identifier_type_id_by_value",
+                  "type": "set_authority_identifier_type_id_by_code",
                   "parameter": {
-                    "names": [
-                      "System control number"
-                    ]
+                    "code": "system-control-number"
                   }
                 }
               ]

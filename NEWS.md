@@ -15,6 +15,7 @@
 * [MODSOURMAN-1366](https://folio-org.atlassian.net/browse/MODSOURMAN-1366) Unable to update MARC authority record if the match point is 999 ff $i
 * [MODSOURMAN-1399](https://folio-org.atlassian.net/browse/MODSOURMAN-1399) Properly handle the failed result of the request for snapshot creation
 * [MODSOURMAN-1340](https://folio-org.atlassian.net/browse/MODSOURMAN-1340) Upgrade module to Vert.x 5.0
+* [MODSOURMAN-1401](https://folio-org.atlassian.net/browse/MODSOURMAN-1401) Shift from name-based to code-based authority identifier type resolution
 
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
