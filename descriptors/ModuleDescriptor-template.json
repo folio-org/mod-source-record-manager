@@ -372,7 +372,8 @@
             "source-storage.records.formatted.item.get",
             "source-storage.records.generation.item.put",
             "source-storage.records.post",
-            "source-storage.records.put"
+            "source-storage.records.put",
+            "authority-identifier-types.collection.get"
           ],
           "permissionsDesired": [
             "consortia.data-import.central-record-update.execute",
@@ -480,7 +481,8 @@
             "instance-authority-links.instances.collection.put",
             "instance-authority.linking-rules.collection.get",
             "source-storage.records.post",
-            "source-storage.records.put"
+            "source-storage.records.put",
+            "authority-identifier-types.collection.get"
           ]
         }
       ]
@@ -622,7 +624,8 @@
             "inventory-storage.statistical-codes.collection.get",
             "inventory-storage.subject-sources.collection.get",
             "inventory-storage.subject-types.collection.get",
-            "inventory-storage.instance-date-types.collection.get"
+            "inventory-storage.instance-date-types.collection.get",
+            "authority-identifier-types.collection.get"
           ]
         }
       ]
@@ -673,6 +676,10 @@
     {
       "id": "authority-source-files",
       "version": "2.2"
+    },
+    {
+      "id": "authority-identifier-types",
+      "version": "1.0"
     }
   ],
   "permissionSets": [
@@ -885,7 +892,8 @@
         "converter-storage.field-protection-settings.collection.get",
         "mod-settings.global.read.stripes-core.prefs.manage",
         "instance-authority.linking-rules.collection.get",
-        "source-storage.snapshots.post"
+        "source-storage.snapshots.post",
+        "authority-identifier-types.collection.get"
       ]
     }
   },

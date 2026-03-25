@@ -1,0 +1,179 @@
+{
+  "001": [
+    {
+      "target": "identifiers.value",
+      "description": "Control number",
+      "subfield": [],
+      "rules": []
+    },
+    {
+      "target": "identifiers.identifierTypeId",
+      "description": "Identifier Type for Control number",
+      "subfield": [],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_identifier_type_id_by_name",
+              "parameter": {
+                "name": "Control number"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "010": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Identifier Type for LCCN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "LCCN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Library of Congress Control Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Identifier Type for Canceled LCCN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Canceled LCCN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Canceled Library of Congress Control Number",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "024": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Identifier Type for Other standard identifier",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Other standard identifier"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Other standard identifier",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "035": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Identifier Type for System control number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_value",
+                  "parameter": {
+                    "names": [
+                      "System control number"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "System control number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "100": [
+    {
+      "target": "personalName",
+      "description": "Heading personal name",
+      "subfield": ["a", "b", "c", "d"],
+      "rules": []
+    }
+  ]
+}
