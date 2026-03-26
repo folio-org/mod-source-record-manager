@@ -13,6 +13,7 @@
 * [MODSOURMAN-1365](https://folio-org.atlassian.net/browse/MODSOURMAN-1365) Update bib mapping rule for Cumulative Index / Finding Aids notes
 * [MODSOURMAN-1260](https://folio-org.atlassian.net/browse/MODSOURMAN-1260) The 'The 004 tag of the Holdings doesn't have a link to the Bibliographic record' error message is not displayed on JSON data after importing file
 * [MODSOURMAN-1366](https://folio-org.atlassian.net/browse/MODSOURMAN-1366) Unable to update MARC authority record if the match point is 999 ff $i
+* [MODSOURMAN-1371](https://folio-org.atlassian.net/browse/MODSOURMAN-1371) Remove quick-marc events handling logic
 * [MODSOURMAN-1399](https://folio-org.atlassian.net/browse/MODSOURMAN-1399) Properly handle the failed result of the request for snapshot creation
 * [MODSOURMAN-1340](https://folio-org.atlassian.net/browse/MODSOURMAN-1340) Upgrade module to Vert.x 5.0
 * [MODSOURMAN-1401](https://folio-org.atlassian.net/browse/MODSOURMAN-1401) Shift from name-based to code-based authority identifier type resolution
