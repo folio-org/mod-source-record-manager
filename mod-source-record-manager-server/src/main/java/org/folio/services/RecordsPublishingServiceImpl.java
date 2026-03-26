@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -112,7 +111,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       futures.add(Future.failedFuture(new RecordsPublishingException(String.format("Failed to process %s records", failedRecords.size()), failedRecords)));
     }
 
-    GenericCompositeFuture.join(futures).onComplete(ar -> {
+    Future.join(futures).onComplete(ar -> {
       if (ar.failed()) {
         LOGGER.warn("sendRecords:: Error publishing events with records for jobExecutionId: {}", jobExecution.getId(), ar.cause());
         promise.fail(ar.cause());
@@ -153,7 +152,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
     return new DataImportEventPayload()
       .withEventType(eventType)
-      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().getFirst())
       .withJobExecutionId(record.getSnapshotId())
       .withContext(context)
       .withOkapiUrl(params.getOkapiUrl())

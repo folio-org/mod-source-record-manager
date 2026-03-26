@@ -11,7 +11,6 @@ import org.folio.kafka.KafkaConsumerWrapper;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.kafka.ProcessRecordErrorHandler;
 import org.folio.kafka.SubscriptionDefinition;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,7 +68,7 @@ public abstract class AbstractConsumersVerticle<K, V> extends AbstractVerticle {
         constructModuleName() + "_" + getClass().getSimpleName()));
     });
 
-    GenericCompositeFuture.all(futures).onComplete(ar -> startPromise.complete());
+    Future.all(futures).onComplete(ar -> startPromise.complete());
   }
 
   @Override
@@ -78,7 +77,7 @@ public abstract class AbstractConsumersVerticle<K, V> extends AbstractVerticle {
     kafkaConsumersStorage.getConsumersList().forEach(consumerWrapper ->
       futures.add(consumerWrapper.stop()));
 
-    GenericCompositeFuture.join(futures).onComplete(ar -> stopPromise.complete());
+    Future.join(futures).onComplete(ar -> stopPromise.complete());
   }
 
   public abstract List<String> getEvents();

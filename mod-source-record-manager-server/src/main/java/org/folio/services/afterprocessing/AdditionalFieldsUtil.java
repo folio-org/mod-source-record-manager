@@ -486,7 +486,7 @@ public final class AdditionalFieldsUtil {
         for (VariableField field : marcRecord.getVariableFields(tag)) {
           if (field instanceof DataField) {
             if (CollectionUtils.isNotEmpty(((DataField) field).getSubfields(subfield))) {
-              return ((DataField) field).getSubfields(subfield).get(0).getData();
+              return ((DataField) field).getSubfields(subfield).getFirst().getData();
             }
           } else if (field instanceof ControlField) {
             return ((ControlField) field).getData();

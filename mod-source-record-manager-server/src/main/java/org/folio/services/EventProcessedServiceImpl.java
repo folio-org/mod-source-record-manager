@@ -13,7 +13,7 @@ import static org.folio.services.AbstractChunkProcessingService.UNIQUE_CONSTRAIN
 @Service("eventProcessedService")
 public class EventProcessedServiceImpl implements EventProcessedService {
 
-  private EventProcessedDao eventProcessedDao;
+  private final EventProcessedDao eventProcessedDao;
 
   @Autowired
   public EventProcessedServiceImpl(EventProcessedDao eventProcessedDao) {
@@ -27,9 +27,9 @@ public class EventProcessedServiceImpl implements EventProcessedService {
   }
 
   private <T> Future<T> handleFailures(Throwable throwable, String handlerId, String eventId) {
-    return (throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE)) ?
-        Future.failedFuture(new DuplicateEventException(String.format("Event with eventId=%s for handlerId=%s is already processed.", eventId, handlerId))) :
-        Future.failedFuture(throwable);
+    return (throwable instanceof PgException pgException && pgException.getSqlState().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE))
+      ? Future.failedFuture(new DuplicateEventException(String.format("Event with eventId=%s for handlerId=%s is already processed.", eventId, handlerId)))
+      : Future.failedFuture(throwable);
   }
 
 }

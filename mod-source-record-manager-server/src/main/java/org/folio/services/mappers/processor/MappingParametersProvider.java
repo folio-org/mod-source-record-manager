@@ -87,7 +87,6 @@ import org.folio.SubjectType;
 import org.folio.SubjectTypes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -204,7 +203,7 @@ public class MappingParametersProvider {
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
 
 
-    return GenericCompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
+    return Future.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
@@ -547,7 +546,7 @@ public class MappingParametersProvider {
           try {
             linkingRules = DatabindCodec.mapper().readValue(response, new TypeReference<>(){});
           } catch (JsonProcessingException e) {
-            LOGGER.warn("Unable to parse linking rules response: {}", e.getMessage());
+            LOGGER.warn("Unable to parse linking rules response", e);
             promise.complete(Collections.emptyList());
           }
           promise.complete(linkingRules);

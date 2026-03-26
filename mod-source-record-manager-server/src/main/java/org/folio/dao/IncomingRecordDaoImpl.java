@@ -37,7 +37,7 @@ public class IncomingRecordDaoImpl implements IncomingRecordDao {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = format(GET_BY_ID_SQL, convertToPsqlStandard(tenantId), INCOMING_RECORDS_TABLE);
-      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(UUID.fromString(id)), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(UUID.fromString(id)), promise::handle);
     } catch (Exception e) {
       LOGGER.warn("getById:: Error getting IncomingRecord by id", e);
       promise.fail(e);
@@ -54,7 +54,7 @@ public class IncomingRecordDaoImpl implements IncomingRecordDao {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), INCOMING_RECORDS_TABLE);
       List<Tuple> tuples = incomingRecords.stream().map(this::prepareInsertQueryParameters).toList();
       LOGGER.debug("IncomingRecordDaoImpl:: Save query = {}; tuples = {}", query, tuples);
-      pgClientFactory.createInstance(tenantId).execute(query, tuples, promise);
+      pgClientFactory.createInstance(tenantId).execute(query, tuples, promise::handle);
     } catch (Exception e) {
       LOGGER.warn("saveBatch:: Error saving IncomingRecord entity", e);
       promise.fail(e);

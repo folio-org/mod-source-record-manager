@@ -38,6 +38,7 @@ import io.restassured.specification.RequestSpecification;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.VertxImpl;
+import io.vertx.core.internal.deployment.DeploymentManager;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -51,7 +52,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.KafkaUtil;
@@ -62,7 +62,19 @@ import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.ReactToType;
+import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.TenantAttributes;
+import org.folio.rest.jaxrs.model.TenantJob;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.Envs;
@@ -71,6 +83,7 @@ import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.SharedDataUtil;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -375,7 +388,7 @@ public abstract class AbstractRestTest {
   @AfterClass
   public static void tearDownClass(final TestContext context) {
     Async async = context.async();
-    vertx.close(context.asyncAssertSuccess(res -> {
+    vertx.close().onComplete(context.asyncAssertSuccess(res -> {
       if (useExternalDatabase.equals("embedded")) {
         PostgresClient.stopPostgresTester();
       }
@@ -428,11 +441,11 @@ public abstract class AbstractRestTest {
     Async async = context.async();
     port = NetworkUtils.nextFreePort();
     String okapiUrl = "http://localhost:" + port;
-    TenantClient tenantClient = new TenantClient(okapiUrl, TENANT_ID, TOKEN);
+    TenantClient tenantClient = new TenantClient(okapiUrl, TENANT_ID, TOKEN, vertx.createHttpClient());
     final DeploymentOptions options = new DeploymentOptions()
       .setConfig(new JsonObject()
         .put(HTTP_PORT, port));
-    vertx.deployVerticle(RestVerticle.class.getName(), options, deployVerticleAr -> {
+    vertx.deployVerticle(RestVerticle.class.getName(), options).onComplete(deployVerticleAr -> {
       try {
         TenantAttributes tenantAttributes = new TenantAttributes();
         tenantAttributes.setModuleTo(constructModuleName());
@@ -454,7 +467,7 @@ public abstract class AbstractRestTest {
           async.complete();
         });
       } catch (Exception e) {
-        e.printStackTrace();
+        context.fail(e);
       }
     });
   }
@@ -557,7 +570,7 @@ public abstract class AbstractRestTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
+    List<File> limitedFilesList = filesList.stream().limit(filesNumber).toList();
     requestDto.getFiles().addAll(limitedFilesList);
     requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
@@ -641,21 +654,22 @@ public abstract class AbstractRestTest {
     return KafkaTopicNameHelper.formatTopicName(KAFKA_ENV_VALUE, getDefaultNameSpace(), tenantId, eventType);
   }
 
-  protected  <T> T getBeanFromSpringContext(Vertx vtx, Class<T> clazz) {
-
-    String parentVerticleUUID = vertx.deploymentIDs().stream()
-      .filter(v -> !((VertxImpl) vertx).getDeployment(v).isChild())
+  protected  <T> T getBeanFromSpringContext(Class<T> clazz) {
+    DeploymentManager deploymentManager = ((VertxImpl) vertx).deploymentManager();
+    String parentDeploymentId = vertx.deploymentIDs().stream()
+      .filter(id -> !deploymentManager.deployment(id).isChild())
       .findFirst()
       .orElseThrow(() -> new NotFoundException("Couldn't find the parent verticle."));
 
-    Optional<Object> context = Optional.of(((VertxImpl) vtx).getDeployment(parentVerticleUUID).getContexts().stream()
-      .findFirst().map(v -> v.get("springContext")))
-      .orElseThrow(() -> new NotFoundException("Couldn't find the spring context."));
+    Optional<AnnotationConfigApplicationContext> springContextOptional = deploymentManager.deployment(parentDeploymentId)
+      .deployment().contexts()
+      .stream()
+      .findFirst()
+      .map(context -> context.get("springContext"));
 
-    if (context.isPresent()) {
-      return ((AnnotationConfigApplicationContext) context.get()).getBean(clazz);
-    }
-    throw new NotFoundException(String.format("Couldn't find bean %s", clazz.getName()));
+    Assert.assertTrue(
+      "Couldn't find the spring context to get bean %s.".formatted(clazz.getName()), springContextOptional.isPresent());
+    return springContextOptional.get().getBean(clazz);
   }
 
   protected <V> ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {

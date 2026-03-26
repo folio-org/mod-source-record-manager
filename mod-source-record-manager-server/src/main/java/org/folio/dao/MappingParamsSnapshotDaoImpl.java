@@ -39,7 +39,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-    pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
+    pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise::handle);
     return promise.future().map(resultSet -> {
       if (resultSet.rowCount() == 0 || resultSet.iterator().next().getValue(PARAMS_FIELD) == null) {
         return Optional.empty();
@@ -52,7 +52,6 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
 
   @Override
   public Future<String> save(MappingParameters params, String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     LOGGER.trace("save:: Saving mapping parameters for jobExecution {}", jobExecutionId);
     try {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
@@ -61,21 +60,22 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
         JsonObject.mapFrom(params),
         LocalDateTime.now()
       );
-      pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
+      return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
+        .onFailure(e ->
+          LOGGER.warn("save:: Failed to save MappingParamsSnapshot entity, jobExecutionId: {}", jobExecutionId, e))
+        .map(jobExecutionId);
     } catch (Exception e) {
-      LOGGER.warn("save:: Error saving MappingParamsSnapshot entity", e);
-      promise.fail(e);
+      LOGGER.warn("save:: Error saving MappingParamsSnapshot entity, jobExecutionId: {}", jobExecutionId, e);
+      return Future.failedFuture(e);
     }
-    return promise.future().map(jobExecutionId).onFailure(e -> LOGGER.warn("save:: Failed to save MappingParamsSnapshot entity", e));
   }
 
   @Override
   public Future<Boolean> delete(String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
     LOGGER.trace("delete:: Deleting jobExecution {} for tenant {}", jobExecutionId, tenantId);
     String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
-    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
+    return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
+      .map(updateResult -> updateResult.rowCount() == 1);
   }
 }

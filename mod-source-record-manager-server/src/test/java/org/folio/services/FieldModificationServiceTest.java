@@ -10,7 +10,6 @@ import io.vertx.core.Future;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.folio.LinkingRuleDto;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.ParsedRecord;
@@ -51,7 +50,7 @@ public class FieldModificationServiceTest {
     var initialRecord = record(Record.RecordType.MARC_BIB);
 
     var actualRecord = fieldModificationService.remove9Subfields(null, singletonList(initialRecord), null)
-      .result().get(0);
+      .result().getFirst();
 
     assertEquals(expectedParsedContent, actualRecord.getParsedRecord().getContent());
   }
@@ -70,7 +69,7 @@ public class FieldModificationServiceTest {
     var initialRecord = record(Record.RecordType.MARC_AUTHORITY);
 
     var actualRecord = fieldModificationService.remove9Subfields(null, singletonList(initialRecord), null)
-      .result().get(0);
+      .result().getFirst();
 
     assertEquals(expectedParsedContent, actualRecord.getParsedRecord().getContent());
   }
@@ -116,6 +115,6 @@ public class FieldModificationServiceTest {
     return Arrays.stream(tags)
       .map(tag -> new LinkingRuleDto()
         .withBibField(tag))
-      .collect(Collectors.toList());
+      .toList();
   }
 }

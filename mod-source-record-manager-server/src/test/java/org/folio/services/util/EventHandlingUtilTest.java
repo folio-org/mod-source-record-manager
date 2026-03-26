@@ -33,7 +33,7 @@ public class EventHandlingUtilTest {
     var future = EventHandlingUtil.handleKafkaPublishingErrors(payload, null, null, runtimeException);
     RecordsPublishingException e = (RecordsPublishingException) future.cause();
     assertThat(e.getMessage(), is("bar"));
-    assertThat(e.getFailedRecords().get(0).getId(), is("4c64addc-1066-40ca-b287-1593ae41e33f"));
+    assertThat(e.getFailedRecords().getFirst().getId(), is("4c64addc-1066-40ca-b287-1593ae41e33f"));
   }
 
 }

@@ -14,6 +14,7 @@
 * [MODSOURMAN-1260](https://folio-org.atlassian.net/browse/MODSOURMAN-1260) The 'The 004 tag of the Holdings doesn't have a link to the Bibliographic record' error message is not displayed on JSON data after importing file
 * [MODSOURMAN-1366](https://folio-org.atlassian.net/browse/MODSOURMAN-1366) Unable to update MARC authority record if the match point is 999 ff $i
 * [MODSOURMAN-1399](https://folio-org.atlassian.net/browse/MODSOURMAN-1399) Properly handle the failed result of the request for snapshot creation
+* [MODSOURMAN-1340](https://folio-org.atlassian.net/browse/MODSOURMAN-1340) Upgrade module to Vert.x 5.0
 
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
