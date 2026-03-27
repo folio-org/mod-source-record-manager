@@ -3,8 +3,10 @@ package org.folio.mapping;
 import io.vertx.core.json.JsonObject;
 import java.io.IOException;
 import java.util.List;
-import org.folio.CallNumberType;
-import org.folio.IdentifierType;
+
+import org.folio.rest.jaxrs.model.CallNumberType;
+import org.folio.AuthorityIdentifierType;
+
 import org.folio.TestUtil;
 import org.folio.processing.mapping.defaultmapper.RecordMapper;
 import org.folio.processing.mapping.defaultmapper.RecordMapperBuilder;
@@ -62,9 +64,9 @@ public class DefaultRulesMappingTest {
     JsonObject parsedRecord = readJson(RECORDS_PATH + "parsedAuthorityRecordLCCN.json");
     JsonObject expectedMappedAuthority = readJson(RECORDS_PATH + "mappedAuthorityRecordLCCN.json");
     JsonObject mappingRules = readJson(DEFAULT_RULES_PATH + "marc_authority_rules.json");
-    var identifierType1 = new IdentifierType().withName("LCCN").withId("LCCN_identifierTypeId");
-    var identifierType2 = new IdentifierType().withName("Canceled LCCN").withId("CancelledLCCN_identifierTypeId");
-    var mappingParameters = new MappingParameters().withIdentifierTypes(List.of(identifierType1, identifierType2));
+    var identifierType1 = new AuthorityIdentifierType().withName("LCCN").withCode("lccn").withId("LCCN_identifierTypeId");
+    var identifierType2 = new AuthorityIdentifierType().withName("Canceled LCCN").withCode("canceled-lccn").withId("CancelledLCCN_identifierTypeId");
+    var mappingParameters = new MappingParameters().withAuthorityIdentifierTypes(List.of(identifierType1, identifierType2));
 
     var actualAuthority = mapper.mapRecord(parsedRecord, mappingParameters, mappingRules);
     Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualAuthority).encode());

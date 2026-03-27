@@ -40,6 +40,7 @@ import org.junit.runner.RunWith;
 public class MappingParametersProviderTest {
 
   protected static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=0";
+  protected static final String AUTHORITY_IDENTIFIER_TYPES_URL = "/authority-identifier-types?limit=0";
   protected static final String INSTANCE_TYPES_URL = "/instance-types?limit=0";
   protected static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=0";
   protected static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=0";
@@ -108,6 +109,10 @@ public class MappingParametersProviderTest {
     headers.put(OKAPI_TOKEN_HEADER, TOKEN);
     okapiConnectionParams = new OkapiConnectionParams(headers, vertx);
 
+    WireMock.stubFor(
+      get(AUTHORITY_IDENTIFIER_TYPES_URL)
+        .willReturn(
+          okJson(new JsonObject().put("identifierTypes", new JsonArray()).toString())));
     WireMock.stubFor(
       get(IDENTIFIER_TYPES_URL)
         .willReturn(
@@ -319,19 +324,17 @@ public class MappingParametersProviderTest {
   }
 
   @Test
-  public void shouldReturnMappingParamsWhenReferenceDataResponseContainsUnrecognizedField(TestContext context) {
+  public void shouldReturnNullWhenMappingParamsDataResponseIsUnrecognized(TestContext context) {
+    Async async = context.async();
     JsonObject invalidNoteTypes = new JsonObject()
-      .put("instanceNoteTypes", JsonArray.of(new JsonObject()
-        .put("name", "Awards note")
-        .put("invalidField", "value")));
+      .put("instanceNoteTypes", JsonArray.of(new JsonObject().put("invalidField", "value")));
     WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL)
       .willReturn(okJson(invalidNoteTypes.encode())));
 
-    mappingParametersProvider.get("1", okapiConnectionParams)
-      .onComplete(context.asyncAssertSuccess(mappingParameters -> {
-        context.assertEquals(1, mappingParameters.getInstanceNoteTypes().size());
-        context.assertEquals("Awards note", mappingParameters.getInstanceNoteTypes().getFirst().getName());
-      }));
+    mappingParametersProvider.get("1", okapiConnectionParams).onComplete(ar -> {
+      context.assertNull(ar.result());
+      async.complete();
+    });
   }
 
   /**
