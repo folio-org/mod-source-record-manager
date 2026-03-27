@@ -6,6 +6,8 @@ import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.spi.VerticleFactory;
 import io.vertx.serviceproxy.ServiceBinder;
@@ -21,7 +23,6 @@ import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportInitConsumersVerticle;
 import org.folio.verticle.JobExecutionProgressVerticle;
 import org.folio.verticle.DataImportJournalBatchConsumerVerticle;
-import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
 import org.folio.verticle.SpringVerticleFactory;
@@ -58,9 +59,6 @@ public class InitAPIImpl implements InitAPI {
   @Value("${srm.kafka.JobExecutionProgressVerticle.instancesNumber:1}")
   private int jobExecutionProgressInstancesNumber;
 
-  @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:1}")
-  private int quickMarcUpdateConsumerInstancesNumber;
-
   @Value("${srm.kafka.JobExecutionDeletion.instancesNumber:1}")
   private int jobExecutionDeletionInstanceNumber;
 
@@ -88,7 +86,7 @@ public class InitAPIImpl implements InitAPI {
           handler.handle(Future.failedFuture(th));
           LOGGER.warn("init:: Consumer Verticles were not started", th);
         });
-    } catch (Throwable th) {
+    } catch (Exception th) {
       LOGGER.warn("init:: Error during module init", th);
       handler.handle(Future.failedFuture(th));
     }
@@ -112,7 +110,6 @@ public class InitAPIImpl implements InitAPI {
       deployWorkerVerticle(vertx, verticleFactory, DataImportConsumersVerticle.class, dataImportConsumerInstancesNumber),
       deployWorkerVerticle(vertx, verticleFactory, DataImportJournalBatchConsumerVerticle.class, dataImportJournalConsumerInstancesNumber),
       deployWorkerVerticle(vertx, verticleFactory, JobExecutionProgressVerticle.class, jobExecutionProgressInstancesNumber),
-      deployWorkerVerticle(vertx, verticleFactory, QuickMarcUpdateConsumersVerticle.class, quickMarcUpdateConsumerInstancesNumber),
       deployWorkerVerticle(vertx, verticleFactory, PeriodicDeleteJobExecutionVerticle.class, jobExecutionDeletionInstanceNumber)
     ));
   }
