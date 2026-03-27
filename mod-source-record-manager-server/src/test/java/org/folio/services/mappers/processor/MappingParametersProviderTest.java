@@ -324,19 +324,17 @@ public class MappingParametersProviderTest {
   }
 
   @Test
-  public void shouldReturnMappingParamsWhenReferenceDataResponseContainsUnrecognizedField(TestContext context) {
+  public void shouldReturnNullWhenMappingParamsDataResponseIsUnrecognized(TestContext context) {
+    Async async = context.async();
     JsonObject invalidNoteTypes = new JsonObject()
-      .put("instanceNoteTypes", JsonArray.of(new JsonObject()
-        .put("name", "Awards note")
-        .put("invalidField", "value")));
+      .put("instanceNoteTypes", JsonArray.of(new JsonObject().put("invalidField", "value")));
     WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL)
       .willReturn(okJson(invalidNoteTypes.encode())));
 
-    mappingParametersProvider.get("1", okapiConnectionParams)
-      .onComplete(context.asyncAssertSuccess(mappingParameters -> {
-        context.assertEquals(1, mappingParameters.getInstanceNoteTypes().size());
-        context.assertEquals("Awards note", mappingParameters.getInstanceNoteTypes().getFirst().getName());
-      }));
+    mappingParametersProvider.get("1", okapiConnectionParams).onComplete(ar -> {
+      context.assertNull(ar.result());
+      async.complete();
+    });
   }
 
   /**

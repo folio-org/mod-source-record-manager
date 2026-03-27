@@ -1,5 +1,6 @@
 {
   "id": "0",
+  "sourceId": "036ee84a-6afd-4c3c-9ad3-4a12ab875f59",
   "hrid": "366832",
   "formerIds": [
     "(CStRLIN)NYCX1604275S",
@@ -17,9 +18,11 @@
       "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
     }
   ],
+  "additionalCallNumbers":[],
   "callNumberTypeId": "95467209-6d7b-468b-94df-0f5d7ad2747d",
   "callNumber": "M3 .M93 1955",
   "callNumberSuffix": "+",
+  "administrativeNotes":[],
   "notes": [
     {
       "note": "note$a ; note$u ; note$3 ; note$5 ; note$6 ; note$8",
@@ -119,7 +122,5 @@
     }
   ],
   "copyNumber": "3",
-  "administrativeNotes":[],
-  "statisticalCodeIds": [],
-  "sourceId": "036ee84a-6afd-4c3c-9ad3-4a12ab875f59"
+  "statisticalCodeIds": []
 }

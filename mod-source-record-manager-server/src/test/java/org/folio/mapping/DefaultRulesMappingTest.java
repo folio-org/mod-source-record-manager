@@ -3,9 +3,10 @@ package org.folio.mapping;
 import io.vertx.core.json.JsonObject;
 import java.io.IOException;
 import java.util.List;
+
+import org.folio.rest.jaxrs.model.CallNumberType;
 import org.folio.AuthorityIdentifierType;
-import org.folio.CallNumberType;
-import org.folio.IdentifierType;
+
 import org.folio.TestUtil;
 import org.folio.processing.mapping.defaultmapper.RecordMapper;
 import org.folio.processing.mapping.defaultmapper.RecordMapperBuilder;
