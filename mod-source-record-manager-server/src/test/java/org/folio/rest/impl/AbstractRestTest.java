@@ -113,6 +113,7 @@ public abstract class AbstractRestTest {
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   protected static final String GET_USER_URL = "/users?query=id==";
+  protected static final String AUTHORITY_IDENTIFIER_TYPES_URL = "/authority-identifier-types?limit=1000";
   protected static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=1000";
   protected static final String INSTANCE_TYPES_URL = "/instance-types?limit=1000";
   protected static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=1000";
@@ -505,6 +506,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
       .willReturn(okJson(userResponse.toString())));
     WireMock.stubFor(get(IDENTIFIER_TYPES_URL).willReturn(okJson(new JsonObject().put("identifierTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(AUTHORITY_IDENTIFIER_TYPES_URL).willReturn(okJson(new JsonObject().put("identifierTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(INSTANCE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(CLASSIFICATION_TYPES_URL).willReturn(okJson(new JsonObject().put("classificationTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(ELECTRONIC_ACCESS_URL).willReturn(okJson(new JsonObject().put("electronicAccessRelationships", new JsonArray()).toString())));

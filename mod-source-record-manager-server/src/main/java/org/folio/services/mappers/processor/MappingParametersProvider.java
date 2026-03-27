@@ -26,8 +26,10 @@ import io.vertx.core.json.jackson.DatabindCodec;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.folio.AuthorityNoteType;
 import org.folio.AuthoritySourceFile;
+import org.folio.Authorityidentifiertypes;
 import org.folio.Authoritynotetypes;
 import org.folio.Authoritysourcefiles;
 import org.folio.LinkingRuleDto;
@@ -203,6 +205,7 @@ public class MappingParametersProvider {
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantSettingsTimeZoneFuture = getTenantSettingsTimeZone(okapiParams);
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
+    Future<List<AuthorityIdentifierType>> authorityIdentifierTypesFuture = getAuthorityIdentifierTypes(okapiParams);
 
 
     return Future.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
@@ -210,7 +213,7 @@ public class MappingParametersProvider {
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
         loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, instanceDateTypesFuture, marcFieldProtectionSettingsFuture, tenantSettingsTimeZoneFuture,
-        linkingRulesFuture))
+        linkingRulesFuture, authorityIdentifierTypesFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -239,6 +242,7 @@ public class MappingParametersProvider {
           .withItemDamagedStatuses(itemDamagedStatusesFuture.result())
           .withLoanTypes(loanTypesFuture.result())
           .withItemNoteTypes(itemNoteTypesFuture.result())
+          .withAuthorityIdentifierTypes(authorityIdentifierTypesFuture.result())
           .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
           .withAuthoritySourceFiles(authoritySourceFilesFuture.result())
           .withSubjectSources(subjectSourcesFuture.result())
@@ -248,6 +252,24 @@ public class MappingParametersProvider {
           .withTenantConfigurationZone(tenantSettingsTimeZoneFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
       ).onFailure(e -> LOGGER.error("initializeParameters:: Something happened while initializing mapping parameters", e));
+  }
+
+  /**
+   * Requests for Authority Identifier types from application Settings (mod-entities-links)
+   *
+   * @param params connection parameters
+   * @return List of Authority Identifier types
+   */
+  private Future<List<AuthorityIdentifierType>> getAuthorityIdentifierTypes(OkapiConnectionParams params) {
+    String identifierTypesUrl = "/authority-identifier-types?limit=" + settingsLimit;
+    return loadData(params, identifierTypesUrl, IDENTIFIER_TYPES_RESPONSE_PARAM,
+      response -> {
+        var authorityidentifiertypes = response.mapTo(Authorityidentifiertypes.class);
+        return authorityidentifiertypes.getIdentifierTypes() == null
+               ? Collections.emptyList()
+               : authorityidentifiertypes.getIdentifierTypes();
+      })
+      .recover(throwable -> Future.succeededFuture(Collections.emptyList()));
   }
 
   /**
