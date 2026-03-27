@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.folio.rest.jaxrs.model.CallNumberType;
-import org.folio.rest.jaxrs.model.IdentifierType;
-import org.folio.rest.jaxrs.model.AuthorityIdentifierType;
+import org.folio.AuthorityIdentifierType;
 
 import org.folio.TestUtil;
 import org.folio.processing.mapping.defaultmapper.RecordMapper;

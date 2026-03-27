@@ -2,7 +2,7 @@ package org.folio.services.mappers.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Objects;
@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import org.folio.AuthorityIdentifierType;
 import org.folio.AuthorityNoteType;
 import org.folio.AuthoritySourceFile;
 import org.folio.Authorityidentifiertypes;
@@ -36,7 +37,6 @@ import org.folio.LinkingRuleDto;
 import org.folio.MarcFieldProtectionSettingsCollection;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
-import org.folio.dbschema.ObjectMapperTool;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.AlternativeTitleType;
 import org.folio.rest.jaxrs.model.AlternativeTitleTypes;
