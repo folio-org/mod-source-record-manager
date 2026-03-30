@@ -71,13 +71,8 @@ public class MappingParametersProviderTest {
   protected static final String SUBJECT_SOURCES_URL = "/subject-sources?limit=0";
   protected static final String SUBJECT_TYPES_URL = "/subject-types?limit=0";
   protected static final String INSTANCE_DATE_TYPE_URL = "/instance-date-types?limit=0";
-
-  protected static final String FIELD_PROTECTION_SETTINGS_URL =
-    "/field-protection-settings/marc?limit=0";
-  protected static final String TENANT_TIME_ZONE_SETTINGS_URL =
-    "/settings/entries?query="
-      + URLEncoder.encode(
-      "(scope==stripes-core.prefs.manage and key==tenantLocaleSettings)", StandardCharsets.UTF_8);
+  protected static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=0";
+  protected static final String TENANT_TIME_ZONE_SETTINGS_URL = "/locale";
   protected static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
   public static final String SYSTEM_USER_ENABLED = "SYSTEM_USER_ENABLED";
   private static final String TENANT = "diku";
@@ -230,13 +225,10 @@ public class MappingParametersProviderTest {
     WireMock.stubFor(
       get(FIELD_PROTECTION_SETTINGS_URL)
         .willReturn(
-          okJson(
-            new JsonObject()
-              .put("marcFieldProtectionSettings", new JsonArray())
-              .toString())));
+          okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
     WireMock.stubFor(
       get(TENANT_TIME_ZONE_SETTINGS_URL)
-        .willReturn(okJson(new JsonObject().put("items", new JsonArray()).toString())));
+        .willReturn(okJson(new JsonObject().put("timezone", "").toString())));
     WireMock.stubFor(
       get(LINKING_RULES_URL)
         .willReturn(okJson(new JsonArray().add(new LinkingRuleDto()).toString())));
