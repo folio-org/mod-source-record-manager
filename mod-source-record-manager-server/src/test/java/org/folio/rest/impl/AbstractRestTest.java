@@ -425,6 +425,9 @@ public abstract class AbstractRestTest {
           postgresSQLContainer.getPassword(),
           postgresSQLContainer.getDatabaseName()
         );
+
+        //added for debug in tests
+        System.out.printf("Postgres db port: %d%n", postgresSQLContainer.getFirstMappedPort());
         break;
       default:
         String message = "No understood database choice made." +
