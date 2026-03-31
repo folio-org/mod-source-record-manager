@@ -31,8 +31,8 @@
       "version": "15.0 16.0"
     },
     {
-      "id": "settings",
-      "version": "1.2"
+      "id": "locale",
+      "version": "1.0"
     },
     {
       "id": "user-tenants",
@@ -272,7 +272,7 @@
             "change-manager.records.post"
           ],
           "modulePermissions": [
-            "mod-settings.global.read.stripes-core.prefs.manage",
+            "locale.item.get",
             "converter-storage.field-protection-settings.item.get",
             "converter-storage.field-protection-settings.collection.get",
             "converter-storage.jobprofilesnapshots.get",
@@ -506,7 +506,7 @@
             "mapping-metadata.type.item.get"
           ],
           "modulePermissions": [
-            "mod-settings.global.read.stripes-core.prefs.manage",
+            "locale.item.get",
             "converter-storage.field-protection-settings.collection.get",
             "instance-authority.linking-rules.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
@@ -791,7 +791,7 @@
         "inventory-storage.subject-sources.collection.get",
         "inventory-storage.instance-date-types.collection.get",
         "converter-storage.field-protection-settings.collection.get",
-        "mod-settings.global.read.stripes-core.prefs.manage",
+        "locale.item.get",
         "instance-authority.linking-rules.collection.get",
         "source-storage.snapshots.post",
         "authority-identifier-types.collection.get"

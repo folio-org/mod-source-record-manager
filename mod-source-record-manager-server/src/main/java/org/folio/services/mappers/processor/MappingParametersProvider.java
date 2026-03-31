@@ -10,10 +10,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -108,7 +105,7 @@ public class MappingParametersProvider {
   @Value("${srm.mapping.parameters.settings.limit:1000}")
   private int settingsLimit;
 
-  private static final String TENANT_SETTINGS_TIME_ZONE_URL = "/settings/entries?query=" + URLEncoder.encode("(scope==stripes-core.prefs.manage and key==tenantLocaleSettings)", StandardCharsets.UTF_8);
+  private static final String TENANT_SETTINGS_TIME_ZONE_URL = "/locale";
   private static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
@@ -141,9 +138,6 @@ public class MappingParametersProvider {
   private static final String SUBJECTS_SOURCES_RESPONSE_PARAM = "subjectSources";
   private static final String SUBJECTS_TYPES_RESPONSE_PARAM = "subjectTypes";
   private static final String INSTANCE_DATE_TYPES_RESPONSE_PARAM = "instanceDateTypes";
-
-  private static final String SETTINGS_VALUE_RESPONSE = "items";
-  private static final String VALUE_RESPONSE = "value";
   private static final String TIMEZONE_RESPONSE = "timezone";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
@@ -541,9 +535,8 @@ public class MappingParametersProvider {
     RestUtil.doRequestWithSystemUser(params, TENANT_SETTINGS_TIME_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
-        if (responseContainsTimeZone(response)) {
-          String timeZone = response.getJsonArray(SETTINGS_VALUE_RESPONSE).getJsonObject(0).getJsonObject(VALUE_RESPONSE).getString(TIMEZONE_RESPONSE);
-          promise.complete(timeZone);
+        if (response != null && response.containsKey(TIMEZONE_RESPONSE) && StringUtils.isNotBlank(response.getString(TIMEZONE_RESPONSE))) {
+          promise.complete(response.getString(TIMEZONE_RESPONSE));
         } else {
           promise.complete(StringUtils.EMPTY);
         }
@@ -605,25 +598,6 @@ public class MappingParametersProvider {
       }
     });
     return promise.future();
-  }
-
-  private boolean responseContainsTimeZone(JsonObject response) {
-    if (response == null) {
-      return false;
-    }
-    JsonArray settingsArray = response.getJsonArray(SETTINGS_VALUE_RESPONSE);
-    if (settingsArray == null || settingsArray.isEmpty()) {
-      return false;
-    }
-    JsonObject firstItem = settingsArray.getJsonObject(0);
-    if (firstItem == null) {
-      return false;
-    }
-    JsonObject value = firstItem.getJsonObject(VALUE_RESPONSE);
-    if (value == null) {
-      return false;
-    }
-    return value.containsKey(TIMEZONE_RESPONSE);
   }
 
   /**
