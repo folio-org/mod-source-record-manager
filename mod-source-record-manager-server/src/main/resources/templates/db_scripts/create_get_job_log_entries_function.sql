@@ -102,13 +102,9 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
            instance_id, holdings_id, order_id, permanent_location_id
     FROM relevant_records
     INNER JOIN (
-      SELECT entity_type as entity_type_max, entity_id as entity_id_max,
-             source_id as source_id_max,
-             max(error) AS error_max,
-             (array_agg(id ORDER BY
-               CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END,
-               array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)
-             ))[1] AS id_max
+      SELECT entity_type as entity_type_max, entity_id as entity_id_max, source_id as source_id_max, max(error) AS error_max,
+             (array_agg(id ORDER BY CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END,
+               array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)))[1] AS id_max
       FROM relevant_records
       WHERE entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type != ''MATCH''
       GROUP BY entity_type, entity_id, source_id
@@ -252,6 +248,7 @@ originalSQL TEXT := '
                WHEN error_max != '''' OR action_type = ''NON_MATCH'' THEN ''DISCARDED''
                WHEN action_type = ''CREATE'' THEN ''CREATED''
                WHEN action_type = ''UPDATE'' THEN ''UPDATED''
+               WHEN action_type = ''MODIFY'' THEN ''UPDATED''
                END AS action_type,
              action_status, action_date, source_record_order, error, title, tenant_id, instance_id, holdings_id, order_id, permanent_location_id
       FROM journal_records
@@ -747,7 +744,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE INDEX IF NOT EXISTS idx_journal_records_window_opt
-  ON journal_records (job_execution_id, source_id, entity_type, entity_id, action_status) INCLUDE (action_type);
+  ON journal_records (job_execution_id, source_id, entity_type) INCLUDE (action_type);
 
 CREATE INDEX IF NOT EXISTS idx_journal_records_job_entity_source
-  ON journal_records(job_execution_id, entity_type, source_id) INCLUDE (source_record_order, action_type, error);
+  ON journal_records(job_execution_id, entity_type, source_id) INCLUDE (source_record_order, action_type);
