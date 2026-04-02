@@ -253,11 +253,12 @@ originalSQL TEXT := '
              action_status, action_date, source_record_order, error, title, tenant_id, instance_id, holdings_id, order_id, permanent_location_id
       FROM journal_records
              INNER JOIN (
-        SELECT entity_type as entity_type_max, entity_id as entity_id_max, action_status as action_status_max, max(error) AS error_max,
-               (array_agg(id ORDER BY array_position(array[''CREATE'', ''UPDATE'', ''NON_MATCH''], action_type)))[1] AS id_max
+        SELECT entity_type as entity_type_max, entity_id as entity_id_max, source_id as source_id_max, max(error) AS error_max,
+               (array_agg(id ORDER BY CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END,
+               array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)))[1] AS id_max
         FROM journal_records
         WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type != ''MATCH''
-        GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
+        GROUP BY entity_type, entity_id, source_id
       ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
       UNION ALL
       SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
@@ -681,7 +682,7 @@ BEGIN
             v_orderByFinal := 'COALESCE(mb.action_type, ma.action_type, mh.action_type)';
     END CASE;
 
-    RAISE NOTICE 'Using OPTIMIZED query for sortBy=% (pagination: %, final: %)', sortingField, v_orderByPagination, v_orderByFinal;
+    --RAISE NOTICE 'Using OPTIMIZED query for sortBy=% (pagination: %, final: %)', sortingField, v_orderByPagination, v_orderByFinal;
 
     ELSE
         v_useOptimized := false;
@@ -694,7 +695,7 @@ BEGIN
           v_orderByPagination := sortingField;
     END IF;
 
-    RAISE NOTICE 'Using ORIGINAL query for sortBy=%', sortingField;
+    --RAISE NOTICE 'Using ORIGINAL query for sortBy=%', sortingField;
   END IF;
 
   RETURN QUERY EXECUTE format(
