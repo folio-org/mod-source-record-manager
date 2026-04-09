@@ -77,6 +77,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED;
@@ -210,6 +211,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       DI_SRS_MARC_AUTHORITY_RECORD_CREATED.value(),
       DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED.value(),
       DI_ORDER_CREATED_READY_FOR_POST_PROCESSING.value(),
+      DI_PENDING_ORDER_CREATED.value(),
       DI_COMPLETED.value(),
       DI_ERROR.value()
     );
