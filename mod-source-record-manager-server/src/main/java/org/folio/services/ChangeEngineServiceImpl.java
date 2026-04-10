@@ -609,11 +609,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                                          JobExecution jobExecution,
                                                          boolean acceptInstanceId,
                                                          String sourceChunkId) {
+    LOGGER.debug("getParsedRecordsFromInitialRecords:: recordContentType: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
+      recordContentType, jobExecution.getId(), acceptInstanceId, sourceChunkId);
+
     var parser = RecordParserBuilder.buildParser(recordContentType);
 
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
+        LOGGER.debug("getParsedRecordsFromInitialRecords:: Parsed record with order: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
+          rawRecord.getOrder(), jobExecution.getId(), acceptInstanceId, sourceChunkId);
 
         if (!acceptInstanceId) {
           parsedResult = addErrorMessageWhen999ffFieldExistsOnCreateAction(jobExecution, parsedResult);
@@ -631,6 +636,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           .withState(Record.State.ACTUAL)
           .withRawRecord(new RawRecord().withContent(rawRecord.getRecord()));
         if (parsedResult.isHasError()) {
+          LOGGER.error("getParsedRecordsFromInitialRecords:: Parsed record with order: {} contains errors: {}, jobExecutionId: {}, sourceChunkId: {}",
+            rawRecord.getOrder(), parsedResult.getErrors().encode(), jobExecution.getId(), sourceChunkId);
           record.setErrorRecord(new ErrorRecord()
             .withContent(rawRecord)
             .withDescription(parsedResult.getErrors().encode()));
@@ -866,7 +873,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
                                                   OkapiConnectionParams okapiParams) {
-    if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
+    if (shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper())) {
       return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
     }
 
@@ -878,10 +885,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       if (childWrapper.getContentType() == ACTION_PROFILE) {
         ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
         if (TRUE.equals(actionProfile.getRemove9Subfields())
-          || TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+          || shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
           return true;
         }
-      } else if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+      } else if (shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
         return true;
       }
     }
