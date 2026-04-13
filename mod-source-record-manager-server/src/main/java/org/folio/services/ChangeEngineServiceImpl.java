@@ -233,6 +233,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,
                               String sourceChunkId, boolean acceptInstanceId, Promise<List<Record>> promise) {
+
+    LOGGER.debug("processRecords:: Starting to process parsed records for jobExecutionId: {}, sourceChunkId: {}, action determined by job profile: {}",
+      jobExecution.getId(), sourceChunkId, getAction(parsedRecords, jobExecution));
+
     switch (getAction(parsedRecords, jobExecution)) {
       case UPDATE_RECORD -> {
         hrIdFieldService.move001valueTo035Field(parsedRecords);
@@ -616,9 +620,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     return rawRecords.stream()
       .map(rawRecord -> {
-        //TODO: for testing
-        LOGGER.error("getParsedRecordsFromInitialRecords:: Parsing record: {}", rawRecord.getRecord());
-        var parsedResult = parser.parseRecord(rawRecord.getRecord().substring(0, 6) + 'A' + rawRecord.getRecord().substring(7));
+        var parsedResult = parser.parseRecord(rawRecord.getRecord());
         LOGGER.debug("getParsedRecordsFromInitialRecords:: Parsed record with order: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
           rawRecord.getOrder(), jobExecution.getId(), acceptInstanceId, sourceChunkId);
 
