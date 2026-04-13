@@ -618,7 +618,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .map(rawRecord -> {
         //TODO: for testing
         LOGGER.error("getParsedRecordsFromInitialRecords:: Parsing record: {}", rawRecord.getRecord());
-        var parsedResult = parser.parseRecord(rawRecord.getRecord());
+        var parsedResult = parser.parseRecord(rawRecord.getRecord().substring(0, 6) + 'A' + rawRecord.getRecord().substring(7));
         LOGGER.debug("getParsedRecordsFromInitialRecords:: Parsed record with order: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
           rawRecord.getOrder(), jobExecution.getId(), acceptInstanceId, sourceChunkId);
 
