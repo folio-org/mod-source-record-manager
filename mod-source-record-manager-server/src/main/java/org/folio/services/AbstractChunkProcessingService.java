@@ -191,7 +191,6 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
-
           LOGGER.debug("Checking JobExecution status for jobExecutionId: {}, current status: {}, required status: {}",
             jobExecutionId, jobExecution.getStatus(), status.getStatus());
 

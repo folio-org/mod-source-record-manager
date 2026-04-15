@@ -621,8 +621,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
-        LOGGER.debug("getParsedRecordsFromInitialRecords:: Parsed record with order: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
-          rawRecord.getOrder(), jobExecution.getId(), acceptInstanceId, sourceChunkId);
 
         if (!acceptInstanceId) {
           parsedResult = addErrorMessageWhen999ffFieldExistsOnCreateAction(jobExecution, parsedResult);
@@ -877,7 +875,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
                                                   OkapiConnectionParams okapiParams) {
-    if (shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper())) {
+    if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
       return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
     }
 
@@ -889,10 +887,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       if (childWrapper.getContentType() == ACTION_PROFILE) {
         ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
         if (TRUE.equals(actionProfile.getRemove9Subfields())
-          || shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
+          || TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
           return true;
         }
-      } else if (shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
+      } else if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
         return true;
       }
     }
