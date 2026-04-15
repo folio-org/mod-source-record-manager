@@ -151,7 +151,7 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateMarcBibErrorParamsWhenEventChainEndsWithIncomingMarcBibForOrderParsed() {
     returnErrorJournalParamsByLastEventInChain(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED,
-      JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.CREATE);
+      JournalRecord.EntityType.ORDER, JournalRecord.ActionType.CREATE);
   }
 
   @Test
@@ -185,7 +185,7 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateMarcBibCompletedParamsWhenEventChainEndsWithIncomingMarcBibForOrderParsed() {
     returnCompletedJournalParamsByLastEventInChain(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED,
-      JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.CREATE);
+      JournalRecord.EntityType.ORDER, JournalRecord.ActionType.CREATE);
   }
 
   @Test
