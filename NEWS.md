@@ -1,4 +1,4 @@
-## XXXX-XX-XX v4.0.0-SNAPSHOT
+## 2026-04-16 v4.0.0
 * [MODSOURMAN-1355](https://folio-org.atlassian.net/browse/MODSOURMAN-1355) Replace advisory lock with consistent record ordering to prevent deadlocks in journal record insertions
 * [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
 * [MODSOURMAN-1323](https://folio-org.atlassian.net/browse/MODSOURMAN-1323) Ensure holdings validation to check central ECS tenant
@@ -17,6 +17,10 @@
 * [MODSOURMAN-1399](https://folio-org.atlassian.net/browse/MODSOURMAN-1399) Properly handle the failed result of the request for snapshot creation
 * [MODSOURMAN-1340](https://folio-org.atlassian.net/browse/MODSOURMAN-1340) Upgrade module to Vert.x 5.0
 * [MODSOURMAN-1401](https://folio-org.atlassian.net/browse/MODSOURMAN-1401) Shift from name-based to code-based authority identifier type resolution
+* [MODSOURMAN-1395](https://folio-org.atlassian.net/browse/MODSOURMAN-1395) Optimize getJobLogEntries query and test performance
+* [MODSOURMAN-1393](https://folio-org.atlassian.net/browse/MODSOURMAN-1393) Use GET /locale to get tenant locale setting 
+* [MODSOURMAN-1385](https://folio-org.atlassian.net/browse/MODSOURMAN-1385) Display title for 'No action' records in logs
+* [MODSOURMAN-1358](https://folio-org.atlassian.net/browse/MODSOURMAN-1358) Update default mapping rules for Format (338$a and $b)
 
 ## 2025-03-13 v3.10.0
 * [MODSOURMAN-1246](https://folio-org.atlassian.net/browse/MODSOURMAN-1246) Added data import completion notifications
