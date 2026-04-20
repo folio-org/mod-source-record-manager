@@ -78,6 +78,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   }
 
   private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType, Map<String, String> context) {
+    LOGGER.debug("sendRecords:: Sending events with records for jobExecutionId: {} and records count: {}", jobExecution.getId(), createdRecords.size());
     Promise<Boolean> promise = Promise.promise();
     List<Future<Boolean>> futures = new ArrayList<>();
     List<Record> failedRecords = new ArrayList<>();
@@ -87,6 +88,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
       try {
         if (record.getRecordType() != null && isParsedContentExists(record)) {
+          LOGGER.debug("sendRecords:: Prepared event payload for recordId: {} and jobExecutionId: {}", record.getId(), jobExecution.getId());
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType, context);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
           params.getHeaders().set(JOB_EXECUTION_ID_HEADER, record.getSnapshotId());
@@ -97,11 +99,12 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
           String cause = record.getErrorRecord() == null
             ? format("Cannot send event for individual record with recordType: %s", record.getRecordType())
             : record.getErrorRecord().getDescription();
+          LOGGER.error("sendRecords:: Error preparing event payload for recordId: {} and jobExecutionId: {}. Cause: {}", record.getId(), jobExecution.getId(), cause);
           futures.add(sendDiErrorEvent(new RawChunkRecordsParsingException(cause),
             params, jobExecution.getId(), params.getTenantId(), record));
         }
       } catch (Exception e) {
-        LOGGER.warn("sendRecords:: Error publishing event with jobExecutionId: {} recordId: {}", jobExecution.getId(), record.getId(), e);
+        LOGGER.error("sendRecords:: Error publishing event with jobExecutionId: {} recordId: {}", jobExecution.getId(), record.getId(), e);
         record.setErrorRecord(new ErrorRecord().withContent(record.getRawRecord()).withDescription(e.getMessage()));
         failedRecords.add(record);
       }
@@ -162,6 +165,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
   public Future<Boolean> sendDiErrorEvent(Throwable throwable, OkapiConnectionParams okapiParams, String jobExecutionId,
                                           String tenantId, Record currentRecord) {
+    LOGGER.debug("sendDiErrorEvent:: Sending DI_ERROR event for jobExecutionId: {} and recordId: {}", jobExecutionId, currentRecord.getId(), throwable);
       okapiParams.getHeaders().set(RECORD_ID_HEADER, currentRecord.getId());
       for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
         if (payloadBuilder.isEligible(currentRecord.getRecordType())) {
