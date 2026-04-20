@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -44,8 +43,9 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String RECORD_ID_HEADER = "recordId";
   public static final String USER_ID_HEADER = "userId";
+  private static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   private static final AtomicInteger indexer = new AtomicInteger();
-  public static final String ERROR_KEY = "ERROR";
+  private static final String ERROR_KEY = "ERROR";
 
   @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -78,6 +78,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   }
 
   private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType, Map<String, String> context) {
+    LOGGER.debug("sendRecords:: Sending events with records for jobExecutionId: {} and records count: {}", jobExecution.getId(), createdRecords.size());
     Promise<Boolean> promise = Promise.promise();
     List<Future<Boolean>> futures = new ArrayList<>();
     List<Record> failedRecords = new ArrayList<>();
@@ -87,8 +88,10 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
       try {
         if (record.getRecordType() != null && isParsedContentExists(record)) {
+          LOGGER.debug("sendRecords:: Prepared event payload for recordId: {} and jobExecutionId: {}", record.getId(), jobExecution.getId());
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType, context);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
+          params.getHeaders().set(JOB_EXECUTION_ID_HEADER, record.getSnapshotId());
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key));
@@ -96,11 +99,12 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
           String cause = record.getErrorRecord() == null
             ? format("Cannot send event for individual record with recordType: %s", record.getRecordType())
             : record.getErrorRecord().getDescription();
+          LOGGER.error("sendRecords:: Error preparing event payload for recordId: {} and jobExecutionId: {}. Cause: {}", record.getId(), jobExecution.getId(), cause);
           futures.add(sendDiErrorEvent(new RawChunkRecordsParsingException(cause),
             params, jobExecution.getId(), params.getTenantId(), record));
         }
       } catch (Exception e) {
-        LOGGER.warn("sendRecords:: Error publishing event with record id: {}",record.getId(), e);
+        LOGGER.error("sendRecords:: Error publishing event with jobExecutionId: {} recordId: {}", jobExecution.getId(), record.getId(), e);
         record.setErrorRecord(new ErrorRecord().withContent(record.getRawRecord()).withDescription(e.getMessage()));
         failedRecords.add(record);
       }
@@ -110,9 +114,9 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       futures.add(Future.failedFuture(new RecordsPublishingException(String.format("Failed to process %s records", failedRecords.size()), failedRecords)));
     }
 
-    GenericCompositeFuture.join(futures).onComplete(ar -> {
+    Future.join(futures).onComplete(ar -> {
       if (ar.failed()) {
-        LOGGER.warn("sendRecords:: Error publishing events with records", ar.cause());
+        LOGGER.warn("sendRecords:: Error publishing events with records for jobExecutionId: {}", jobExecution.getId(), ar.cause());
         promise.fail(ar.cause());
         return;
       }
@@ -129,7 +133,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
    */
   private boolean isParsedContentExists(Record currentRecord) {
     if (currentRecord.getParsedRecord() == null || currentRecord.getParsedRecord().getContent() == null) {
-      LOGGER.warn("isParsedContentExists:: Record has no parsed content - event will not be sent");
+      LOGGER.warn("isParsedContentExists:: Record has no parsed content - event will not be sent for recordId: {}", currentRecord.getId());
       return false;
     }
     return true;
@@ -151,7 +155,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
     return new DataImportEventPayload()
       .withEventType(eventType)
-      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().getFirst())
       .withJobExecutionId(record.getSnapshotId())
       .withContext(context)
       .withOkapiUrl(params.getOkapiUrl())
@@ -161,6 +165,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
   public Future<Boolean> sendDiErrorEvent(Throwable throwable, OkapiConnectionParams okapiParams, String jobExecutionId,
                                           String tenantId, Record currentRecord) {
+    LOGGER.debug("sendDiErrorEvent:: Sending DI_ERROR event for jobExecutionId: {} and recordId: {}", jobExecutionId, currentRecord.getId(), throwable);
       okapiParams.getHeaders().set(RECORD_ID_HEADER, currentRecord.getId());
       for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
         if (payloadBuilder.isEligible(currentRecord.getRecordType())) {
@@ -170,7 +175,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
               KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null));
         }
       }
-      LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
+      LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send for jobExecutionId: {} recordId: {}", jobExecutionId, currentRecord.getId());
       sendDiError(throwable, jobExecutionId, okapiParams, currentRecord);
       return Future.succeededFuture(true);
   }

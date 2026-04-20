@@ -298,6 +298,41 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
+  public void testJournalErrorActionWhenEventsChainContainsIncomingMarcBibForOrderParsed(TestContext context)
+    throws InterruptedException, ExecutionException {
+    Async async = context.async();
+    String expectedErrorMessage = "Can not process incoming marc bib for order";
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withTenant(TENANT_ID)
+      .withOkapiUrl(OKAPI_URL)
+      .withToken(TOKEN)
+      .withJobExecutionId(jobExecution.getId())
+      .withContext(new HashMap<>() {{
+        put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+        put(ERROR_KEY, expectedErrorMessage);
+      }})
+      .withEventsChain(List.of(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED.value()));
+
+    Event event = new Event().withEventPayload(Json.encode(eventPayload))
+      .withEventType(DI_ERROR.value())
+      .withId(UUID.randomUUID().toString());
+    String topic = formatToKafkaTopicName(DI_ERROR.value());
+    ProducerRecord<String, String> producerRecord = prepareWithSpecifiedEventPayload(topic, Json.encode(event));
+    sendEvent(producerRecord);
+
+    assertJournalRecord(context, jobExecution.getId(), journalRecords -> journalRecords.stream().anyMatch(journalRecord -> {
+      Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), journalRecord.getEntityType().value());
+      Assert.assertEquals("Action Type:", JournalRecord.ActionType.CREATE.value(), journalRecord.getActionType().value());
+      Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.ERROR.value(), journalRecord.getActionStatus().value());
+      Assert.assertEquals("Error:", expectedErrorMessage, journalRecord.getError());
+      return true;
+    }));
+    async.complete();
+  }
+
+  @Test
   public void testShouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents(TestContext context) throws InterruptedException, ExecutionException {
     Async async = context.async();
 
