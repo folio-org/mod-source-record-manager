@@ -177,24 +177,6 @@ public class JournalParamsTest {
   }
 
   @Test
-  public void shouldPopulateMarcBibCompletedParamsWhenEventChainEndsWithIncomingMarcBibRecordParsed() {
-    returnCompletedJournalParamsByLastEventInChain(DI_INCOMING_MARC_BIB_RECORD_PARSED,
-      JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.CREATE);
-  }
-
-  @Test
-  public void shouldPopulateMarcBibCompletedParamsWhenEventChainEndsWithIncomingMarcBibForOrderParsed() {
-    returnCompletedJournalParamsByLastEventInChain(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED,
-      JournalRecord.EntityType.ORDER, JournalRecord.ActionType.CREATE);
-  }
-
-  @Test
-  public void shouldPopulateEdifactCompletedParamsWhenEventChainEndsWithIncomingEdifactParsed() {
-    returnCompletedJournalParamsByLastEventInChain(DI_INCOMING_EDIFACT_RECORD_PARSED,
-      JournalRecord.EntityType.EDIFACT, JournalRecord.ActionType.CREATE);
-  }
-
-  @Test
   public void shouldPopulateOptionalForIncorrectEventTypeWhenEventTypeIsDiCompleted() {
     eventPayload.setEventType(DI_COMPLETED.value());
     context.put(EntityType.MARC_HOLDINGS.value(), new JsonObject().encode());

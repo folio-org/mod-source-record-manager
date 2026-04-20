@@ -638,7 +638,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           .withState(Record.State.ACTUAL)
           .withRawRecord(new RawRecord().withContent(rawRecord.getRecord()));
         if (parsedResult.isHasError()) {
-          LOGGER.error("getParsedRecordsFromInitialRecords:: Parsed record with order: {} contains errors: {}, jobExecutionId: {}, sourceChunkId: {}",
+          LOGGER.warn("getParsedRecordsFromInitialRecords:: Parsed record with order: {} contains errors: {}, jobExecutionId: {}, sourceChunkId: {}",
             rawRecord.getOrder(), parsedResult.getErrors().encode(), jobExecution.getId(), sourceChunkId);
           record.setErrorRecord(new ErrorRecord()
             .withContent(rawRecord)
