@@ -233,6 +233,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,
                               String sourceChunkId, boolean acceptInstanceId, Promise<List<Record>> promise) {
+
+    LOGGER.debug("processRecords:: Starting to process parsed records for jobExecutionId: {}, sourceChunkId: {}, action determined by job profile: {}",
+      jobExecution.getId(), sourceChunkId, getAction(parsedRecords, jobExecution));
+
     switch (getAction(parsedRecords, jobExecution)) {
       case UPDATE_RECORD -> {
         hrIdFieldService.move001valueTo035Field(parsedRecords);
@@ -609,6 +613,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                                          JobExecution jobExecution,
                                                          boolean acceptInstanceId,
                                                          String sourceChunkId) {
+    LOGGER.debug("getParsedRecordsFromInitialRecords:: recordContentType: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
+      recordContentType, jobExecution.getId(), acceptInstanceId, sourceChunkId);
+
     var parser = RecordParserBuilder.buildParser(recordContentType);
 
     return rawRecords.stream()
@@ -631,6 +638,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           .withState(Record.State.ACTUAL)
           .withRawRecord(new RawRecord().withContent(rawRecord.getRecord()));
         if (parsedResult.isHasError()) {
+          LOGGER.warn("getParsedRecordsFromInitialRecords:: Parsed record with order: {} contains errors: {}, jobExecutionId: {}, sourceChunkId: {}",
+            rawRecord.getOrder(), parsedResult.getErrors().encode(), jobExecution.getId(), sourceChunkId);
           record.setErrorRecord(new ErrorRecord()
             .withContent(rawRecord)
             .withDescription(parsedResult.getErrors().encode()));
