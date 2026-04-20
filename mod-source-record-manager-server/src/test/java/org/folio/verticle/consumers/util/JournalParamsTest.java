@@ -407,22 +407,6 @@ public class JournalParamsTest {
     Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
   }
 
-  private void returnCompletedJournalParamsByLastEventInChain(DataImportEventTypes lastEvent,
-                                                              JournalRecord.EntityType expectedEntityType,
-                                                              JournalRecord.ActionType expectedActionType) {
-    eventPayload.setEventType(DI_COMPLETED.value());
-    eventPayload.setEventsChain(List.of(lastEvent.value()));
-
-    var journalParamsOptional =
-      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
-
-    Assert.assertTrue(journalParamsOptional.isPresent());
-    var journalParams = journalParamsOptional.get();
-    Assert.assertEquals(expectedEntityType, journalParams.journalEntityType);
-    Assert.assertEquals(expectedActionType, journalParams.journalActionType);
-    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
-  }
-
   @Test
   public void shouldReturnEmptyOptionalWhenEventIsOrderCreatedReadyForPostProcessingAndLastEventIsNotAnyOfInventoryRecordsCreated() {
     eventPayload.setEventType(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING.value());
