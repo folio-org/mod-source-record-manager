@@ -73,7 +73,11 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     String lastChunk = okapiParams.getHeaders().get(LAST_CHUNK_HEADER);
 
     if (StringUtils.isNotBlank(lastChunk)) {
-      LOGGER.warn("handle:: Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error", jobExecutionId, tenantId, chunkId, throwable);
+      if (throwable instanceof DuplicateEventException) {
+        LOGGER.warn("handle:: Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error, cause: {}", jobExecutionId, tenantId, chunkId, throwable.getMessage());
+      } else {
+        LOGGER.warn("handle:: Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error", jobExecutionId, tenantId, chunkId, throwable);
+      }
     } else if (throwable instanceof RecordsPublishingException) {
       List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
       for (Record failedRecord: failedRecords) {
