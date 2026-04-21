@@ -14,7 +14,8 @@ BEGIN
                    journal_records.entity_hrid,
                    CASE
                        WHEN journal_records.action_type = 'PARSE' THEN 'PARSED'
-                       WHEN action_type_by_source.error_max != '' OR journal_records.action_type = 'NON_MATCH' THEN 'DISCARDED'
+                       WHEN journal_records.entity_type != 'PO_LINE' AND (action_type_by_source.error_max != '' OR journal_records.action_type = 'NON_MATCH') THEN 'DISCARDED'
+                       WHEN journal_records.entity_type = 'PO_LINE' AND journal_records.action_status = 'ERROR' THEN 'DISCARDED'
                        WHEN journal_records.action_type = 'CREATE' THEN 'CREATED'
                        WHEN journal_records.action_type = 'UPDATE' THEN 'UPDATED'
                    END AS action_type,
@@ -32,16 +33,21 @@ BEGIN
             INNER JOIN (
                 SELECT entity_type as entity_type_max,
                        entity_id as entity_id_max,
-                       action_status as action_status_max,
                        MAX(error) AS error_max,
-                       (array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'NON_MATCH'], action_type)))[1] AS id_max,
+                       (array_agg(id ORDER BY
+                           CASE WHEN entity_type = 'PO_LINE' THEN
+                               CASE action_status WHEN 'COMPLETED' THEN 1 ELSE 2 END
+                           ELSE
+                               CASE action_status WHEN 'ERROR' THEN 1 ELSE 2 END
+                           END,
+                           array_position(array['CREATE', 'UPDATE', 'NON_MATCH'], action_type)))[1] AS id_max,
                        MAX(journal_records.title) AS title
                 FROM journal_records
                 WHERE journal_records.job_execution_id = jobExecutionId
                   AND journal_records.source_id = recordId
                   AND journal_records.entity_type NOT IN ('EDIFACT', 'INVOICE')
                   AND action_type != 'MATCH'
-                GROUP BY entity_type, entity_id, action_status
+                GROUP BY entity_type, entity_id
             ) AS action_type_by_source
             ON journal_records.id = action_type_by_source.id_max
             UNION ALL

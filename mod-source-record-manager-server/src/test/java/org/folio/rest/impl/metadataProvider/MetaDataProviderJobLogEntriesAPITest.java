@@ -143,6 +143,62 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnPoLineCreatedAndErrorIfPoLineIsCreatedButFailedToOpenOrder(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String marcBibRecordId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String holdingsId = UUID.randomUUID().toString();
+    String itemId = UUID.randomUUID().toString();
+    String poLineId = UUID.randomUUID().toString();
+    String orderId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String error = "The Material Type is required but not available in PO line";
+    String instanceHrid = "in001";
+    String holdingsHrid = "ho001";
+    String itemHrid = "it001";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      // reproduces 2 journal records saving for PO_LINE on intermediate event after order and PO line creation
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, null, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcBibRecordId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, holdingsId, holdingsHrid, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), incomingRecordId, itemId, itemHrid, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null, instanceId, holdingsId, null))
+      // reproduces 2 journal records saving for PO_LINE on event about failure to open the order
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+        RestAssured.given()
+          .spec(spec)
+          .when()
+          .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId()+ "/records/" + incomingRecordId)
+          .then()
+          .statusCode(HttpStatus.SC_OK)
+          .body("jobExecutionId", is(createdJobExecution.getId()))
+          .body("incomingRecordId", is(incomingRecordId))
+          .body("sourceRecordTitle", is(recordTitle))
+          .body("sourceRecordOrder", is("0"))
+          .body("sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+          .body("relatedInstanceInfo.idList[0]", is(instanceId))
+          .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+          .body("relatedInstanceInfo.error", emptyOrNullString())
+          .body("relatedHoldingsInfo[0].id", is(holdingsId))
+          .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+          .body("relatedItemInfo[0].id", is(itemId))
+          .body("relatedItemInfo[0].hrid", is(itemHrid))
+          .body("relatedItemInfo[0].error", emptyOrNullString())
+          .body("relatedPoLineInfo.actionStatus", is(ActionStatus.CREATED.value()))
+          .body("relatedPoLineInfo.idList[0]", is(poLineId))
+          .body("relatedPoLineInfo.error", is(error))
+          .body("relatedPoLineInfo.orderId", is(orderId))
+    ));
+  }
+
+  @Test
   public void shouldReturnPoLineRecordWithTitleWhenOrderImported(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
@@ -1090,7 +1146,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
 
   /**
    * The test verifies the same scenario as in the
-   * {@link #shouldReturnPoLineCreatedAndErrorMessageIfPoLineIsCreatedButFailedToOpenOrder} test
+   * {@link #shouldReturnPoLineCreatedAndErrorIfPoLineIsCreatedButFailedToOpenOrder} test
    * but performs sorting by "order_action_status" because different approach/logic is executed
    * in the get_job_log_entries() DB function depending on specified sorting field.
    */
