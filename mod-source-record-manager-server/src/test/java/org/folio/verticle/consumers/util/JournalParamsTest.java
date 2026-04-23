@@ -4,6 +4,9 @@ import static org.folio.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
@@ -140,6 +143,24 @@ public class JournalParamsTest {
     Assert.assertEquals(JournalRecord.EntityType.MARC_HOLDINGS, journalParams.journalEntityType);
     Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
     Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
+  }
+
+  @Test
+  public void shouldPopulateMarcBibErrorParamsWhenEventChainEndsWithIncomingMarcBibRecordParsed() {
+    returnErrorJournalParamsByLastEventInChain(DI_INCOMING_MARC_BIB_RECORD_PARSED,
+      JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateMarcBibErrorParamsWhenEventChainEndsWithIncomingMarcBibForOrderParsed() {
+    returnErrorJournalParamsByLastEventInChain(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED,
+      JournalRecord.EntityType.ORDER, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateEdifactErrorParamsWhenEventChainEndsWithIncomingEdifactParsed() {
+    returnErrorJournalParamsByLastEventInChain(DI_INCOMING_EDIFACT_RECORD_PARSED,
+      JournalRecord.EntityType.EDIFACT, JournalRecord.ActionType.CREATE);
   }
 
   @Test
@@ -371,6 +392,22 @@ public class JournalParamsTest {
     assertEquals(expectedEntityType, journalParams.journalEntityType);
     assertEquals(expectedActionType, journalParams.journalActionType);
     assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
+  }
+
+  private void returnErrorJournalParamsByLastEventInChain(DataImportEventTypes lastEvent,
+                                                          JournalRecord.EntityType expectedEntityType,
+                                                          JournalRecord.ActionType expectedActionType) {
+    eventPayload.setEventType(DI_ERROR.value());
+    eventPayload.setEventsChain(List.of(lastEvent.value()));
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    Assert.assertTrue(journalParamsOptional.isPresent());
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(expectedEntityType, journalParams.journalEntityType);
+    Assert.assertEquals(expectedActionType, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
   }
 
   @Test

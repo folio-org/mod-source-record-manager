@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -73,7 +74,11 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     String lastChunk = okapiParams.getHeaders().get(LAST_CHUNK_HEADER);
 
     if (StringUtils.isNotBlank(lastChunk)) {
-      LOGGER.warn("handle:: Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error", jobExecutionId, tenantId, chunkId, throwable);
+      if (throwable instanceof DuplicateEventException || throwable instanceof NotFoundException) {
+        LOGGER.warn("handle:: Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error, cause: {}: {}", jobExecutionId, tenantId, chunkId, throwable.getClass().getSimpleName(), throwable.getMessage());
+      } else {
+        LOGGER.warn("handle:: Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error", jobExecutionId, tenantId, chunkId, throwable);
+      }
     } else if (throwable instanceof RecordsPublishingException) {
       List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
       for (Record failedRecord: failedRecords) {
