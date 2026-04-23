@@ -1149,6 +1149,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
    * {@link #shouldReturnPoLineCreatedAndErrorIfPoLineIsCreatedButFailedToOpenOrder} test
    * but performs sorting by "order_action_status" because different approach/logic is executed
    * in the get_job_log_entries() DB function depending on specified sorting field.
+   * By default, sorting is performed by "source_record_order" field.
    */
   @Test
   public void shouldReturnPoLineCreatedAndErrorMessageIfPoLineIsCreatedButFailedToOpenOrderAndSortingByOrderActionStatus(TestContext context) {
@@ -1243,6 +1244,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
    * The test verifies the same scenario as in the {@link #shouldReturnPoLineStatusDiscardedIfFailToCreatePoLine} test
    * but performs sorting by "order_action_status" because different approach/logic is executed
    * in the get_job_log_entries() DB function depending on specified sorting field.
+   * By default, sorting is performed by "source_record_order" field.
    */
   @Test
   public void shouldReturnPoLineStatusDiscardedIfFailToCreatePoLineAndSortingByOrderActionStatus(TestContext context) {
