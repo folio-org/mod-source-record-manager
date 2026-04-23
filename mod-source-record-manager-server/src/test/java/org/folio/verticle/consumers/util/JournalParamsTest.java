@@ -21,6 +21,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
@@ -34,6 +35,8 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -194,7 +197,7 @@ public class JournalParamsTest {
     eventPayload.setEventType(DI_COMPLETED.value());
     context.put(JournalRecord.EntityType.PO_LINE.value(), new JsonObject().encode());
     eventPayload.setContext(context);
-    eventPayload.setEventsChain(Collections.singletonList("DI_ORDER_CREATED"));
+    eventPayload.setEventsChain(Collections.singletonList(DI_ORDER_CREATED.value()));
 
     var journalParamsOptional =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
@@ -384,11 +387,11 @@ public class JournalParamsTest {
     var journalParamsOptional =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
 
-    Assert.assertTrue(journalParamsOptional.isPresent());
+    assertTrue(journalParamsOptional.isPresent());
     var journalParams = journalParamsOptional.get();
-    Assert.assertEquals(expectedEntityType, journalParams.journalEntityType);
-    Assert.assertEquals(expectedActionType, journalParams.journalActionType);
-    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
+    assertEquals(expectedEntityType, journalParams.journalEntityType);
+    assertEquals(expectedActionType, journalParams.journalActionType);
+    assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
   }
 
   private void returnErrorJournalParamsByLastEventInChain(DataImportEventTypes lastEvent,
@@ -415,7 +418,23 @@ public class JournalParamsTest {
     var journalParamsOptional =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
 
-    Assert.assertTrue(journalParamsOptional.isEmpty());
+    assertTrue(journalParamsOptional.isEmpty());
+  }
+
+  @Test
+  public void shouldPopulateEntityTypePoLineForDiPendingOrderCreated() {
+    eventPayload.setEventType(DI_PENDING_ORDER_CREATED.value());
+    context.put(JournalRecord.EntityType.PO_LINE.value(), new JsonObject().encode());
+    eventPayload.setContext(context);
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    assertTrue(journalParamsOptional.isPresent());
+    var journalParams = journalParamsOptional.get();
+    assertEquals(JournalRecord.EntityType.PO_LINE, journalParams.journalEntityType);
+    assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
   }
 
 }

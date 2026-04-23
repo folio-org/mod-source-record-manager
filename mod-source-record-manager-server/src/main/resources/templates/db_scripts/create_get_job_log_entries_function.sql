@@ -93,7 +93,9 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
     temp_result AS (
       SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
            CASE
-             WHEN error_max != '''' OR action_type = ''NON_MATCH'' THEN ''DISCARDED''
+             WHEN entity_type != ''PO_LINE'' AND (error_max != '''' OR action_type = ''NON_MATCH'') THEN ''DISCARDED''
+             WHEN entity_type = ''PO_LINE'' AND action_status = ''ERROR'' THEN ''DISCARDED''
+             WHEN action_type = ''NON_MATCH'' THEN ''DISCARDED''
              WHEN action_type = ''CREATE'' THEN ''CREATED''
              WHEN action_type = ''UPDATE'' THEN ''UPDATED''
              WHEN action_type = ''MODIFY'' THEN ''UPDATED''
@@ -103,7 +105,12 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
     FROM relevant_records
     INNER JOIN (
       SELECT entity_type as entity_type_max, entity_id as entity_id_max, source_id as source_id_max, max(error) AS error_max,
-             (array_agg(id ORDER BY CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END,
+             (array_agg(id ORDER BY
+               CASE WHEN entity_type = ''PO_LINE'' THEN
+                 CASE action_status WHEN ''COMPLETED'' THEN 1 ELSE 2 END
+               ELSE
+                 CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END
+               END,
                array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)))[1] AS id_max
       FROM relevant_records
       WHERE entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type != ''MATCH''
@@ -113,18 +120,18 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
       SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
              CASE WHEN error_max != '''' OR action_type = ''MATCH'' THEN ''DISCARDED'' END AS action_type,
              action_status, action_date, source_record_order, error, title, tenant_id, instance_id, holdings_id, order_id, permanent_location_id
-       FROM relevant_records
-              INNER JOIN (
+      FROM relevant_records
+      INNER JOIN (
         SELECT entity_type as entity_type_max, entity_id as entity_id_max, action_status as action_status_max, max(error) AS error_max,
-                     (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
-              FROM relevant_records
-              WHERE entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type = ''MATCH''
-              AND NOT EXISTS (SELECT 1 FROM relevant_records jr
-                              WHERE jr.job_execution_id = relevant_records.job_execution_id
-                              AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
-                              AND jr.source_id = relevant_records.source_id)
-              GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
-       ) AS action_type_by_source ON relevant_records.id = action_type_by_source.id_max
+               (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
+        FROM relevant_records
+        WHERE entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type = ''MATCH''
+        AND NOT EXISTS (SELECT 1 FROM relevant_records jr
+                        WHERE jr.job_execution_id = relevant_records.job_execution_id
+                        AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
+                        AND jr.source_id = relevant_records.source_id)
+        GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
+      ) AS action_type_by_source ON relevant_records.id = action_type_by_source.id_max
     ),
     instances AS (
       SELECT action_type, entity_id, source_id, entity_hrid, error, job_execution_id, title, source_record_order, tenant_id
@@ -245,17 +252,24 @@ originalSQL TEXT := '
     temp_result AS (
       SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
              CASE
-               WHEN error_max != '''' OR action_type = ''NON_MATCH'' THEN ''DISCARDED''
+               WHEN entity_type != ''PO_LINE'' AND (error_max != '''' OR action_type = ''NON_MATCH'') THEN ''DISCARDED''
+               WHEN entity_type = ''PO_LINE'' AND action_status = ''ERROR'' THEN ''DISCARDED''
+               WHEN action_type = ''NON_MATCH'' THEN ''DISCARDED''
                WHEN action_type = ''CREATE'' THEN ''CREATED''
                WHEN action_type = ''UPDATE'' THEN ''UPDATED''
                WHEN action_type = ''MODIFY'' THEN ''UPDATED''
                END AS action_type,
              action_status, action_date, source_record_order, error, title, tenant_id, instance_id, holdings_id, order_id, permanent_location_id
       FROM journal_records
-             INNER JOIN (
+      INNER JOIN (
         SELECT entity_type as entity_type_max, entity_id as entity_id_max, source_id as source_id_max, max(error) AS error_max,
-               (array_agg(id ORDER BY CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END,
-               array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)))[1] AS id_max
+               (array_agg(id ORDER BY
+                 CASE WHEN entity_type = ''PO_LINE'' THEN
+                   CASE action_status WHEN ''COMPLETED'' THEN 1 ELSE 2 END
+                 ELSE
+                   CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END
+                 END,
+                 array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)))[1] AS id_max
         FROM journal_records
         WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type != ''MATCH''
         GROUP BY entity_type, entity_id, source_id
@@ -266,18 +280,20 @@ originalSQL TEXT := '
                WHEN error_max != '''' OR action_type = ''MATCH'' THEN ''DISCARDED''
                END AS action_type,
              action_status, action_date, source_record_order, error, title, tenant_id, instance_id, holdings_id, order_id, permanent_location_id
-       FROM journal_records
-              INNER JOIN (
+      FROM journal_records
+      INNER JOIN (
         SELECT entity_type as entity_type_max, entity_id as entity_id_max, action_status as action_status_max, max(error) AS error_max,
-                     (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
-              FROM journal_records
-              WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type = ''MATCH''
-              AND NOT EXISTS (SELECT 1 FROM journal_records jr
-                              WHERE jr.job_execution_id = ''%1$s''
-                              AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
-                              AND jr.source_id = journal_records.source_id)
-              GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
-       ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
+                (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
+        FROM journal_records
+        WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type = ''MATCH''
+          AND NOT EXISTS (
+            SELECT 1 FROM journal_records jr
+            WHERE jr.job_execution_id = ''%1$s''
+              AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
+              AND jr.source_id = journal_records.source_id
+          )
+        GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
+      ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
     ),
     instances AS (
       SELECT action_type, entity_id, source_id, entity_hrid, error, job_execution_id, title, source_record_order, tenant_id

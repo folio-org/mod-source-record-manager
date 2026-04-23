@@ -18,6 +18,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
+import static org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder.ASC;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.in;
@@ -142,6 +143,62 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnPoLineCreatedAndErrorIfPoLineIsCreatedButFailedToOpenOrder(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String marcBibRecordId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String holdingsId = UUID.randomUUID().toString();
+    String itemId = UUID.randomUUID().toString();
+    String poLineId = UUID.randomUUID().toString();
+    String orderId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String error = "The Material Type is required but not available in PO line";
+    String instanceHrid = "in001";
+    String holdingsHrid = "ho001";
+    String itemHrid = "it001";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      // reproduces 2 journal records saving for PO_LINE on intermediate event after order and PO line creation
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, null, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcBibRecordId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, holdingsId, holdingsHrid, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), incomingRecordId, itemId, itemHrid, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null, instanceId, holdingsId, null))
+      // reproduces 2 journal records saving for PO_LINE on event about failure to open the order
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+        RestAssured.given()
+          .spec(spec)
+          .when()
+          .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId()+ "/records/" + incomingRecordId)
+          .then()
+          .statusCode(HttpStatus.SC_OK)
+          .body("jobExecutionId", is(createdJobExecution.getId()))
+          .body("incomingRecordId", is(incomingRecordId))
+          .body("sourceRecordTitle", is(recordTitle))
+          .body("sourceRecordOrder", is("0"))
+          .body("sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+          .body("relatedInstanceInfo.idList[0]", is(instanceId))
+          .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+          .body("relatedInstanceInfo.error", emptyOrNullString())
+          .body("relatedHoldingsInfo[0].id", is(holdingsId))
+          .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+          .body("relatedItemInfo[0].id", is(itemId))
+          .body("relatedItemInfo[0].hrid", is(itemHrid))
+          .body("relatedItemInfo[0].error", emptyOrNullString())
+          .body("relatedPoLineInfo.actionStatus", is(ActionStatus.CREATED.value()))
+          .body("relatedPoLineInfo.idList[0]", is(poLineId))
+          .body("relatedPoLineInfo.error", is(error))
+          .body("relatedPoLineInfo.orderId", is(orderId))
+    ));
+  }
+
+  @Test
   public void shouldReturnPoLineRecordWithTitleWhenOrderImported(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
@@ -168,7 +225,6 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       async.complete();
     }));
   }
-
 
   @Test
   public void shouldReturnOneInstanceIdWhenMarcBibUpdatedAndInstanceUpdated(TestContext context) {
@@ -1030,6 +1086,197 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordOrder", is("0"));
       async.complete();
     }));
+  }
+
+  @Test
+  public void shouldReturnPoLineCreatedAndErrorMessageIfPoLineIsCreatedButFailedToOpenOrder(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String marcBibRecordId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String holdingsId = UUID.randomUUID().toString();
+    String itemId = UUID.randomUUID().toString();
+    String poLineId = UUID.randomUUID().toString();
+    String orderId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String error = "The Material Type is required but not available in PO line";
+    String instanceHrid = "in001";
+    String holdingsHrid = "ho001";
+    String itemHrid = "it001";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      // reproduces 2 journal records saving for PO_LINE on intermediate event after order and PO line creation
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, null, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcBibRecordId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, holdingsId, holdingsHrid, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), incomingRecordId, itemId, itemHrid, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null, instanceId, holdingsId, null))
+      // reproduces 2 journal records saving for PO_LINE on event about failure to open the order
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("limit", 100)
+      .queryParam("order", ASC.name())
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("totalRecords", is(1))
+      .body("entries[0].incomingRecordId", is(incomingRecordId))
+      .body("entries[0].sourceRecordId", is(marcBibRecordId))
+      .body("entries[0].sourceRecordTitle", is(recordTitle))
+      .body("entries[0].sourceRecordOrder", is("0"))
+      .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+      .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+      .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+      .body("entries[0].relatedHoldingsInfo[0].id", is(holdingsId))
+      .body("entries[0].relatedItemInfo[0].id", is(itemId))
+      .body("entries[0].relatedItemInfo[0].hrid", is(itemHrid))
+      .body("entries[0].relatedItemInfo[0].error", emptyOrNullString())
+      .body("entries[0].relatedPoLineInfo.actionStatus", is(ActionStatus.CREATED.value()))
+      .body("entries[0].relatedPoLineInfo.idList[0]", is(poLineId))
+      .body("entries[0].relatedPoLineInfo.error", is(error))
+      .body("entries[0].relatedPoLineInfo.orderId", is(orderId))));
+  }
+
+  /**
+   * The test verifies the same scenario as in the
+   * {@link #shouldReturnPoLineCreatedAndErrorIfPoLineIsCreatedButFailedToOpenOrder} test
+   * but performs sorting by "order_action_status" because different approach/logic is executed
+   * in the get_job_log_entries() DB function depending on specified sorting field.
+   * By default, sorting is performed by "source_record_order" field.
+   */
+  @Test
+  public void shouldReturnPoLineCreatedAndErrorMessageIfPoLineIsCreatedButFailedToOpenOrderAndSortingByOrderActionStatus(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String marcBibRecordId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String holdingsId = UUID.randomUUID().toString();
+    String itemId = UUID.randomUUID().toString();
+    String poLineId = UUID.randomUUID().toString();
+    String orderId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String error = "The Material Type is required but not available in PO line";
+    String instanceHrid = "in001";
+    String holdingsHrid = "ho001";
+    String itemHrid = "it001";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      // reproduces 2 journal records saving for PO_LINE on intermediate event after order and PO line creation
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, null, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, COMPLETED, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcBibRecordId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, holdingsId, holdingsHrid, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), incomingRecordId, itemId, itemHrid, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null, instanceId, holdingsId, null))
+      // reproduces 2 journal records saving for PO_LINE on event about failure to open the order
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, orderId));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam("limit", 100)
+        .queryParam("sortBy", "order_action_status")
+        .queryParam("order", ASC.name())
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(incomingRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("entries[0].relatedItemInfo[0].id", is(itemId))
+        .body("entries[0].relatedItemInfo[0].hrid", is(itemHrid))
+        .body("entries[0].relatedItemInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedPoLineInfo.actionStatus", is(ActionStatus.CREATED.value()))
+        .body("entries[0].relatedPoLineInfo.idList[0]", is(poLineId))
+        .body("entries[0].relatedPoLineInfo.error", is(error))
+        .body("entries[0].relatedPoLineInfo.orderId", is(orderId))));
+  }
+
+  @Test
+  public void shouldReturnPoLineStatusDiscardedIfFailToCreatePoLine(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String poLineId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String error = "titleOrPackage must not be null";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      // reproduces 2 journal records saving for PO_LINE on event about failure to create poLine/order
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, null, 0, CREATE, PO_LINE, ERROR, error, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, null));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("limit", 100)
+      .queryParam("order", ASC.name())
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("totalRecords", is(1))
+      .body("entries[0].incomingRecordId", is(incomingRecordId))
+      .body("entries[0].sourceRecordId", emptyOrNullString())
+      .body("entries[0].sourceRecordTitle", is(recordTitle))
+      .body("entries[0].sourceRecordOrder", is("0"))
+      .body("entries[0].relatedPoLineInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+      .body("entries[0].relatedPoLineInfo.error", is(error))));
+  }
+
+  /**
+   * The test verifies the same scenario as in the {@link #shouldReturnPoLineStatusDiscardedIfFailToCreatePoLine} test
+   * but performs sorting by "order_action_status" because different approach/logic is executed
+   * in the get_job_log_entries() DB function depending on specified sorting field.
+   * By default, sorting is performed by "source_record_order" field.
+   */
+  @Test
+  public void shouldReturnPoLineStatusDiscardedIfFailToCreatePoLineAndSortingByOrderActionStatus(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String poLineId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String error = "titleOrPackage must not be null";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      // reproduces 2 journal records saving for PO_LINE on event about failure to create poLine/order
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, null, 0, CREATE, PO_LINE, ERROR, error, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, poLineId, null, recordTitle, 0, CREATE, PO_LINE, ERROR, error, null));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam("limit", 100)
+        .queryParam("sortBy", "order_action_status")
+        .queryParam("order", ASC.name())
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(incomingRecordId))
+        .body("entries[0].sourceRecordId", emptyOrNullString())
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].relatedPoLineInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedPoLineInfo.error", is(error))));
   }
 
   @Test
