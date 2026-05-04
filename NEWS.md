@@ -1,3 +1,7 @@
+## 2026-05-04 v4.0.1
+* [MODSOURMAN-1406](https://folio-org.atlassian.net/browse/MODSOURMAN-1406) IllegalArgumentException for DI_INCOMING_MARC_BIB_RECORD_PARSED causes journal_records not populated and jobSummary absence
+* [MODSOURMAN-1408](https://folio-org.atlassian.net/browse/MODSOURMAN-1408) Failed order imports create associated inventory records and open orders in a pending state
+
 ## 2026-04-16 v4.0.0
 * [MODSOURMAN-1355](https://folio-org.atlassian.net/browse/MODSOURMAN-1355) Replace advisory lock with consistent record ordering to prevent deadlocks in journal record insertions
 * [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
