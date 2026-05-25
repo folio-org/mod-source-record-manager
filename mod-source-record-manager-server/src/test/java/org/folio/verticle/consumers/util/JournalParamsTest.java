@@ -168,6 +168,30 @@ public class JournalParamsTest {
   }
 
   @Test
+  public void shouldPopulateHoldingsCreatedErrorParamsWhenEventChainEndsWithDiInventoryHoldingsCreatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateHoldingsUpdatedErrorParamsWhenEventChainEndsWithDiInventoryHoldingsUpdatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateAuthorityCreatedErrorParamsWhenEventChainEndsWithDiInventoryAuthorityCreatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateAuthorityUpdatedErrorParamsWhenEventChainEndsWithDiInventoryAuthorityUpdatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
   public void shouldPopulateEntityTypeMarcAuthorityWhenEventTypeIsDiCompleted() {
     eventPayload.setEventType(DI_COMPLETED.value());
     context.put(EntityType.MARC_HOLDINGS.value(), new JsonObject().encode());
@@ -368,20 +392,6 @@ public class JournalParamsTest {
 
   private void populateEntityTypeAndActionTypeByEventType(DataImportEventTypes eventType, JournalRecord.EntityType entityType, JournalRecord.ActionType actionType) {
     eventPayload.setEventType(eventType.value());
-
-    var journalParamsOptional =
-      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
-
-    var journalParams = journalParamsOptional.get();
-
-    Assert.assertEquals(entityType, journalParams.journalEntityType);
-    Assert.assertEquals(actionType, journalParams.journalActionType);
-    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
-  }
-
-  private void populateEntityTypeAndActionTypeByEventType(String eventType, JournalRecord.EntityType entityType,
-                                                          JournalRecord.ActionType actionType) {
-    eventPayload.setEventType(eventType);
 
     var journalParamsOptional =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
