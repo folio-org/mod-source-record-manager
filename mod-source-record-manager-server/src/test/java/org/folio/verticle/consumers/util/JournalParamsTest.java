@@ -35,6 +35,10 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -298,6 +302,26 @@ public class JournalParamsTest {
   }
 
   @Test
+  public void shouldPopulateEntityTypeHoldingsWhenEventTypeIsDiInventoryHoldingsCreatedReadyForPostProcessing() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeHoldingsWhenEventTypeIsDiInventoryHoldingsUpdatedReadyForPostProcessing() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityCreatedReadyForPostProcessing() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityUpdatedReadyForPostProcessing() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
   public void shouldPopulateEntityTypeInstanceWhenEventTypeIsDiInventoryInstanceCreated() {
     populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_INSTANCE_CREATED, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.CREATE);
   }
@@ -344,6 +368,20 @@ public class JournalParamsTest {
 
   private void populateEntityTypeAndActionTypeByEventType(DataImportEventTypes eventType, JournalRecord.EntityType entityType, JournalRecord.ActionType actionType) {
     eventPayload.setEventType(eventType.value());
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    var journalParams = journalParamsOptional.get();
+
+    Assert.assertEquals(entityType, journalParams.journalEntityType);
+    Assert.assertEquals(actionType, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
+  }
+
+  private void populateEntityTypeAndActionTypeByEventType(String eventType, JournalRecord.EntityType entityType,
+                                                          JournalRecord.ActionType actionType) {
+    eventPayload.setEventType(eventType);
 
     var journalParamsOptional =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);

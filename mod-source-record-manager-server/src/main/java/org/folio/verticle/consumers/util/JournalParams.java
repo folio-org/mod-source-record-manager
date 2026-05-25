@@ -185,6 +185,38 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_INSTANCE_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
