@@ -133,7 +133,9 @@ public class JournalParams {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(UPDATE,
-          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
+          eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_AUTHORITY.value()) ? JournalRecord.EntityType.MARC_AUTHORITY :
+            eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_HOLDINGS.value()) ? JournalRecord.EntityType.MARC_HOLDINGS :
+              JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },

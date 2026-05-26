@@ -13,6 +13,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_R
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -361,6 +362,30 @@ public class MarcImportEventsHandlerTest {
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(expectedTitle, actualJournalRecord.getTitle());
+  }
+
+  @Test
+  public void testSaveAuthorityJournalRecordWithCorrectEntityTypeWhenDiErrorWithMarcForUpdateReceivedInEventsChain() throws JournalRecordMapperException {
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject())));
+    var marcRecord = marcFactory.newRecord();
+    var expectedTitleStart = "Authority Title";
+    marcRecord.addVariableField(marcFactory.newDataField("035", '0', '0', "a", "35488"));
+    marcRecord.addVariableField(marcFactory.newDataField("150", '0', '0', "a", expectedTitleStart));
+    var record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(marcRecord)));
+
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_AUTHORITY.value(), Json.encode(record));
+    payloadContext.put("ERROR", "Timeout waiting for connection");
+
+    var payload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withEventsChain(List.of(DI_MARC_FOR_UPDATE_RECEIVED.value()))
+      .withContext(payloadContext);
+    handler.handle(journalService, payload, TEST_TENANT);
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
   }
 
   private DataImportEventPayload constructMatchHoldingsPayload(org.marc4j.marc.Record marcRecord) {
