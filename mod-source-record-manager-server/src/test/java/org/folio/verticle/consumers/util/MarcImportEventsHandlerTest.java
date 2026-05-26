@@ -386,6 +386,10 @@ public class MarcImportEventsHandlerTest {
     handler.handle(journalService, payload, TEST_TENANT);
     verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
+    assertEquals(JournalRecord.EntityType.MARC_AUTHORITY, actualJournalRecord.getEntityType());
+    assertEquals(JournalRecord.ActionType.UPDATE, actualJournalRecord.getActionType());
+    assertEquals(JournalRecord.ActionStatus.ERROR, actualJournalRecord.getActionStatus());
+    assertEquals(expectedTitleStart, actualJournalRecord.getTitle());
   }
 
   private DataImportEventPayload constructMatchHoldingsPayload(org.marc4j.marc.Record marcRecord) {
