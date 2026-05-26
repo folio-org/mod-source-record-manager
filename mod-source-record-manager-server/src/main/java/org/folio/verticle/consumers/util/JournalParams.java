@@ -185,7 +185,7 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
-    DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING {
+    DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record creation fails
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(CREATE,
@@ -193,7 +193,7 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
-    DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING {
+    DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record update fails
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(UPDATE,
@@ -201,7 +201,7 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
-    DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING {
+    DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record creation fails
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(CREATE,
@@ -209,7 +209,7 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
-    DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING {
+    DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record update fails
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(UPDATE,

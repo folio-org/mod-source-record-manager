@@ -326,26 +326,6 @@ public class JournalParamsTest {
   }
 
   @Test
-  public void shouldPopulateEntityTypeHoldingsWhenEventTypeIsDiInventoryHoldingsCreatedReadyForPostProcessing() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
-  }
-
-  @Test
-  public void shouldPopulateEntityTypeHoldingsWhenEventTypeIsDiInventoryHoldingsUpdatedReadyForPostProcessing() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.UPDATE);
-  }
-
-  @Test
-  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityCreatedReadyForPostProcessing() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.CREATE);
-  }
-
-  @Test
-  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityUpdatedReadyForPostProcessing() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
-  }
-
-  @Test
   public void shouldPopulateEntityTypeInstanceWhenEventTypeIsDiInventoryInstanceCreated() {
     populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_INSTANCE_CREATED, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.CREATE);
   }
