@@ -187,6 +187,38 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record creation fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record creation fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_INSTANCE_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {

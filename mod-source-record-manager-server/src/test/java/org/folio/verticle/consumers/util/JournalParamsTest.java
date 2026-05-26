@@ -36,6 +36,10 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDIN
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -162,6 +166,30 @@ public class JournalParamsTest {
   public void shouldPopulateEdifactErrorParamsWhenEventChainEndsWithIncomingEdifactParsed() {
     returnErrorJournalParamsByLastEventInChain(DI_INCOMING_EDIFACT_RECORD_PARSED,
       JournalRecord.EntityType.EDIFACT, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateHoldingsCreatedErrorParamsWhenEventChainEndsWithDiInventoryHoldingsCreatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateHoldingsUpdatedErrorParamsWhenEventChainEndsWithDiInventoryHoldingsUpdatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateAuthorityCreatedErrorParamsWhenEventChainEndsWithDiInventoryAuthorityCreatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateAuthorityUpdatedErrorParamsWhenEventChainEndsWithDiInventoryAuthorityUpdatedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
   }
 
   @Test
