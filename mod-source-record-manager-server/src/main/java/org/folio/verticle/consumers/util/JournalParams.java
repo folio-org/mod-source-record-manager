@@ -177,6 +177,22 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_SRS_MARC_HOLDINGS_RECORD_MODIFIED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.MARC_HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_INSTANCE_CREATED_READY_FOR_POST_PROCESSING {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
