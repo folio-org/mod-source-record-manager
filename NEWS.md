@@ -1,3 +1,6 @@
+## 2026-05-29 v4.0.2
+* [MODSOURMAN-1416](https://folio-org.atlassian.net/browse/MODSOURMAN-1416) Add support for inventory post-processing event types in the journal recording system
+
 ## 2026-05-04 v4.0.1
 * [MODSOURMAN-1406](https://folio-org.atlassian.net/browse/MODSOURMAN-1406) IllegalArgumentException for DI_INCOMING_MARC_BIB_RECORD_PARSED causes journal_records not populated and jobSummary absence
 * [MODSOURMAN-1408](https://folio-org.atlassian.net/browse/MODSOURMAN-1408) Failed order imports create associated inventory records and open orders in a pending state
