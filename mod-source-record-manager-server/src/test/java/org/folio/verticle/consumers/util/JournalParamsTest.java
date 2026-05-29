@@ -201,7 +201,7 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateMarcHoldingsUpdatedErrorParamsWhenEventChainEndsWithDiSrsMarcHoldingsRecordModifiedReadyForPostProcessing() {
     returnErrorJournalParamsByLastEventInChain(DI_SRS_MARC_HOLDINGS_RECORD_MODIFIED_READY_FOR_POST_PROCESSING,
-      JournalRecord.EntityType.MARC_HOLDINGS, JournalRecord.ActionType.UPDATE);
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.UPDATE);
   }
 
   @Test

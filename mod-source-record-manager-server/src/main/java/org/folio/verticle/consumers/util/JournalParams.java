@@ -189,7 +189,7 @@ public class JournalParams {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(UPDATE,
-          JournalRecord.EntityType.MARC_HOLDINGS,
+          JournalRecord.EntityType.HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
