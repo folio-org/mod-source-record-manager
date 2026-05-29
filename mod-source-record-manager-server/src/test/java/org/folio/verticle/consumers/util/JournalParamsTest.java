@@ -39,6 +39,8 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDI
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -189,6 +191,17 @@ public class JournalParamsTest {
   public void shouldPopulateAuthorityUpdatedErrorParamsWhenEventChainEndsWithDiInventoryAuthorityUpdatedReadyForPostProcessing() {
     returnErrorJournalParamsByLastEventInChain(DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING,
       JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
+  }
+  @Test
+  public void shouldPopulateMarcAuthorityUpdatedErrorParamsWhenEventChainEndsWithDiSrsMarcAuthorityRecordModifiedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateMarcHoldingsUpdatedErrorParamsWhenEventChainEndsWithDiSrsMarcHoldingsRecordModifiedReadyForPostProcessing() {
+    returnErrorJournalParamsByLastEventInChain(DI_SRS_MARC_HOLDINGS_RECORD_MODIFIED_READY_FOR_POST_PROCESSING,
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.UPDATE);
   }
 
   @Test
