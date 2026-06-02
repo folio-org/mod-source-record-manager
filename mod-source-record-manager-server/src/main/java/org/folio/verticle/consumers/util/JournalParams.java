@@ -132,9 +132,15 @@ public class JournalParams {
     DI_MARC_FOR_UPDATE_RECEIVED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(UPDATE,
-          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
-          JournalRecord.ActionStatus.COMPLETED));
+        JournalRecord.EntityType sourceRecordType;
+        if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_AUTHORITY.value())) {
+          sourceRecordType = JournalRecord.EntityType.MARC_AUTHORITY;
+        } else if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_HOLDINGS.value())) {
+          sourceRecordType = JournalRecord.EntityType.MARC_HOLDINGS;
+        } else {
+          sourceRecordType = JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+        }
+        return Optional.of(new JournalParams(UPDATE, sourceRecordType, JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INCOMING_MARC_BIB_RECORD_PARSED {
