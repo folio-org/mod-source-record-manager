@@ -35,6 +35,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING;
@@ -478,4 +479,45 @@ public class JournalParamsTest {
     assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
   }
 
+  @Test
+  public void shouldPopulateEntityTypeMarcBibWhenDiErrorWithMarcForUpdateReceivedInEventsChain() {
+    eventPayload.setEventType(DI_ERROR.value());
+    context.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), new JsonObject().encode());
+    eventPayload.setContext(context);
+    eventPayload.setEventsChain(List.of(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.UPDATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeMarcHoldingsWhenDiErrorWithMarcForUpdateReceivedInEventsChain() {
+    eventPayload.setEventType(DI_ERROR.value());
+    context.put(JournalRecord.EntityType.MARC_HOLDINGS.value(), new JsonObject().encode());
+    eventPayload.setContext(context);
+    eventPayload.setEventsChain(List.of(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(JournalRecord.EntityType.MARC_HOLDINGS, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.UPDATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeMarcAuthorityWhenDiErrorWithMarcForUpdateReceivedInEventsChain() {
+    eventPayload.setEventType(DI_ERROR.value());
+    context.put(JournalRecord.EntityType.MARC_AUTHORITY.value(), new JsonObject().encode());
+    eventPayload.setContext(context);
+    eventPayload.setEventsChain(List.of(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(JournalRecord.EntityType.MARC_AUTHORITY, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.UPDATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
+  }
 }
