@@ -1,3 +1,6 @@
+## 2026-06-04 v4.0.3
+* [MODSOURMAN-1425](https://folio-org.atlassian.net/browse/MODSOURMAN-1425) In the case of the Timeout waiting for connection exception, the MARC Authority record is incorrectly saved into the journal_records table as a MARC Bibliographic record
+
 ## 2026-05-29 v4.0.2
 * [MODSOURMAN-1416](https://folio-org.atlassian.net/browse/MODSOURMAN-1416) Add support for inventory post-processing event types in the journal recording system
 
