@@ -132,9 +132,15 @@ public class JournalParams {
     DI_MARC_FOR_UPDATE_RECEIVED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(UPDATE,
-          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
-          JournalRecord.ActionStatus.COMPLETED));
+        JournalRecord.EntityType sourceRecordType;
+        if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_AUTHORITY.value())) {
+          sourceRecordType = JournalRecord.EntityType.MARC_AUTHORITY;
+        } else if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_HOLDINGS.value())) {
+          sourceRecordType = JournalRecord.EntityType.MARC_HOLDINGS;
+        } else {
+          sourceRecordType = JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+        }
+        return Optional.of(new JournalParams(UPDATE, sourceRecordType, JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INCOMING_MARC_BIB_RECORD_PARSED {
@@ -177,11 +183,59 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_SRS_MARC_HOLDINGS_RECORD_MODIFIED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_INSTANCE_CREATED_READY_FOR_POST_PROCESSING {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.INSTANCE,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_HOLDINGS_CREATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record creation fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_HOLDINGS_UPDATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Holdings record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_AUTHORITY_CREATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record creation fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_AUTHORITY_UPDATED_READY_FOR_POST_PROCESSING { //added for correct processing of DI_ERROR event when Authority record update fails
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(UPDATE,
+          JournalRecord.EntityType.AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
