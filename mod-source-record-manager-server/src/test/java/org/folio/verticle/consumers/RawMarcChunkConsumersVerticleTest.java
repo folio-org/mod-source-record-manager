@@ -171,7 +171,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals("A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field",
-      new JsonObject(eventPayload.getContext().get(ERROR_KEY)).getString("error"));
+      extractErrorMessage(eventPayload.getContext().get(ERROR_KEY)));
     assertNull(new JsonObject(eventPayload.getContext().get(EntityType.MARC_BIBLIOGRAPHIC.value())).getString("externalIdsHolder"));
     assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
   }
@@ -220,8 +220,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    JsonObject error = new JsonObject(eventPayload.getContext().get(ERROR_KEY));
-    assertTrue(error.getString("errors").contains("org.marc4j.MarcException"));
+    assertTrue(extractErrorMessage(eventPayload.getContext().get(ERROR_KEY)).contains("org.marc4j.MarcException"));
   }
 
   @Test
@@ -550,5 +549,20 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       }
     }
     return result;
+  }
+
+  private String extractErrorMessage(String errorValue) {
+    try {
+      JsonObject errorAsJson = new JsonObject(errorValue);
+      if (errorAsJson.containsKey("error")) {
+        return errorAsJson.getString("error");
+      }
+      if (errorAsJson.containsKey("errors")) {
+        return errorAsJson.getString("errors");
+      }
+    } catch (Exception ignored) {
+      // Keep backward compatibility when ERROR context is a plain exception message.
+    }
+    return errorValue;
   }
 }
