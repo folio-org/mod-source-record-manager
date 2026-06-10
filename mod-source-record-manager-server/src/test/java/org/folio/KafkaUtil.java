@@ -1,6 +1,5 @@
 package org.folio;
 
-import com.google.common.collect.Lists;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -19,6 +18,7 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -79,19 +79,25 @@ public final class KafkaUtil {
   public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve, int amountOfEvents,
                                                                          long timeout, TimeUnit timeUnit) {
     Properties consumerProperties = getConsumerProperties();
-    ConsumerRecords<String, String> records;
+    List<ConsumerRecord<String, String>> records = new ArrayList<>();
+    long timeoutNanos = timeUnit.toNanos(timeout);
+    long deadlineNanos = System.nanoTime() + timeoutNanos;
 
     try (KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(consumerProperties)) {
-      kafkaConsumer.seekToBeginning(kafkaConsumer.assignment());
-
       kafkaConsumer.subscribe(Collections.singletonList(topicToObserve));
-      records = kafkaConsumer.poll(Duration.of(timeout, timeUnit.toChronoUnit()));
 
-      assert records.count() == amountOfEvents :
-        String.format("Expected %d events, but found %d", amountOfEvents, records.count());
+      while (records.size() < amountOfEvents && System.nanoTime() < deadlineNanos) {
+        long remainingNanos = Math.max(0L, deadlineNanos - System.nanoTime());
+        long pollTimeoutMs = Math.max(100L, Math.min(1000L, TimeUnit.NANOSECONDS.toMillis(remainingNanos)));
+        ConsumerRecords<String, String> polled = kafkaConsumer.poll(Duration.ofMillis(pollTimeoutMs));
+        polled.forEach(records::add);
+      }
+
+      assert records.size() == amountOfEvents :
+        String.format("Expected %d events, but found %d", amountOfEvents, records.size());
     }
 
-    return Lists.newArrayList(records.iterator());
+    return records;
   }
 
   public static RecordMetadata sendEvent(ProducerRecord<String, String> producerRecord) throws ExecutionException, InterruptedException {
