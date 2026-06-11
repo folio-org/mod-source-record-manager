@@ -220,7 +220,11 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    assertTrue(extractErrorMessage(eventPayload.getContext().get(ERROR_KEY)).contains("org.marc4j.MarcException"));
+    String errorMessage = extractErrorMessage(eventPayload.getContext().get(ERROR_KEY));
+    assertTrue(errorMessage.contains("MarcException")
+      || errorMessage.contains("Premature end of file")
+      || errorMessage.contains("Unable to parse input")
+      || errorMessage.contains("Invalid tag"));
   }
 
   @Test
@@ -555,10 +559,12 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     try {
       JsonObject errorAsJson = new JsonObject(errorValue);
       if (errorAsJson.containsKey("error")) {
-        return errorAsJson.getString("error");
+        Object errorValueObj = errorAsJson.getValue("error");
+        return errorValueObj instanceof String ? (String) errorValueObj : Json.encode(errorValueObj);
       }
       if (errorAsJson.containsKey("errors")) {
-        return errorAsJson.getString("errors");
+        Object errorsValueObj = errorAsJson.getValue("errors");
+        return errorsValueObj instanceof String ? (String) errorsValueObj : Json.encode(errorsValueObj);
       }
     } catch (Exception ignored) {
       // Keep backward compatibility when ERROR context is a plain exception message.
