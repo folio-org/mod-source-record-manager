@@ -24,8 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static java.time.Duration.ofMinutes;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
@@ -78,7 +80,15 @@ public final class KafkaUtil {
 
   public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve, int amountOfEvents,
                                                                          long timeout, TimeUnit timeUnit) {
-    Properties consumerProperties = getConsumerProperties();
+    return checkKafkaEventSent(topicToObserve, record -> true, amountOfEvents, timeout, timeUnit);
+  }
+
+  public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve,
+                                                                          Predicate<ConsumerRecord<String, String>> predicate,
+                                                                          int amountOfEvents,
+                                                                          long timeout,
+                                                                          TimeUnit timeUnit) {
+    Properties consumerProperties = getConsumerProperties(UUID.randomUUID().toString());
     List<ConsumerRecord<String, String>> records = new ArrayList<>();
     long timeoutNanos = timeUnit.toNanos(timeout);
     long deadlineNanos = System.nanoTime() + timeoutNanos;
@@ -90,7 +100,11 @@ public final class KafkaUtil {
         long remainingNanos = Math.max(0L, deadlineNanos - System.nanoTime());
         long pollTimeoutMs = Math.max(100L, Math.min(1000L, TimeUnit.NANOSECONDS.toMillis(remainingNanos)));
         ConsumerRecords<String, String> polled = kafkaConsumer.poll(Duration.ofMillis(pollTimeoutMs));
-        polled.forEach(records::add);
+        polled.forEach(record -> {
+          if (predicate.test(record)) {
+            records.add(record);
+          }
+        });
       }
 
       assert records.size() == amountOfEvents :
@@ -108,7 +122,7 @@ public final class KafkaUtil {
   }
 
   public static void clearAllTopics() {
-    Properties consumerProperties = getConsumerProperties();
+    Properties consumerProperties = getConsumerProperties(UUID.randomUUID().toString());
     try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
       Set<TopicPartition> partitions = consumer.listTopics().values().stream()
         .flatMap(partitionInfos -> partitionInfos.stream()
@@ -138,12 +152,12 @@ public final class KafkaUtil {
       .toList();
   }
 
-  private static Properties getConsumerProperties() {
+  private static Properties getConsumerProperties(String groupId) {
     Properties consumerProperties = new Properties();
     consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_CONTAINER.getBootstrapServers());
     consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
     consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-    consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, "test-group");
+    consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
     consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     return consumerProperties;
   }
