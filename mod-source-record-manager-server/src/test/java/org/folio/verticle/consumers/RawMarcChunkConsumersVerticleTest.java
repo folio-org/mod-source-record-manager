@@ -221,10 +221,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     String errorMessage = extractErrorMessage(eventPayload.getContext().get(ERROR_KEY));
-    assertTrue(errorMessage.contains("MarcException")
-      || errorMessage.contains("Premature end of file")
-      || errorMessage.contains("Unable to parse input")
-      || errorMessage.contains("Invalid tag"));
+    assertTrue("Error message: " + errorMessage, errorMessage.contains("MarcException"));
   }
 
   @Test
