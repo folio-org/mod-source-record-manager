@@ -11,6 +11,7 @@ import org.apache.http.HttpStatus;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.folio.MatchDetail;
 import org.folio.MatchProfile;
+import org.folio.KafkaUtil;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.rest.impl.AbstractRestTest;
@@ -149,6 +150,12 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   @Before
   public void setUp() {
+    // Clear Kafka topic offsets before each test to prevent stale DI_ERROR events
+    // (produced by background async processing from the previous test) from being
+    // picked up by this test's consumer. This is needed because background processing
+    // of a previous test's job execution can produce DI_ERROR events AFTER the @After
+    // clearAllTopics() has already committed the consumer offset.
+    KafkaUtil.clearAllTopics();
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + JOB_PROFILE_ID + "?withRelations=false&")
       .willReturn(WireMock.ok().withBody(Json.encode(jobProfile.withId(JOB_PROFILE_ID)))));
     WireMock.stubFor(WireMock.post("/source-storage/batch/verified-records")
@@ -213,15 +220,13 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   public void shouldCreateErrorRecordsWhenRecordNotParsed() throws InterruptedException, ExecutionException {
     // given
     ProducerRecord<String, String> producerRecord = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, "errorPayload");
+    String jobExecutionId = getJobExecutionId(producerRecord);
 
     // when
     sendEvent(producerRecord);
 
     // then
-    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
-    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    String errorMessage = extractErrorMessage(eventPayload.getContext().get(ERROR_KEY));
-    assertTrue("Error message: " + errorMessage, errorMessage.contains("MarcException"));
+    checkDiErrorEventsSent(jobExecutionId, "MarcException");
   }
 
   @Test
@@ -536,7 +541,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     assertEquals(1, testedEventsPayLoads.size());
     for (DataImportEventPayload payload: testedEventsPayLoads) {
       String actualErrorMessage = payload.getContext().get(RawMarcChunksErrorHandler.ERROR_KEY);
-      assertTrue(actualErrorMessage.contains(errorMessage));
+      assertTrue("Error message: " + actualErrorMessage, actualErrorMessage.contains(errorMessage));
     }
   }
 
