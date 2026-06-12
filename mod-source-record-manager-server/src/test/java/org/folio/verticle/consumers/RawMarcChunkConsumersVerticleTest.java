@@ -534,7 +534,12 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   private void checkDiErrorEventsSent(String jobExecutionId, String errorMessage) {
     String observeTopic = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = getValues(checkKafkaEventSent(observeTopic, 1, 60, TimeUnit.SECONDS));
+    List<String> observedValues = getValues(checkKafkaEventSent(
+      observeTopic,
+      record -> isEventForJobExecution(record.value(), jobExecutionId),
+      1,
+      60,
+      TimeUnit.SECONDS));
 
     List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
 
@@ -555,6 +560,16 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       }
     }
     return result;
+  }
+
+  private boolean isEventForJobExecution(String eventValue, String jobExecutionId) {
+    try {
+      Event obtainedEvent = Json.decodeValue(eventValue, Event.class);
+      DataImportEventPayload payload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+      return jobExecutionId.equals(payload.getJobExecutionId());
+    } catch (Exception ignored) {
+      return false;
+    }
   }
 
   private String extractErrorMessage(String errorValue) {

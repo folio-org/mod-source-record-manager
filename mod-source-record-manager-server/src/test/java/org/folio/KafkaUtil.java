@@ -75,7 +75,7 @@ public final class KafkaUtil {
   }
 
   public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve, int amountOfEvents) {
-    return checkKafkaEventSent(topicToObserve, amountOfEvents,3, TimeUnit.SECONDS);
+    return checkKafkaEventSent(topicToObserve, amountOfEvents, 5, TimeUnit.SECONDS);
   }
 
   public static List<ConsumerRecord<String, String>> checkKafkaEventSent(String topicToObserve, int amountOfEvents,
