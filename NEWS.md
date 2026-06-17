@@ -1,3 +1,6 @@
+## 2026-06-17 v3.10.12
+* [MODSOURMAN-1429](https://folio-org.atlassian.net/browse/MODSOURMAN-1429) Fix job logs retrieval when error events are not processes correctly
+
 ##  2026-01-15 v3.10.11
 * [MODSOURMAN-1390](https://folio-org.atlassian.net/browse/MODSOURMAN-1390) Optimization get_job_execution_summary
 
