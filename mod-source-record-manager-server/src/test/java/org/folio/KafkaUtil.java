@@ -14,8 +14,11 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.Event;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
+import io.vertx.core.json.Json;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -136,6 +139,38 @@ public final class KafkaUtil {
     return consumerRecords.stream()
       .map(ConsumerRecord::value)
       .toList();
+  }
+
+  public static List<DataImportEventPayload> waitForEventsByJobExecutionId(String topic,
+                                                                            String jobExecutionId,
+                                                                            int expectedCount,
+                                                                            long timeoutSeconds) {
+    long deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
+    List<DataImportEventPayload> matchedPayloads = new ArrayList<>();
+
+    Properties consumerProperties = new Properties();
+    consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_CONTAINER.getBootstrapServers());
+    consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, "test-group-" + java.util.UUID.randomUUID());
+    consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+    try (KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(consumerProperties)) {
+      kafkaConsumer.subscribe(Collections.singletonList(topic));
+
+      while (matchedPayloads.size() < expectedCount && System.nanoTime() < deadlineNanos) {
+        ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
+        records.forEach(consumerRecord -> {
+          Event obtainedEvent = Json.decodeValue(consumerRecord.value(), Event.class);
+          DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+          if (jobExecutionId.equals(eventPayload.getJobExecutionId())) {
+            matchedPayloads.add(eventPayload);
+          }
+        });
+      }
+    }
+
+    return matchedPayloads;
   }
 
   private static Properties getConsumerProperties() {
