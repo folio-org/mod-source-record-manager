@@ -9,6 +9,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.folio.MatchDetail;
 import org.folio.MatchProfile;
 import org.folio.KafkaUtil;
@@ -40,9 +44,11 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -533,16 +539,48 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   private void checkDiErrorEventsSent(String jobExecutionId, String errorMessage) {
-    String observeTopic = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = getValues(checkKafkaEventSent(observeTopic, 1, 60, TimeUnit.SECONDS));
-
-    List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
+    List<DataImportEventPayload> testedEventsPayLoads =
+      waitForEventsByJobExecutionId(DI_ERROR, jobExecutionId, 1, 60);
 
     assertEquals(1, testedEventsPayLoads.size());
     for (DataImportEventPayload payload: testedEventsPayLoads) {
       String actualErrorMessage = payload.getContext().get(RawMarcChunksErrorHandler.ERROR_KEY);
       assertTrue("Error message: " + actualErrorMessage, actualErrorMessage.contains(errorMessage));
     }
+  }
+
+  private List<DataImportEventPayload> waitForEventsByJobExecutionId(DataImportEventTypes eventType,
+                                                                      String jobExecutionId,
+                                                                      int expectedCount,
+                                                                      long timeoutSeconds) {
+    String observeTopic = formatToKafkaTopicName(eventType.value());
+    long deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
+    List<DataImportEventPayload> matchedPayloads = new ArrayList<>();
+
+    Properties consumerProperties = new Properties();
+    consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+      System.getProperty("kafka-host") + ":" + System.getProperty("kafka-port"));
+    consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, "test-group-" + UUID.randomUUID());
+    consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+    try (KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(consumerProperties)) {
+      kafkaConsumer.subscribe(List.of(observeTopic));
+
+      while (matchedPayloads.size() < expectedCount && System.nanoTime() < deadlineNanos) {
+        ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
+        records.forEach(record -> {
+          Event obtainedEvent = Json.decodeValue(record.value(), Event.class);
+          DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+          if (jobExecutionId.equals(eventPayload.getJobExecutionId())) {
+            matchedPayloads.add(eventPayload);
+          }
+        });
+      }
+    }
+
+    return matchedPayloads;
   }
 
   private List<DataImportEventPayload> filterObservedValues(String jobExecutionId, List<String> observedValues) {
