@@ -534,9 +534,8 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   private void checkDiErrorEventsSent(String jobExecutionId, String errorMessage) {
     String observeTopic = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = getValues(checkKafkaEventSent(observeTopic, 1, 60, TimeUnit.SECONDS));
-
-    List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
+    List<DataImportEventPayload> testedEventsPayLoads =
+      KafkaUtil.waitForEventsByJobExecutionId(observeTopic, jobExecutionId, 1, 60);
 
     assertEquals(1, testedEventsPayLoads.size());
     for (DataImportEventPayload payload: testedEventsPayLoads) {
@@ -544,6 +543,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       assertTrue("Error message: " + actualErrorMessage, actualErrorMessage.contains(errorMessage));
     }
   }
+
 
   private List<DataImportEventPayload> filterObservedValues(String jobExecutionId, List<String> observedValues) {
     List<DataImportEventPayload> result = new ArrayList<>();
