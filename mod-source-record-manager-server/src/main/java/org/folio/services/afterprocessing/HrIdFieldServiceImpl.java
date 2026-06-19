@@ -7,7 +7,7 @@ import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addDataFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.isFieldExist;
 
 @Service
@@ -22,8 +22,8 @@ public class HrIdFieldServiceImpl implements HrIdFieldService {
   @Override
   public void move001valueTo035Field(List<Record> records) {
     records.stream().parallel().forEach(record -> {
-      String valueFrom001 = getValue(record, TAG_001, ' ');
-      String valueFor035 = mergeFieldsFor035(getValue(record, TAG_003, ' '), valueFrom001);
+      String valueFrom001 = getControlFieldValue(record, TAG_001);
+      String valueFor035 = mergeFieldsFor035(getControlFieldValue(record, TAG_003), valueFrom001);
       if (valueFrom001 != null && !isFieldExist(record, TAG_035, SUBFIELD_FOR_035, valueFor035)) {
         addDataFieldToMarcRecord(record, TAG_035, INDICATOR_FOR_035, INDICATOR_FOR_035, SUBFIELD_FOR_035, valueFor035);
       }
