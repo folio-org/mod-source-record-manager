@@ -16,7 +16,6 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.modifyData
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeField;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -516,9 +515,9 @@ public class AdditionalFieldsUtilTest {
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"001\":\"ybp7406411\"},{\"999\":{\"subfields\":[{\"i\":\"" + instanceId + "\"}],\"ind1\":\"f\",\"ind2\":\"f\"}}]}";
     ParsedRecord parsedRecord = new ParsedRecord();
     parsedRecord.setContent(parsedContent);
-    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    Record marcRecord = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
     // when
-    String retrievedValue = getValue(record, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
+    String retrievedValue = getValue(marcRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
     // then
     assertEquals(instanceId, retrievedValue);
   }
@@ -530,9 +529,9 @@ public class AdditionalFieldsUtilTest {
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"001\":\"ybp7406411\"},{\"999\":{\"subfields\":[{\"i\":\"" + instanceId + "\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     ParsedRecord parsedRecord = new ParsedRecord();
     parsedRecord.setContent(parsedContent);
-    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    Record marcRecord = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
     // when
-    String retrievedValue = getValue(record, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
+    String retrievedValue = getValue(marcRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
     // then
     assertNull(retrievedValue);
   }
@@ -547,9 +546,9 @@ public class AdditionalFieldsUtilTest {
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"001\":\"ybp7406411\"},{\"999\":{\"subfields\":[{\"i\":\"" + wrongIndicatorInstanceId + "\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"999\":{\"subfields\":[{\"i\":\"" + correctIndicatorInstanceId + "\"}],\"ind1\":\"f\",\"ind2\":\"f\"}}]}";
     ParsedRecord parsedRecord = new ParsedRecord();
     parsedRecord.setContent(parsedContent);
-    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    Record marcRecord = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
     // when
-    String retrievedValue = getValue(record, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
+    String retrievedValue = getValue(marcRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
     // then - should skip field without correct indicators and return the one with ff
     assertEquals(correctIndicatorInstanceId, retrievedValue);
   }
@@ -560,9 +559,9 @@ public class AdditionalFieldsUtilTest {
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"001\":\"ybp7406411\"},{\"999\":{\"subfields\":[{\"i\":\"test\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"999\":{\"subfields\":[{\"i\":\"test2\"}],\"ind1\":\"x\",\"ind2\":\"y\"}}]}";
     ParsedRecord parsedRecord = new ParsedRecord();
     parsedRecord.setContent(parsedContent);
-    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    Record marcRecord = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
     // when - look for 999 with indicators ff
-    String retrievedValue = getValue(record, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
+    String retrievedValue = getValue(marcRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
     // then
     assertNull(retrievedValue);
   }

@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import org.apache.commons.collections4.CollectionUtils;
@@ -475,15 +474,15 @@ public final class AdditionalFieldsUtil {
   /**
    * Extracts value from specified field
    *
-   * @param record     record
+   * @param folioRecord     record
    * @param tag        tag of data field
    * @param subfield   subfield character to extract value from
    * @param indicator1 first indicator character
    * @param indicator2 second indicator character
    * @return value from the specified field, or null
    */
-  public static String getValue(Record record, String tag, char subfield, char indicator1, char indicator2) {
-    org.marc4j.marc.Record marcRecord = computeMarcRecord(record);
+  public static String getValue(Record folioRecord, String tag, char subfield, char indicator1, char indicator2) {
+    org.marc4j.marc.Record marcRecord = computeMarcRecord(folioRecord);
     if (marcRecord != null) {
       try {
         var variableFields = marcRecord.getVariableFields(tag);
@@ -491,8 +490,8 @@ public final class AdditionalFieldsUtil {
           return null;
         }
 
-        if (variableFields.getFirst() instanceof ControlField) {
-          return ((ControlField) variableFields.getFirst()).getData();
+        if (variableFields.getFirst() instanceof ControlField controlField) {
+          return controlField.getData();
         }
 
         var variableField = getSingleFieldByIndicators(variableFields, indicator1, indicator2);
