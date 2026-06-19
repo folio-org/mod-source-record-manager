@@ -50,7 +50,7 @@ public final class AdditionalFieldsUtil {
   public static final String TAG_999 = "999";
   public static final String TAG_001 = "001";
   public static final String TAG_005 = "005";
-  public static final char INDICATOR = 'f';
+  public static final char INDICATOR_F = 'f';
   public static final char SUBFIELD_I = 'i';
   public static final char SUBFIELD_S = 's';
 
@@ -138,17 +138,17 @@ public final class AdditionalFieldsUtil {
         MarcFactory factory = MarcFactory.newInstance();
         org.marc4j.marc.Record marcRecord = computeMarcRecord(record);
         if (marcRecord != null) {
-          VariableField variableField = getSingleFieldByIndicators(marcRecord.getVariableFields(field), INDICATOR, INDICATOR);
+          VariableField variableField = getSingleFieldByIndicators(marcRecord.getVariableFields(field), INDICATOR_F, INDICATOR_F);
           DataField dataField;
           if (variableField != null
-            && ((DataField) variableField).getIndicator1() == INDICATOR
-            && ((DataField) variableField).getIndicator2() == INDICATOR
+            && ((DataField) variableField).getIndicator1() == INDICATOR_F
+            && ((DataField) variableField).getIndicator2() == INDICATOR_F
           ) {
             dataField = (DataField) variableField;
             marcRecord.removeVariableField(variableField);
             dataField.removeSubfield(dataField.getSubfield(subfield));
           } else {
-            dataField = factory.newDataField(field, INDICATOR, INDICATOR);
+            dataField = factory.newDataField(field, INDICATOR_F, INDICATOR_F);
           }
           dataField.addSubfield(factory.newSubfield(subfield, value));
           marcRecord.addVariableField(dataField);
@@ -449,21 +449,21 @@ public final class AdditionalFieldsUtil {
   }
 
   /**
-   * Extracts value from specified field
+   * Extracts value from specified control field
    *
    * @param record record
-   * @param tag tag of data field
-   * @return value from the specified field, or null
+   * @param tag tag of control field
+   * @return value from the specified control field, or null
    */
   public static String getControlFieldValue(Record record, String tag) {
     org.marc4j.marc.Record marcRecord = computeMarcRecord(record);
     if (marcRecord != null) {
       try {
         return marcRecord.getControlFields().stream()
-            .filter(controlField -> controlField.getTag().equals(tag))
-            .findFirst()
-            .map(ControlField::getData)
-            .orElse(null);
+          .filter(controlField -> controlField.getTag().equals(tag))
+          .findFirst()
+          .map(ControlField::getData)
+          .orElse(null);
       } catch (Exception e) {
         LOGGER.warn("getControlFieldValue:: Error during the search a field in the record", e);
         return null;
@@ -475,22 +475,30 @@ public final class AdditionalFieldsUtil {
   /**
    * Extracts value from specified field
    *
-   * @param record record
-   * @param tag    tag of data field
+   * @param record     record
+   * @param tag        tag of data field
+   * @param subfield   subfield character to extract value from
+   * @param indicator1 first indicator character
+   * @param indicator2 second indicator character
    * @return value from the specified field, or null
    */
-  public static String getValue(Record record, String tag, char subfield) {
+  public static String getValue(Record record, String tag, char subfield, char indicator1, char indicator2) {
     org.marc4j.marc.Record marcRecord = computeMarcRecord(record);
     if (marcRecord != null) {
       try {
-        for (VariableField field : marcRecord.getVariableFields(tag)) {
-          if (field instanceof DataField) {
-            if (CollectionUtils.isNotEmpty(((DataField) field).getSubfields(subfield))) {
-              return ((DataField) field).getSubfields(subfield).getFirst().getData();
-            }
-          } else if (field instanceof ControlField) {
-            return ((ControlField) field).getData();
-          }
+        var variableFields = marcRecord.getVariableFields(tag);
+        if (CollectionUtils.isEmpty(variableFields)) {
+          return null;
+        }
+
+        if (variableFields.getFirst() instanceof ControlField) {
+          return ((ControlField) variableFields.getFirst()).getData();
+        }
+
+        var variableField = getSingleFieldByIndicators(variableFields, indicator1, indicator2);
+        if (variableField instanceof DataField dataField
+          && CollectionUtils.isNotEmpty(dataField.getSubfields(subfield))) {
+          return dataField.getSubfields(subfield).getFirst().getData();
         }
       } catch (Exception e) {
         LOGGER.warn("getValue:: Error during the search a field in the record", e);
@@ -554,16 +562,6 @@ public final class AdditionalFieldsUtil {
       }
     }
     return null;
-  }
-
-  public static boolean hasIndicator(Record record, char subfield) {
-    org.marc4j.marc.Record marcRecord = computeMarcRecord(record);
-    if (marcRecord != null) {
-      VariableField variableField = getSingleFieldByIndicators(marcRecord.getVariableFields(TAG_999), INDICATOR, INDICATOR);
-      return Objects.nonNull(variableField)
-        && Objects.nonNull(((DataField) variableField).getSubfield(subfield));
-    }
-    return false;
   }
 
   private static VariableField getSingleFieldByIndicators(List<VariableField> list, char ind1, char ind2) {
