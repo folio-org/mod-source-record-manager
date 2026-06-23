@@ -204,8 +204,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return journalRecords.stream()
       .sorted(Comparator
         .comparing(JournalRecord::getJobExecutionId)
-        .thenComparing(JournalRecord::getSourceRecordOrder, Comparator.nullsFirst(Comparator.naturalOrder()))
-        .thenComparing(JournalRecord::getSourceId, Comparator.nullsFirst(Comparator.naturalOrder())))
+        .thenComparing(JournalRecord::getId)
+      )
       .map(this::prepareInsertQueryParameters)
       .toList();
   }
