@@ -609,7 +609,6 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       entries.stream()
         .collect(Collectors.groupingBy(
           RecordProcessingLogDto::getIncomingRecordId,
-          LinkedHashMap::new,
           Collectors.mapping(RecordProcessingLogDto::getRelatedItemInfo,
             Collectors.flatMapping(List::stream, toList())
           )));
