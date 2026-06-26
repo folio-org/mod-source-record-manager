@@ -1,3 +1,6 @@
+## 2026-06-17 v3.10.14
+* [MODSOURMAN-1433](https://folio-org.atlassian.net/browse/MODSOURMAN-1433) Data import log not sorted issues
+
 ## 2026-06-17 v3.10.13
 * [MODSOURMAN-1428](https://folio-org.atlassian.net/browse/MODSOURMAN-1428) Fix deadlocks during large data import Jobs
 

@@ -50,6 +50,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
+import static org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder.ASC;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.everyItem;
@@ -65,6 +66,9 @@ import static org.hamcrest.Matchers.oneOf;
 public class MetaDataProviderRecordProcessingLogCollectionAPITest extends AbstractRestTest {
 
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/jobLogEntries";
+  private static final String SORT_BY_PARAM = "sortBy";
+  private static final String SORT_ORDER_PARAM = "order";
+
   @Spy
   Vertx vertx = Vertx.vertx();
   @Spy
@@ -2018,6 +2022,46 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries[0].relatedInvoiceInfo.error", emptyOrNullString());
       async.complete();
     }));
+  }
+
+  @Test
+  public void shouldReturnEntriesInCorrectOrderWhenSourceRecordHasMultipleHoldingsAndItems(TestContext context) {
+    JobExecution jobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String recordTitle = "test title";
+    String[] sourceRecordIds = generateRandomUUIDs(3);
+    String[] instanceIds = generateRandomUUIDs(3);
+    String[] holdingsIds = generateRandomUUIDs(2);
+    String[] itemIds = generateRandomUUIDs(2);
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[0], null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[0], instanceIds[0], null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[0], instanceIds[0], "i001", null, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[1], null, null, null, 1, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[1], instanceIds[1], null, recordTitle, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[1], instanceIds[1], "i002", null, 1, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[1], holdingsIds[0], "ho001", null, 1, CREATE, HOLDINGS, COMPLETED, null, null, instanceIds[1], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[1], holdingsIds[1], "ho002", null, 1, CREATE, HOLDINGS, COMPLETED, null, null, instanceIds[1], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[1], itemIds[0], "it001", null, 1, CREATE, ITEM, COMPLETED, null, null, instanceIds[1], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[1], itemIds[1], "it002", null, 1, CREATE, ITEM, COMPLETED, null, null, instanceIds[1], holdingsIds[1], null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[2], null, null, null, 2, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[2], instanceIds[2], null, recordTitle, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[2], instanceIds[2], "i003", null, 2, CREATE, INSTANCE, COMPLETED, null, null));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam(SORT_BY_PARAM, "source_record_order")
+        .queryParam(SORT_ORDER_PARAM, ASC.name())
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(3))
+        .body("totalRecords", is(3))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[1].sourceRecordOrder", is("1"))
+        .body("entries[2].sourceRecordOrder", is("2"))));
   }
 
   @Test
