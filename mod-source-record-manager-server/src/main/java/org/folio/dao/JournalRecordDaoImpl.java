@@ -203,7 +203,10 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private List<Tuple> prepareTupleList(Collection<JournalRecord> journalRecords) {
     return journalRecords.stream()
-      .sorted(Comparator.comparing(JournalRecord::getJobExecutionId))
+      .sorted(Comparator
+        .comparing(JournalRecord::getJobExecutionId)
+        .thenComparing(JournalRecord::getId)
+      )
       .map(this::prepareInsertQueryParameters)
       .toList();
   }

@@ -17,13 +17,13 @@ import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.INDICATOR_F;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
 import static org.folio.services.journal.JournalUtil.getJournalMessageProducer;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
@@ -657,8 +657,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
-      if (((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
-        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))) {
+      if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F))
+        || StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F)))) {
         if (isCreateInstanceActionExists(jobExecution)) {
           return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
         } else if (isCreateMarcHoldingsActionExists(jobExecution)) {
@@ -852,8 +852,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private void postProcessMarcBibRecord(Record record) {
-    String instanceId = getValue(record, TAG_999, SUBFIELD_I);
-    if (isNotBlank(instanceId) && hasIndicator(record, SUBFIELD_I)) {
+    String instanceId = getValue(record, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
+    if (isNotBlank(instanceId)) {
       record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
       String instanceHrid = getControlFieldValue(record, TAG_001);
       if (isNotBlank(instanceHrid)) {
@@ -958,7 +958,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private String setAuthorityIdIfAbsentForRecord(Record record) {
-    String authorityId = getValue(record, TAG_999, SUBFIELD_I);
+    String authorityId = getValue(record, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
     if (isNotBlank(authorityId)) {
       return authorityId;
     }
