@@ -1,3 +1,6 @@
+## 2026-mm-dd v4.1.0-SNAPSHOT
+* [MODSOURMAN-1433](https://folio-org.atlassian.net/browse/MODSOURMAN-1433) Data import log not sorted issues
+
 ## 2026-04-16 v4.0.0
 * [MODSOURMAN-1355](https://folio-org.atlassian.net/browse/MODSOURMAN-1355) Replace advisory lock with consistent record ordering to prevent deadlocks in journal record insertions
 * [MODSOURMAN-1304](https://folio-org.atlassian.net/browse/MODSOURMAN-1304) Handle journal records for MARC on Instance errors and COMPLETED INSTANCE/MARC_BIB events
