@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -187,9 +188,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     LOGGER.info("saveBatch:: Saving {} journal records", journalRecords.size());
 
     try {
-      List<Tuple> tupleList = journalRecords.stream()
-        .map(this::prepareInsertQueryParameters)
-        .toList();
+      List<Tuple> tupleList = prepareTupleList(journalRecords);
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
       LOGGER.trace("saveBatch:: query = {}; tuples = {}", query, tupleList);
 
@@ -201,6 +200,16 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     }
   }
 
+  private List<Tuple> prepareTupleList(Collection<JournalRecord> journalRecords) {
+    return journalRecords.stream()
+      .sorted(Comparator
+        .comparing(JournalRecord::getJobExecutionId)
+        .thenComparing(JournalRecord::getId)
+      )
+      .map(this::prepareInsertQueryParameters)
+      .toList();
+  }
+
   private Future<RowSet<Row>> executeWithRetry(String query,
                                                List<Tuple> tupleList,
                                                String tenantId,
@@ -210,7 +219,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .execute(query, tupleList)
       .recover(ex -> {
         if (isDeadlock(ex) && retriesLeft > 0) {
-          LOGGER.warn("Deadlock detected. Retries left: {} - Retrying in {}ms", retriesLeft, delayMs);
+          LOGGER.warn("executeWithRetry:: Deadlock detected. Retries left: {} - Retrying in {}ms", retriesLeft, delayMs);
           Promise<RowSet<Row>> promise = Promise.promise();
           vertx().setTimer(delayMs, tid -> executeWithRetry(query, tupleList, tenantId, retriesLeft - 1, delayMs * 2)
             .onComplete(promise));
