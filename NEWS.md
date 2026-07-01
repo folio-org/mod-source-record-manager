@@ -1,3 +1,6 @@
+## 2026-06-17 v3.10.13
+* [MODSOURMAN-1428](https://folio-org.atlassian.net/browse/MODSOURMAN-1428) Fix deadlocks during large data import Jobs
+
 ## 2026-06-17 v3.10.12
 * [MODSOURMAN-1429](https://folio-org.atlassian.net/browse/MODSOURMAN-1429) Fix job logs retrieval when error events are not processes correctly
 
