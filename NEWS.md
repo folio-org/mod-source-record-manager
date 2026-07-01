@@ -1,3 +1,6 @@
+## 2026-07-01 v4.0.4
+* [MODSOURMAN-1439](https://folio-org.atlassian.net/browse/MODSOURMAN-1439) Fix deadlocks during large data import Jobs
+
 ## 2026-06-04 v4.0.3
 * [MODSOURMAN-1425](https://folio-org.atlassian.net/browse/MODSOURMAN-1425) In the case of the Timeout waiting for connection exception, the MARC Authority record is incorrectly saved into the journal_records table as a MARC Bibliographic record
 
