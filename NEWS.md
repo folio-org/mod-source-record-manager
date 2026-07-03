@@ -1,7 +1,9 @@
-## 2026-06-17 v3.10.14
-* [MODSOURMAN-1433](https://folio-org.atlassian.net/browse/MODSOURMAN-1433) Data import log not sorted issues
+## 2026-07-03 v3.10.14
+* [MODSOURMAN-1437](https://folio-org.atlassian.net/browse/MODSOURMAN-1437) Optimize getJobLogEntries query (MODSOURMAN-1395)
+* [MODSOURMAN-1438](https://folio-org.atlassian.net/browse/MODSOURMAN-1438) Optimize getJobLogEntries query and test performance (indexes check) (MODSOURMAN-1405)
+* [MODSOURMAN-1436](https://folio-org.atlassian.net/browse/MODSOURMAN-1436) Data import logs not sorted issues (MODSOURMAN-1433)
 
-## 2026-06-17 v3.10.13
+## 2026-07-01 v3.10.13
 * [MODSOURMAN-1428](https://folio-org.atlassian.net/browse/MODSOURMAN-1428) Fix deadlocks during large data import Jobs
 
 ## 2026-06-17 v3.10.12
