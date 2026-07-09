@@ -655,11 +655,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private ParsedResult addErrorMessageWhen999ffFieldExistsOnCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
     if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
+      LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: parseContent: {}",
+        parsedResult.getParsedRecord().encodePrettily());
+
+
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
+      String sSubf = getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F);
+      String iSubf = getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
+
+      LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: $s value: '{}', $i value: '{}'", sSubf, iSubf);
+
       if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F))
         || StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F)))) {
+        LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: Checking create action profile, $s value: '{}', $i value: '{}'", sSubf, iSubf);
         if (isCreateInstanceActionExists(jobExecution)) {
+          LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: Constructing error res, $s value: '{}', $i value: '{}'", sSubf, iSubf);
           return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
         } else if (isCreateMarcHoldingsActionExists(jobExecution)) {
           return constructParsedResultWithError(parsedResult, HOLDINGS_CREATION_999_ERROR_MESSAGE);
