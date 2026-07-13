@@ -473,10 +473,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
-    for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
+    List<ProfileSnapshotWrapper> children = profileSnapshot.getChildSnapshotWrappers();
+    for (ProfileSnapshotWrapper childWrapper : children) {
       if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
-        return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
+        if (childWrapper.getReactTo() != NON_MATCH) {
+          // Suppress the error only if a MODIFY MARC_BIB sibling precedes this action
+          boolean hasPrecedingModifyMarcBib = children.stream()
+            .anyMatch(w -> w.getContentType() == ACTION_PROFILE
+              && actionProfileMatches(w, List.of(FolioRecord.MARC_BIBLIOGRAPHIC), Action.MODIFY)
+              && w.getOrder() != null
+              && childWrapper.getOrder() != null
+              && w.getOrder() < childWrapper.getOrder());
+          if (!hasPrecedingModifyMarcBib) {
+            return true;
+          }
+        }
       } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
         return true;
       }
