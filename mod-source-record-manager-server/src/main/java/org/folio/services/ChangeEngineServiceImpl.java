@@ -473,24 +473,26 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
-    for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
+    List<ProfileSnapshotWrapper> children = profileSnapshot.getChildSnapshotWrappers();
+    for (ProfileSnapshotWrapper childWrapper : children) {
       if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
-        return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
+        if (childWrapper.getReactTo() != NON_MATCH) {
+          // Suppress the error only if a MODIFY MARC_BIB sibling precedes this action
+          boolean hasPrecedingModifyMarcBib = children.stream()
+            .anyMatch(w -> w.getContentType() == ACTION_PROFILE
+              && actionProfileMatches(w, List.of(FolioRecord.MARC_BIBLIOGRAPHIC), Action.MODIFY)
+              && w.getOrder() != null && childWrapper.getOrder() != null
+              && w.getOrder() < childWrapper.getOrder());
+          if (!hasPrecedingModifyMarcBib) {
+            return true;
+          }
+        }
       } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
         return true;
       }
     }
     return false;
-  }
-
-  private boolean containsMarcBibToInstanceMappingProfile(ProfileSnapshotWrapper actionWrapper) {
-   return actionWrapper.getChildSnapshotWrappers()
-      .stream()
-      .map(mappingWrapper -> Optional.ofNullable(mappingWrapper.getContent()))
-      .filter(Optional::isPresent)
-      .map(content -> DatabindCodec.mapper().convertValue(content.get(), MappingProfile.class))
-      .anyMatch(mappingProfile -> mappingProfile.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC);
   }
 
   private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
@@ -655,11 +657,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private ParsedResult addErrorMessageWhen999ffFieldExistsOnCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
     if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
+      LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: parseContent: {}",
+        parsedResult.getParsedRecord().encodePrettily());
+
+
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
+      String sSubf = getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F);
+      String iSubf = getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
+
+      LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: $s value: '{}', $i value: '{}'", sSubf, iSubf);
+
       if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F))
         || StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F)))) {
+        LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: Checking create action profile, $s value: '{}', $i value: '{}'", sSubf, iSubf);
         if (isCreateInstanceActionExists(jobExecution)) {
+          LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: Constructing error res, $s value: '{}', $i value: '{}'", sSubf, iSubf);
           return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
         } else if (isCreateMarcHoldingsActionExists(jobExecution)) {
           return constructParsedResultWithError(parsedResult, HOLDINGS_CREATION_999_ERROR_MESSAGE);
