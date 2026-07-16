@@ -228,7 +228,12 @@ public abstract class AbstractRestTest {
       new ProfileSnapshotWrapper()
         .withProfileId(actionProfile.getId())
         .withContentType(ACTION_PROFILE)
-        .withContent(actionProfile)));
+        .withContent(actionProfile)
+        .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(marcInstanceMappingProfile)
+        ))));
 
   protected JobProfile orderJobProfile = new JobProfile()
     .withId(UUID.randomUUID().toString())
