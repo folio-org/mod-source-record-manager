@@ -213,6 +213,12 @@ public abstract class AbstractRestTest {
     .withAction(ActionProfile.Action.CREATE)
     .withFolioRecord(ActionProfile.FolioRecord.INVOICE);
 
+  private final ActionProfile modifyMarcBibActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Delete 999 field")
+    .withAction(ActionProfile.Action.MODIFY)
+    .withFolioRecord(ActionProfile.FolioRecord.MARC_BIBLIOGRAPHIC);
+
   protected ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withProfileId(jobProfile.getId())
@@ -289,6 +295,33 @@ public abstract class AbstractRestTest {
         .withContentType(MAPPING_PROFILE)
         .withContent(marcInstanceMappingProfile)
       ))));
+
+  protected ProfileSnapshotWrapper profileModifyMarcAndCreateMarcInstanceSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(new JsonObject())
+    .withChildSnapshotWrappers(List.of(
+      new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withOrder(0)
+        .withContentType(ACTION_PROFILE)
+        .withContent(modifyMarcBibActionProfile)
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(marcInstanceMappingProfile)
+        )),
+      new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withOrder(1)
+        .withContentType(ACTION_PROFILE)
+        .withContent(actionProfile)
+        .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(marcInstanceMappingProfile)
+        ))));
 
   protected ProfileSnapshotWrapper profileMarcAuthoritySnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())

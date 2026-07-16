@@ -86,6 +86,7 @@ import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.RunBy;
@@ -2145,9 +2146,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.getFirst();
 
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-
     Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
@@ -2234,6 +2232,47 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
     assertNull(record.getString("matchedId"));
     assertNull(record.getJsonObject("errorRecord"));
+  }
+
+  @Test
+  public void shouldProcessRecordIf999ffsFieldExistsAndCreateInstanceActionProfilePlacedAfterModifyMarcBibActionProfile() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.getFirst();
+
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(profileModifyMarcAndCreateMarcInstanceSnapshotWrapperResponse))));
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(profileModifyMarcAndCreateMarcInstanceSnapshotWrapperResponse))));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("Create instance and SRS MARC Bib")
+        .withId(DEFAULT_INSTANCE_JOB_PROFILE_ID)
+        .withDataType(DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto_3)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
+    List<String> observedValues = getValues(checkKafkaEventSent(topicToObserve, 1));
+    Event obtainedEvent = Json.decodeValue(observedValues.getFirst(), Event.class);
+    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    Record incomingRecord = Json.decodeValue(eventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value()), Record.class);
+    assertNull(incomingRecord.getMatchedId());
+    assertNull(incomingRecord.getErrorRecord());
   }
 
   @Test
