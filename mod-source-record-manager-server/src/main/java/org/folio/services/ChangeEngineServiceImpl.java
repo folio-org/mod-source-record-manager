@@ -11,7 +11,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_B
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.MappingDetail.MarcMappingOption.MODIFY;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
 import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
@@ -63,6 +65,8 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.rest.jaxrs.model.MappingDetail;
+import org.folio.rest.jaxrs.model.MarcMappingDetail;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.services.entity.ConsortiumConfiguration;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
@@ -120,6 +124,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String TAG_001 = "001";
   private static final String TAG_004 = "004";
+  private static final String WILDCARD = "*";
   private static final String MARC_FORMAT = "MARC_";
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
@@ -469,30 +474,53 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
-    return containsCreateInstanceActionWithoutMarcBib(jobExecution.getJobProfileSnapshotWrapper());
+    return containsCreateInstanceActionWithoutPrecedingDelete999Field(jobExecution.getJobProfileSnapshotWrapper());
   }
 
-  private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
-    List<ProfileSnapshotWrapper> children = profileSnapshot.getChildSnapshotWrappers();
-    for (ProfileSnapshotWrapper childWrapper : children) {
+  private boolean containsCreateInstanceActionWithoutPrecedingDelete999Field(ProfileSnapshotWrapper profileSnapshot) {
+    List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
+    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
       if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
         if (childWrapper.getReactTo() != NON_MATCH) {
-          // Suppress the error only if a MODIFY MARC_BIB sibling precedes this action
-          boolean hasPrecedingModifyMarcBib = children.stream()
-            .anyMatch(w -> w.getContentType() == ACTION_PROFILE
-              && actionProfileMatches(w, List.of(FolioRecord.MARC_BIBLIOGRAPHIC), Action.MODIFY)
-              && w.getOrder() != null && childWrapper.getOrder() != null
-              && w.getOrder() < childWrapper.getOrder());
+          boolean hasPrecedingModifyMarcBib = childWrappers.stream()
+            .anyMatch(wrapper -> wrapper.getContentType() == ACTION_PROFILE
+              && actionProfileMatches(wrapper, List.of(FolioRecord.MARC_BIBLIOGRAPHIC), Action.MODIFY)
+              && wrapper.getOrder() != null && childWrapper.getOrder() != null
+              && wrapper.getOrder() < childWrapper.getOrder()
+              && containsDelete999FieldMappingDetail(wrapper));
+
           if (!hasPrecedingModifyMarcBib) {
             return true;
           }
         }
-      } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
+      } else if (containsCreateInstanceActionWithoutPrecedingDelete999Field(childWrapper)) {
         return true;
       }
     }
     return false;
+  }
+
+  private boolean containsDelete999FieldMappingDetail(ProfileSnapshotWrapper actionWrapper) {
+    return actionWrapper.getChildSnapshotWrappers().stream()
+      .filter(wrapper -> wrapper.getContentType() == MAPPING_PROFILE)
+      .map(wrapper -> DatabindCodec.mapper().convertValue(wrapper.getContent(), MappingProfile.class))
+      .anyMatch(mappingProfile -> mappingProfile.getMappingDetails() != null
+        && mappingProfile.getMappingDetails().getMarcMappingOption() == MODIFY
+        && mappingProfile.getMappingDetails().getMarcMappingDetails() != null
+        && containsDelete999FieldMarcMappingDetail(mappingProfile.getMappingDetails().getMarcMappingDetails()));
+  }
+
+  private boolean containsDelete999FieldMarcMappingDetail(List<MarcMappingDetail> marcMappingDetail) {
+    return marcMappingDetail.stream()
+      .anyMatch(detail -> detail.getAction() == MarcMappingDetail.Action.DELETE
+        && detail.getField() != null
+        && TAG_999.equals(detail.getField().getField())
+        && WILDCARD.equals(detail.getField().getIndicator1())
+        && WILDCARD.equals(detail.getField().getIndicator2())
+        && detail.getField().getSubfields() != null
+        && detail.getField().getSubfields().stream()
+        .anyMatch(subfield -> WILDCARD.equals(subfield.getSubfield())));
   }
 
   private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
@@ -657,22 +685,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private ParsedResult addErrorMessageWhen999ffFieldExistsOnCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
     if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
-      LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: parseContent: {}",
-        parsedResult.getParsedRecord().encodePrettily());
-
-
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
-      String sSubf = getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F);
-      String iSubf = getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F);
-
-      LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: $s value: '{}', $i value: '{}'", sSubf, iSubf);
-
       if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F))
         || StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F)))) {
-        LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: Checking create action profile, $s value: '{}', $i value: '{}'", sSubf, iSubf);
         if (isCreateInstanceActionExists(jobExecution)) {
-          LOGGER.info("addErrorMessageWhen999ffFieldExistsOnCreateAction:: Constructing error res, $s value: '{}', $i value: '{}'", sSubf, iSubf);
           return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
         } else if (isCreateMarcHoldingsActionExists(jobExecution)) {
           return constructParsedResultWithError(parsedResult, HOLDINGS_CREATION_999_ERROR_MESSAGE);

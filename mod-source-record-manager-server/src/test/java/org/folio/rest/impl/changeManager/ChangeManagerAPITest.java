@@ -2235,7 +2235,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessRecordIf999ffsFieldExistsAndCreateInstanceActionProfilePlacedAfterModifyMarcBibActionProfile() {
+  public void shouldProcessRecordIf999ffsFieldExistsAndCreateInstanceActionProfileIsPrecededByModifyMarcBibActionProfile() {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
