@@ -511,6 +511,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         && containsDelete999FieldMarcMappingDetail(mappingProfile.getMappingDetails().getMarcMappingDetails()));
   }
 
+  /**
+   * Checks whether the given list of {@link MarcMappingDetail} contains a DELETE action mapping detail
+   * targeting the 999 field with wildcard indicators and wildcard subfield.
+   * The method checks wildcard value for indicators and subfield definition because UI does not allow
+   * to specify 'f' indicators for mapping detail definition for the 999 field. Consequently, according to use case,
+   * the wildcard definition should be used to delete 999ff field.
+   *
+   * @param marcMappingDetail list of MARC mapping details to inspect
+   * @return {@code true} if a matching DELETE mapping detail for the 999 field is found, otherwise {@code false}
+   */
   private boolean containsDelete999FieldMarcMappingDetail(List<MarcMappingDetail> marcMappingDetail) {
     return marcMappingDetail.stream()
       .anyMatch(detail -> detail.getAction() == MarcMappingDetail.Action.DELETE
