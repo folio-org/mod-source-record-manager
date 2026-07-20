@@ -11,9 +11,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_B
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.MappingDetail.MarcMappingOption.MODIFY;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
 import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
@@ -65,8 +63,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
-import org.folio.rest.jaxrs.model.MappingDetail;
-import org.folio.rest.jaxrs.model.MarcMappingDetail;
+import org.folio.services.util.ProfileSnapshotUtil;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.services.entity.ConsortiumConfiguration;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
@@ -124,7 +121,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String TAG_001 = "001";
   private static final String TAG_004 = "004";
-  private static final String WILDCARD = "*";
   private static final String MARC_FORMAT = "MARC_";
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
@@ -488,9 +484,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               && actionProfileMatches(wrapper, List.of(FolioRecord.MARC_BIBLIOGRAPHIC), Action.MODIFY)
               && wrapper.getOrder() != null && childWrapper.getOrder() != null
               && wrapper.getOrder() < childWrapper.getOrder()
-              && containsDelete999FieldMappingDetail(wrapper));
+              && ProfileSnapshotUtil.containsDelete999FieldMappingDetail(wrapper));
 
           if (!hasPrecedingModifyMarcBib) {
+
             return true;
           }
         }
@@ -499,38 +496,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }
     }
     return false;
-  }
-
-  private boolean containsDelete999FieldMappingDetail(ProfileSnapshotWrapper actionWrapper) {
-    return actionWrapper.getChildSnapshotWrappers().stream()
-      .filter(wrapper -> wrapper.getContentType() == MAPPING_PROFILE)
-      .map(wrapper -> DatabindCodec.mapper().convertValue(wrapper.getContent(), MappingProfile.class))
-      .anyMatch(mappingProfile -> mappingProfile.getMappingDetails() != null
-        && mappingProfile.getMappingDetails().getMarcMappingOption() == MODIFY
-        && mappingProfile.getMappingDetails().getMarcMappingDetails() != null
-        && containsDelete999FieldMarcMappingDetail(mappingProfile.getMappingDetails().getMarcMappingDetails()));
-  }
-
-  /**
-   * Checks whether the given list of {@link MarcMappingDetail} contains a DELETE action mapping detail
-   * targeting the 999 field with wildcard indicators and wildcard subfield.
-   * The method checks wildcard value for indicators and subfield definition because UI does not allow
-   * to specify 'f' indicators for mapping detail definition for the 999 field. Consequently, according to use case,
-   * the wildcard definition should be used to delete 999ff field.
-   *
-   * @param marcMappingDetail list of MARC mapping details to inspect
-   * @return {@code true} if a matching DELETE mapping detail for the 999 field is found, otherwise {@code false}
-   */
-  private boolean containsDelete999FieldMarcMappingDetail(List<MarcMappingDetail> marcMappingDetail) {
-    return marcMappingDetail.stream()
-      .anyMatch(detail -> detail.getAction() == MarcMappingDetail.Action.DELETE
-        && detail.getField() != null
-        && TAG_999.equals(detail.getField().getField())
-        && WILDCARD.equals(detail.getField().getIndicator1())
-        && WILDCARD.equals(detail.getField().getIndicator2())
-        && detail.getField().getSubfields() != null
-        && detail.getField().getSubfields().stream()
-        .anyMatch(subfield -> WILDCARD.equals(subfield.getSubfield())));
   }
 
   private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
