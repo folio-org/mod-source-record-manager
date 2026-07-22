@@ -1,12 +1,10 @@
 package org.folio.services;
 
 import org.folio.dao.IncomingRecordDao;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -19,12 +17,7 @@ public class IncomingRecordServiceImplUnitTest {
   private IncomingRecordDao incomingRecordDao;
 
   @InjectMocks
-  private IncomingRecordService incomingRecordService = new IncomingRecordServiceImpl();
-
-  @Before
-  public void setUp() {
-    MockitoAnnotations.openMocks(this);
-  }
+  private IncomingRecordServiceImpl incomingRecordService;
 
   @Test
   public void shouldGetById() {

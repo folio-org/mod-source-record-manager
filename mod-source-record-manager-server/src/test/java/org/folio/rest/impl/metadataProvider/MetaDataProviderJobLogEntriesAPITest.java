@@ -37,17 +37,12 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 import io.restassured.RestAssured;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -56,19 +51,8 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
 
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/jobLogEntries";
-  @Spy
-  Vertx vertx = Vertx.vertx();
-  @Spy
-  @InjectMocks
-  PostgresClientFactory clientFactory;
-  @Spy
-  @InjectMocks
-  private JournalRecordDaoImpl journalRecordDao;
 
-  @Before
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-  }
+  private final JournalRecordDaoImpl journalRecordDao = new JournalRecordDaoImpl(new PostgresClientFactory(vertx));
 
   @Test
   public void shouldReturnInstanceIdWhenHoldingsCreated(TestContext context) {

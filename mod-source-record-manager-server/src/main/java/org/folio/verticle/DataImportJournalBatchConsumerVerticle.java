@@ -21,13 +21,12 @@ import io.vertx.rxjava3.impl.AsyncResultSingle;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.errors.RebalanceInProgressException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.kafka.SubscriptionDefinition;
@@ -99,11 +98,10 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
  * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
  * @see org.folio.rest.impl.InitAPIImpl
  */
+@Log4j2
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String DATA_IMPORT_JOURNAL_BATCH_KAFKA_HANDLER_UUID = "ca0c6c56-e74e-4921-b4c9-7b2de53c43ec";
 
@@ -133,11 +131,11 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     Completable initializedEventBusConsumer = initializeEventBusConsumer();
     Completable.mergeArray(initializedEventBusConsumer, initializedKafkaConsumer)
       .doOnComplete(() -> {
-        LOGGER.info("Data Import Journal Batch Consumer has started");
+        log.info("Data Import Journal Batch Consumer has started");
         startPromise.complete();
       })
       .doOnError(th -> {
-        LOGGER.error("Uncaught exception during initialization of consumers", th);
+        log.error("Uncaught exception during initialization of consumers", th);
         startPromise.fail(th);
       })
       .subscribe();
@@ -149,11 +147,11 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .flatMapCompletable(flowable -> saveJournalRecords(flowable.replay(MAX_NUM_EVENTS))
         .onErrorResumeNext(error -> {
           if (error instanceof RebalanceInProgressException) {
-            LOGGER.warn("Rebalance in progress, retrying...", error);
+            log.warn("Rebalance in progress, retrying...", error);
             return Completable.timer(1, TimeUnit.SECONDS) // Retry after a delay
               .andThen(saveJournalRecords(flowable.replay(MAX_NUM_EVENTS)));
           } else {
-            LOGGER.error("Error saving journal records, continuing with next batch", error);
+            log.error("Error saving journal records, continuing with next batch", error);
             return Completable.complete();
           }
         }))
@@ -176,7 +174,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
 
       stopPromise.complete();
     } catch (Exception e) {
-      LOGGER.error("Error while stopping journal batch verticle", e);
+      log.error("Error while stopping journal batch verticle", e);
       stopPromise.fail(e);
     }
   }
@@ -270,15 +268,15 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .map(consumerRecord -> {
         try {
           Map<String, String> map = kafkaHeadersToMap(consumerRecord.headers());
-          OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(map, vertx.getDelegate());
+          ConnectionParams okapiConnectionParams = new ConnectionParams(map);
           String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
           JournalEvent event = DatabindCodec.mapper().readValue(consumerRecord.value(), JournalEvent.class);
 
-          LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
+          log.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
           // Successfully create and return a Bundle object containing the record and event details
           return Optional.of(new Bundle(consumerRecord, event, okapiConnectionParams));
         } catch (Exception e) {
-          LOGGER.error("Error processing Kafka event with exception", e);
+          log.error("Error processing Kafka event with exception", e);
           // Return empty Optional to skip this record and continue processing
           return Optional.<Bundle>empty();
         }
@@ -336,26 +334,26 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
               return Completable.complete(); // Skip empty groups
             }
 
-            LOGGER.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
+            log.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
             return AsyncResultCompletable.toCompletable(handler ->
                 batchJournalService.saveBatchWithResponse(journalRecords, groupedRecords.getKey().get(), handler)
               )
               .onErrorResumeNext(error -> {
-                LOGGER.error("saveJournalRecords:: Error saving batch for tenant {}", groupedRecords.getKey().get(), error);
+                log.error("saveJournalRecords:: Error saving batch for tenant {}", groupedRecords.getKey().get(), error);
                 return Completable.complete(); // Continue processing other batches
               });
           } catch (Exception e) {
-            LOGGER.error("saveJournalRecords:: Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
+            log.error("saveJournalRecords:: Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
             return Completable.complete();
           }
         })
       )
-      .doOnError(throwable -> LOGGER.error("Error occurred while processing journal events", throwable))
+      .doOnError(throwable -> log.error("Error occurred while processing journal events", throwable))
       .onErrorComplete() // Allow commit even if some groups fail
       .andThen(allBundles)
       .flatMapCompletable(bundles ->
         commitKafkaEvents(Flowable.fromIterable(bundles))
-          .doOnError(error -> LOGGER.error("Failed to commit offsets", error))
+          .doOnError(error -> log.error("Failed to commit offsets", error))
       );
 
     // Connect the ConnectableFlowable to start emitting items
@@ -365,7 +363,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
   }
 
   private Single<Collection<BatchableJournalRecord>> createJournalRecords(Bundle bundle) throws JsonProcessingException, JournalRecordMapperException {
-    LOGGER.debug("createJournalRecords :: start to handle bundle.");
+    log.debug("createJournalRecords :: start to handle bundle.");
     DataImportEventPayloadWithoutCurrentNode eventPayload = bundle.event().getEventPayload();
     String tenantId = bundle.okapiConnectionParams.getTenantId();
     return AsyncResultSingle.toSingle(eventTypeHandlerSelector.getHandler(eventPayload)
@@ -378,7 +376,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .groupBy(bundle -> new TopicPartition(bundle.record.topic(), bundle.record.partition()))
       .flatMapSingle(this::calculateMaxOffsets)
       .flatMapCompletable(this::commitOffset)
-      .doOnError(error -> LOGGER.error("Error committing Kafka offsets", error))
+      .doOnError(error -> log.error("Error committing Kafka offsets", error))
       .onErrorComplete();
   }
 
@@ -397,19 +395,19 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
   }
 
   private Completable commitOffset(Map<TopicPartition, OffsetAndMetadata> offsets) {
-    LOGGER.info("Committing offsets: {}", offsets);
+    log.info("Committing offsets: {}", offsets);
     return AsyncResultCompletable.toCompletable(kafkaConsumer.getDelegate().commit(offsets))
       .onErrorResumeNext(error -> {
         if (error instanceof RebalanceInProgressException) {
-          LOGGER.warn("Rebalance in progress. Waiting for the re-balance to complete...");
+          log.warn("Rebalance in progress. Waiting for the re-balance to complete...");
           return Completable.timer(1, TimeUnit.SECONDS);
         }
-        LOGGER.warn("Error committing offsets: {}. Retrying in 1 second...", error.getMessage());
+        log.warn("Error committing offsets: {}. Retrying in 1 second...", error.getMessage());
         return Completable.timer(1, TimeUnit.SECONDS)
           .andThen(commitOffset(offsets));
       })
-      .doOnComplete(() -> LOGGER.info("commitOffset:: Successfully committed offsets: {}", offsets))
-      .doOnError(error -> LOGGER.error("commitOffset:: Failed to commit offsets: {}", offsets, error));
+      .doOnComplete(() -> log.info("commitOffset:: Successfully committed offsets: {}", offsets))
+      .doOnError(error -> log.error("commitOffset:: Failed to commit offsets: {}", offsets, error));
   }
 
   private Map<String, String> kafkaHeadersToMap(List<KafkaHeader> kafkaHeaders) {
@@ -439,7 +437,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
   }
 
   record Bundle(KafkaConsumerRecord<String, byte[]> record, JournalEvent event,
-                        OkapiConnectionParams okapiConnectionParams) {
+                        ConnectionParams okapiConnectionParams) {
   }
 
   private JournalRecord setDeterministicIdentifer(JournalRecord journalRecord) {

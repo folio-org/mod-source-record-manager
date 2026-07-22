@@ -23,10 +23,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.MetricsUtil;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.util.CaffeineStatsCounter;
@@ -43,6 +42,7 @@ import org.marc4j.marc.VariableField;
 /**
  * Util to work with additional fields
  */
+@Log4j2
 public final class AdditionalFieldsUtil {
 
   public static final String TAG_00X_PREFIX = "00";
@@ -52,8 +52,6 @@ public final class AdditionalFieldsUtil {
   public static final char INDICATOR_F = 'f';
   public static final char SUBFIELD_I = 'i';
   public static final char SUBFIELD_S = 's';
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   private final static CacheLoader<Object, org.marc4j.marc.Record> parsedRecordContentCacheLoader;
   private final static LoadingCache<Object, org.marc4j.marc.Record> parsedRecordContentCache;
@@ -75,7 +73,7 @@ public final class AdditionalFieldsUtil {
           }
           return null;
         } catch (Exception e) {
-          LOGGER.error("something happened while loading a cache value for parsedRecordContentCache", e);
+          log.error("something happened while loading a cache value for parsedRecordContentCache", e);
           return null;
         }
       };
@@ -165,7 +163,7 @@ public final class AdditionalFieldsUtil {
         }
       }
     } catch (Exception e) {
-      LOGGER.warn("addFieldToMarcRecord:: Failed to add additional subfield {} for field {} to record {}", subfield, field, record.getId(), e);
+      log.warn("addFieldToMarcRecord:: Failed to add additional subfield {} for field {} to record {}", subfield, field, record.getId(), e);
     }
     return result;
   }
@@ -215,7 +213,7 @@ public final class AdditionalFieldsUtil {
       ((ObjectNode) parsedContent).set(FIELDS, reorderedFields);
       return parsedContent.toString();
     } catch (Exception e) {
-      LOGGER.error("An error occurred while reordering Marc record fields: {}", e.getMessage(), e);
+      log.error("An error occurred while reordering Marc record fields: {}", e.getMessage(), e);
       return systemOrderContent;
     }
   }
@@ -280,7 +278,7 @@ public final class AdditionalFieldsUtil {
       }
       sourceFields.addAll(remainingFields);
     } catch (Exception e) {
-      LOGGER.error("An error occurred while parsing source JSON: {}", e.getMessage(), e);
+      log.error("An error occurred while parsing source JSON: {}", e.getMessage(), e);
     }
     return sourceFields;
   }
@@ -317,7 +315,7 @@ public final class AdditionalFieldsUtil {
         result = true;
       }
     } catch (Exception e) {
-      LOGGER.warn("addControlledFieldToMarcRecord:: Failed to add additional controlled field {} to record {}", field, record.getId(), e);
+      log.warn("addControlledFieldToMarcRecord:: Failed to add additional controlled field {} to record {}", field, record.getId(), e);
     }
     return result;
   }
@@ -355,7 +353,7 @@ public final class AdditionalFieldsUtil {
         result = true;
       }
     } catch (Exception e) {
-      LOGGER.warn("addDataFieldToMarcRecord:: Failed to add additional data field {} to record {}", tag, record.getId(), e);
+      log.warn("addDataFieldToMarcRecord:: Failed to add additional data field {} to record {}", tag, record.getId(), e);
     }
     return result;
   }
@@ -396,7 +394,7 @@ public final class AdditionalFieldsUtil {
           .withContent(parsedContentString));
       result = true;
     } catch (Exception e) {
-      LOGGER.warn("modifyDataFieldsForMarcRecord:: Failed to modify data fields for record {}", folioRecord.getId(), e);
+      log.warn("modifyDataFieldsForMarcRecord:: Failed to modify data fields for record {}", folioRecord.getId(), e);
     }
     return result;
   }
@@ -440,7 +438,7 @@ public final class AdditionalFieldsUtil {
         }
 
       } catch (Exception e) {
-        LOGGER.warn("isFieldExist:: Error during the search a field in the record", e);
+        log.warn("isFieldExist:: Error during the search a field in the record", e);
         return false;
       }
     }
@@ -464,7 +462,7 @@ public final class AdditionalFieldsUtil {
           .map(ControlField::getData)
           .orElse(null);
       } catch (Exception e) {
-        LOGGER.warn("getControlFieldValue:: Error during the search a field in the record", e);
+        log.warn("getControlFieldValue:: Error during the search a field in the record", e);
         return null;
       }
     }
@@ -500,7 +498,7 @@ public final class AdditionalFieldsUtil {
           return dataField.getSubfields(subfield).getFirst().getData();
         }
       } catch (Exception e) {
-        LOGGER.warn("getValue:: Error during the search a field in the record", e);
+        log.warn("getValue:: Error during the search a field in the record", e);
         return null;
       }
     }
@@ -539,7 +537,7 @@ public final class AdditionalFieldsUtil {
         result = true;
       }
     } catch (Exception e) {
-      LOGGER.warn("removeField:: Failed to remove controlled field {} from record {}", field, record.getId(), e);
+      log.warn("removeField:: Failed to remove controlled field {} from record {}", field, record.getId(), e);
     }
     return result;
   }
@@ -556,7 +554,7 @@ public final class AdditionalFieldsUtil {
       try {
         return parsedRecordContentCache.get(record.getParsedRecord().getContent());
       } catch (Exception e) {
-        LOGGER.warn("computeMarcRecord:: Error during the transformation to marc record", e);
+        log.warn("computeMarcRecord:: Error during the transformation to marc record", e);
         return null;
       }
     }

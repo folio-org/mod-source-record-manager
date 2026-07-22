@@ -5,9 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
@@ -28,9 +27,8 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
+@Log4j2
 public class InvoiceUtil {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String INVOICE_LINES_KEY = "INVOICE_LINES";
   public static final String INVOICE_LINES_ERRORS_KEY = "INVOICE_LINES_ERRORS";
@@ -69,7 +67,7 @@ public class InvoiceUtil {
       }
       event.getContext().keySet().forEach(key -> {
         if (isNotEmpty(event.getContext().get(key))) {
-          LOGGER.warn(key + ": " + event.getContext().get(key));
+          log.warn(key + ": " + event.getContext().get(key));
         }
       });
       throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(),

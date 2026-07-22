@@ -4,8 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.sqlclient.RowIterator;
 import io.vertx.sqlclient.Tuple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
@@ -13,21 +12,21 @@ import java.util.Optional;
 import java.util.function.UnaryOperator;
 import javax.ws.rs.NotFoundException;
 
+import lombok.extern.log4j.Log4j2;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.persist.Conn;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.ValidationHelper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
+@Log4j2
 @Repository
+@RequiredArgsConstructor
 public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String JOB_EXECUTION_ID_FIELD = "job_execution_id";
   public static final String TOTAL_RECORDS_COUNT = "total_records_count";
@@ -48,8 +47,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   private static final String ROLLBACK_MESSAGE = "Rollback transaction. Failed to update jobExecutionProgress with job_execution_id: %s";
   private static final String FAILED_INITIALIZATION_MESSAGE = "Fail to initialize JobExecutionProgress for job with job_execution_id: {}";
 
-  @Autowired
-  private PostgresClientFactory pgClientFactory;
+  private final PostgresClientFactory pgClientFactory;
 
   @Override
   public Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId) {
@@ -61,7 +59,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
 
   @Override
   public Future<JobExecutionProgress> initializeJobExecutionProgress(Conn connection, String jobExecutionId, Integer totalRecords, String tenantId) {
-    LOGGER.debug("initializeJobExecutionProgress:: jobExecutionId {}, totalRecords {}, tenantId {}", jobExecutionId, totalRecords, tenantId);
+    log.debug("initializeJobExecutionProgress:: jobExecutionId {}, totalRecords {}, tenantId {}", jobExecutionId, totalRecords, tenantId);
     Promise<JobExecutionProgress> promise = Promise.promise();
 
     getSelectResult(connection, jobExecutionId, tenantId)
@@ -81,7 +79,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
             promise.complete();
             return;
           }
-          LOGGER.warn(FAILED_INITIALIZATION_MESSAGE, jobExecutionId, saveAr.cause());
+          log.warn(FAILED_INITIALIZATION_MESSAGE, jobExecutionId, saveAr.cause());
           promise.fail(saveAr.cause());
         }
       });
@@ -120,7 +118,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           return Future.succeededFuture(mapRowToJobExecutionProgress(rowSet.iterator().next()));
         });
     } catch (Exception e) {
-      LOGGER.warn("updateCompletionCounts:: Error updating jobExecutionProgress", e);
+      log.warn("updateCompletionCounts:: Error updating jobExecutionProgress", e);
       return Future.failedFuture(e);
     }
   }

@@ -3,10 +3,9 @@ package org.folio.services;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dao.JobExecutionSourceChunkDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -21,11 +20,12 @@ import javax.ws.rs.NotFoundException;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 
+@Log4j2
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
-  private static final Logger LOGGER = LogManager.getLogger();
-  private ChangeEngineService changeEngineService;
-  private JobExecutionProgressService jobExecutionProgressService;
+
+  private final ChangeEngineService changeEngineService;
+  private final JobExecutionProgressService jobExecutionProgressService;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
@@ -37,8 +37,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   }
 
   @Override
-  protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, boolean acceptInstanceId, OkapiConnectionParams params) {
-    LOGGER.debug("processRawRecordsChunk:: Starting to process raw records chunk with id: {} for jobExecutionId: {}. Chunk size: {}.", sourceChunk.getId(), jobExecutionId, sourceChunk.getChunkSize());
+  protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, boolean acceptInstanceId, ConnectionParams params) {
+    log.debug("processRawRecordsChunk:: Starting to process raw records chunk with id: {} for jobExecutionId: {}. Chunk size: {}.", sourceChunk.getId(), jobExecutionId, sourceChunk.getChunkSize());
     Promise<Boolean> promise = Promise.promise();
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
@@ -61,7 +61,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
-  private Future<Boolean> updateJobExecutionIfAllSourceChunksMarkedAsError(String jobExecutionId, OkapiConnectionParams params) {
+  private Future<Boolean> updateJobExecutionIfAllSourceChunksMarkedAsError(String jobExecutionId, ConnectionParams params) {
     return jobExecutionSourceChunkDao.get(jobExecutionId, true, 0, 1, params.getTenantId())
       .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, params.getTenantId()) : Future.succeededFuture(false))
       .compose(containsErrorChunks -> {
@@ -74,7 +74,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       });
   }
 
-  private Future<Boolean> updateJobExecutionState(String jobExecutionId, JobExecutionProgress progress, StatusDto statusDto, OkapiConnectionParams params) {
+  private Future<Boolean> updateJobExecutionState(String jobExecutionId, JobExecutionProgress progress, StatusDto statusDto, ConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobOptional -> jobOptional
         .map(jobExecution -> jobExecution

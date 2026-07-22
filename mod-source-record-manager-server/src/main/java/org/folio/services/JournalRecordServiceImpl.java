@@ -1,13 +1,13 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import lombok.RequiredArgsConstructor;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,10 +19,10 @@ import java.util.Optional;
  * @see JournalRecordService
  */
 @Service
+@RequiredArgsConstructor
 public class JournalRecordServiceImpl implements JournalRecordService {
 
-  @Autowired
-  private JournalRecordDao journalRecordDao;
+  private final JournalRecordDao journalRecordDao;
 
   @Override
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {

@@ -1,7 +1,6 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
@@ -10,7 +9,8 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.apache.logging.log4j.util.Strings;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -31,9 +31,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -47,13 +44,10 @@ import java.util.Random;
 import java.util.UUID;
 
 import static java.lang.String.format;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -62,33 +56,22 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionDaoImplTest extends AbstractRestTest {
-  public static final String GENERIC_SELECT_QUERY_TO_GET_COUNT = "select count(*) from %s where %s IN ('%s')";
-  public static final String JOB_EXECUTION = "job_execution";
-  public static final String ID = "id";
+  private static final String GENERIC_SELECT_QUERY_TO_GET_COUNT = "select count(*) from %s where %s IN ('%s')";
+
   @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
+  public final RunTestOnContext rule = new RunTestOnContext();
 
-  private Vertx vertx = Vertx.vertx();
-  @Spy
-  PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
-  @Spy
-  @InjectMocks
-  JobExecutionDaoImpl jobExecutionDao;
+  private final JobExecutionDaoImpl jobExecutionDao = new JobExecutionDaoImpl(new PostgresClientFactory(vertx));
 
-  @Spy
-  @InjectMocks
-  JournalRecordDaoImpl journalRecordDao;
+  private final JournalRecordDaoImpl journalRecordDao = new JournalRecordDaoImpl(new PostgresClientFactory(vertx));
 
-  @Spy
-  @InjectMocks
-  JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
-  @InjectMocks
-  private JobExecutionProgressDao jobExecutionProgressDao = new JobExecutionProgressDaoImpl();
+  private final JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao = new JobExecutionSourceChunkDaoImpl(new PostgresClientFactory(vertx));
+  private final JobExecutionProgressDao jobExecutionProgressDao = new JobExecutionProgressDaoImpl(new PostgresClientFactory(vertx));
 
   private JobExecutionService jobExecutionService;
-  private OkapiConnectionParams params;
+  private ConnectionParams params;
 
-  private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
+  private final InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Arrays.asList(
       new File().withName("importBib1.bib"),
       new File().withName("importBib2.bib")))
@@ -97,13 +80,11 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
 
   @Before
   public void setUp() {
-    MockitoAnnotations.openMocks(this);
-
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, "token");
-    params = new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost:" + snapshotMockServer.port());
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, "token");
+    params = new ConnectionParams(headers);
     jobExecutionService = new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig);
   }
 
@@ -316,7 +297,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
 
   private Future<RowSet<Row>> fetchInformationFromDatabase(String values, String tableName, String fieldName) {
     String preparedQuery = format(GENERIC_SELECT_QUERY_TO_GET_COUNT, convertToPsqlStandard(TENANT_ID) + "." + tableName, fieldName, values);
-    return postgresClientFactory.createInstance(TENANT_ID).execute(preparedQuery);
+    return new PostgresClientFactory(vertx).createInstance(TENANT_ID).execute(preparedQuery);
   }
 
   @Test

@@ -56,12 +56,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import javax.ws.rs.NotFoundException;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.services.entity.ConsortiumConfiguration;
@@ -69,7 +68,7 @@ import org.folio.services.exceptions.InvalidJobProfileForFileException;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.dataimport.util.marc.RecordAnalyzer;
@@ -109,6 +108,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Log4j2
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
@@ -117,7 +117,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   public static final String USER_ID_HEADER = "userId";
 
   private static final String MESSAGE_KEY = "message";
-  private static final Logger LOGGER = LogManager.getLogger();
   private static final String TAG_001 = "001";
   private static final String TAG_004 = "004";
   private static final String MARC_FORMAT = "MARC_";
@@ -142,7 +141,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final FieldModificationService fieldModificationService;
   private final IncomingRecordService incomingRecordService;
   private final ConsortiumDataCache consortiumDataCache;
-  private final Vertx vertx;
   private final MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
   private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
 
@@ -179,12 +177,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.incomingRecordService = incomingRecordService;
     this.consortiumDataCache = consortiumDataCache;
     this.journalRecordProducer = getJournalMessageProducer(vertx);
-    this.vertx = vertx;
   }
 
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution,
-                                                                  String sourceChunkId, boolean acceptInstanceId, OkapiConnectionParams params) {
+                                                                  String sourceChunkId, boolean acceptInstanceId, ConnectionParams params) {
     Promise<List<Record>> promise = Promise.promise();
     Future<List<Record>> futureParsedRecords =
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
@@ -203,14 +200,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
       }).onFailure(th -> {
-        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, jobExecutionId: {}",
+        log.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, jobExecutionId: {}",
          jobExecution.getId(), th);
         promise.fail(th);
       });
     return promise.future();
   }
 
-  private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, OkapiConnectionParams params, List<Record> parsedRecords) {
+  private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, ConnectionParams params, List<Record> parsedRecords) {
     Promise<List<Record>> promiseFilteredRecords = Promise.promise();
 
     List<Future<List<String>>> listFuture = executeInBatches(parsedRecords, batch -> getInvalidMarcBibIdsForConsortium(batch, params));
@@ -231,10 +228,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       prepareWrongJobProfileErrorMessage(jobExecution, records)));
   }
 
-  private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,
+  private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, ConnectionParams params,
                               String sourceChunkId, boolean acceptInstanceId, Promise<List<Record>> promise) {
 
-    LOGGER.debug("processRecords:: Starting to process parsed records for jobExecutionId: {}, sourceChunkId: {}, action determined by job profile: {}",
+    log.debug("processRecords:: Starting to process parsed records for jobExecutionId: {}, sourceChunkId: {}, action determined by job profile: {}",
       jobExecution.getId(), sourceChunkId, getAction(parsedRecords, jobExecution));
 
     switch (getAction(parsedRecords, jobExecution)) {
@@ -288,7 +285,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     UPDATE_RECORD, DELETE_RECORD, SEND_ERROR, SEND_MARC_BIB, SEND_EDIFACT, SAVE_RECORD, CREATE_ORDER
   }
 
-  private void saveRecords(JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params, List<Record> parsedRecords, Promise<List<Record>> promise) {
+  private void saveRecords(JobExecution jobExecution, String sourceChunkId, ConnectionParams params, List<Record> parsedRecords, Promise<List<Record>> promise) {
     saveRecords(params, jobExecution, parsedRecords)
       .onComplete(postAr -> {
         if (postAr.failed()) {
@@ -296,7 +293,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withStatus(StatusDto.Status.ERROR)
             .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
           jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
-            .onFailure(e -> LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution with id '{}' and snapshot status",
+            .onFailure(e -> log.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution with id '{}' and snapshot status",
               jobExecution.getId(), e));
           jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
             .compose(optional -> optional
@@ -312,13 +309,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       });
   }
 
-  private Future<Boolean> sendEvents(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params, DataImportEventTypes eventType) {
-    LOGGER.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}", eventType.value(), jobExecution.getId());
+  private Future<Boolean> sendEvents(List<Record> records, JobExecution jobExecution, ConnectionParams params, DataImportEventTypes eventType) {
+    log.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}", eventType.value(), jobExecution.getId());
     return recordsPublishingService.sendEventsWithRecords(records, jobExecution.getId(), params, eventType.value(), null);
   }
 
-  private Future<Boolean> sendEventWithContext(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params, Map<String, String> eventContext) {
-    LOGGER.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}, event context: {}", DI_INCOMING_MARC_BIB_RECORD_PARSED, jobExecution.getId(), eventContext);
+  private Future<Boolean> sendEventWithContext(List<Record> records, JobExecution jobExecution, ConnectionParams params, Map<String, String> eventContext) {
+    log.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}, event context: {}", DI_INCOMING_MARC_BIB_RECORD_PARSED, jobExecution.getId(), eventContext);
     return recordsPublishingService.sendEventsWithRecords(records, jobExecution.getId(), params, DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventContext);
   }
 
@@ -339,7 +336,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .stream().filter(wrapper -> wrapper.getContentType() == ACTION_PROFILE).toList();
 
       if (!actionProfiles.isEmpty() && ifOrderCreateActionProfileExists(actionProfiles)) {
-        LOGGER.debug("createOrderActionExists:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
+        log.debug("createOrderActionExists:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
         return true;
       }
     }
@@ -373,60 +370,60 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return recordType == null || jobProfileSnapshotValidationService.isJobProfileCompatibleWithRecordType(jobProfileSnapshot, recordType);
   }
 
-  private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.info("updateRecords:: Records have not been saved in record-storage, because job contains action for Marc or Instance update");
+  private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, ConnectionParams params) {
+    log.info("updateRecords:: Records have not been saved in record-storage, because job contains action for Marc or Instance update");
     return recordsPublishingService
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value(), null);
   }
 
-  private Future<Boolean> deleteRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.info("deleteRecords:: Records have not been saved in record-storage, because job contains action for Marc delete");
+  private Future<Boolean> deleteRecords(List<Record> records, JobExecution jobExecution, ConnectionParams params) {
+    log.info("deleteRecords:: Records have not been saved in record-storage, because job contains action for Marc delete");
     return recordsPublishingService
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value(), null);
   }
 
 
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
-                                                        OkapiConnectionParams okapiParams) {
+                                                        ConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
 
     Future<Boolean> operationFuture = ensuringInProgress.compute(jobExecutionId, (key, existingFuture) -> {
       if (existingFuture != null && !existingFuture.isComplete()) {
-        LOGGER.debug("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
+        log.debug("ensureMappingMetaDataSnapshot:: Joining an already in-progress ensure operation for jobExecutionId: {}", key);
         return existingFuture;
       }
 
-      LOGGER.debug("ensureMappingMetaDataSnapshot:: Starting a new ensure operation for jobExecutionId: {}", key);
+      log.debug("ensureMappingMetaDataSnapshot:: Starting a new ensure operation for jobExecutionId: {}", key);
       return mappingMetadataService.getMappingMetadataDto(key, okapiParams)
         .map(dto -> {
-          LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
+          log.debug("ensureMappingMetaDataSnapshot:: Snapshots already exist for jobExecutionId: {}, size: {}",
             key, recordsList.size());
           return false;
         })
         .recover(throwable -> {
           NotFoundException notFoundEx = extractNotFoundException(throwable);
           if (notFoundEx != null) {
-            LOGGER.debug("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
+            log.debug("ensureMappingMetaDataSnapshot:: Snapshots not found for jobExecutionId: '{}'. Creating them...", key);
             RecordType recordType = recordsList.getFirst().getRecordType();
             recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
             return mappingMetadataService.saveMappingRulesSnapshot(key, recordType.toString(), okapiParams.getTenantId())
               .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(key, okapiParams))
               .map(ar -> {
-                LOGGER.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}, size: {}",
+                log.info("ensureMappingMetaDataSnapshot:: MappingRules and MappingParameters snapshots were saved successfully for jobExecutionId: {}, size: {}",
                   key, recordsList.size());
                 return true;
               });
           } else {
-            LOGGER.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", key, throwable);
+            log.error("ensureMappingMetaDataSnapshot:: An unexpected error occurred while checking for snapshots for jobExecutionId: {}", key, throwable);
             return Future.failedFuture(throwable);
           }
         });
     });
 
     operationFuture.onComplete(ar -> {
-      LOGGER.debug("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", jobExecutionId);
+      log.debug("ensureMappingMetaDataSnapshot:: Completed ensure operation for jobExecutionId: {}", jobExecutionId);
       ensuringInProgress.remove(jobExecutionId);
     });
 
@@ -578,12 +575,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param sourceChunkId    - id of the JobExecutionSourceChunk
    * @param tenantId         - tenant id
    * @param acceptInstanceId - allow the 999ff$i field to be set and also create an instance with value in 999ff$i
-   * @param okapiParams      - OkapiConnectionParams to interact with external services
+   * @param okapiParams      - ConnectionParams to interact with external services
    * @return - list of records with parsed or error data
    */
   private Future<List<Record>> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
                                             JobExecution jobExecution, String sourceChunkId, String tenantId,
-                                            boolean acceptInstanceId, OkapiConnectionParams okapiParams) {
+                                            boolean acceptInstanceId, ConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Future.succeededFuture(Collections.emptyList());
     }
@@ -594,7 +591,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     var records = getParsedRecordsFromInitialRecords(rawRecords, recordContentType, jobExecution, acceptInstanceId, sourceChunkId).stream()
       .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
-          LOGGER.info("parseRecords:: Parsed {} records out of {}", counter.intValue(), rawRecords.size());
+          log.info("parseRecords:: Parsed {} records out of {}", counter.intValue(), rawRecords.size());
           jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao
@@ -613,7 +610,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                                          JobExecution jobExecution,
                                                          boolean acceptInstanceId,
                                                          String sourceChunkId) {
-    LOGGER.debug("getParsedRecordsFromInitialRecords:: recordContentType: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
+    log.debug("getParsedRecordsFromInitialRecords:: recordContentType: {}, jobExecutionId: {}, acceptInstanceId: {}, sourceChunkId: {}",
       recordContentType, jobExecution.getId(), acceptInstanceId, sourceChunkId);
 
     var parser = RecordParserBuilder.buildParser(recordContentType);
@@ -625,7 +622,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         if (!acceptInstanceId) {
           parsedResult = addErrorMessageWhen999ffFieldExistsOnCreateAction(jobExecution, parsedResult);
         } else {
-          LOGGER.debug("getParsedRecordsFromInitialRecords:: acceptInstanceId = true, sourceChunkId = {}, jobExecutionId = {} ",
+          log.debug("getParsedRecordsFromInitialRecords:: acceptInstanceId = true, sourceChunkId = {}, jobExecutionId = {} ",
             sourceChunkId, jobExecution.getId());
         }
 
@@ -638,7 +635,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           .withState(Record.State.ACTUAL)
           .withRawRecord(new RawRecord().withContent(rawRecord.getRecord()));
         if (parsedResult.isHasError()) {
-          LOGGER.warn("getParsedRecordsFromInitialRecords:: Parsed record with order: {} contains errors: {}, jobExecutionId: {}, sourceChunkId: {}",
+          log.warn("getParsedRecordsFromInitialRecords:: Parsed record with order: {} contains errors: {}, jobExecutionId: {}, sourceChunkId: {}",
             rawRecord.getOrder(), parsedResult.getErrors().encode(), jobExecution.getId(), sourceChunkId);
           record.setErrorRecord(new ErrorRecord()
             .withContent(rawRecord)
@@ -697,7 +694,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return futureList;
   }
 
-  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future<List<String>>> batchList, OkapiConnectionParams okapiParams,
+  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future<List<String>>> batchList, ConnectionParams okapiParams,
                                             JobExecution jobExecution, Promise<List<Record>> promise) {
     Future.all(batchList)
       .onComplete(as -> {
@@ -707,13 +704,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .map(Future<List<String>>::result)
             .flatMap(Collection::stream)
             .toList();
-          LOGGER.info("filterMarcHoldingsBy004Field:: MARC_BIB invalid list ids: {}", invalidMarcBibIds);
+          log.info("filterMarcHoldingsBy004Field:: MARC_BIB invalid list ids: {}", invalidMarcBibIds);
           var validMarcBibRecords = records.stream()
             .filter(record -> {
               var controlFieldValue = getControlFieldValue(record, TAG_004);
               return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
             }).toList();
-          LOGGER.info("filterMarcHoldingsBy004Field:: Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
+          log.info("filterMarcHoldingsBy004Field:: Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
             records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
           promise.complete(validMarcBibRecords);
         } else {
@@ -723,7 +720,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private Future<List<String>> getInvalidMarcBibIdsForConsortium(List<String> marcBibIds,
-                                                                 OkapiConnectionParams okapiParams) {
+                                                                 ConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(marcBibIds)) {
       return Future.succeededFuture(Collections.emptyList());
     }
@@ -739,18 +736,18 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       });
   }
 
-  private Future<List<String>> getCentralTenantInvalidIds(OkapiConnectionParams okapiParams,
+  private Future<List<String>> getCentralTenantInvalidIds(ConnectionParams okapiParams,
                                                           List<String> invalidIdsInMember,
                                                           Optional<ConsortiumConfiguration> consortiumConfiguration) {
     if (consortiumConfiguration.isPresent()) {
       var headers = prepareCentralTenantConnectionParams(okapiParams, consortiumConfiguration.get());
-      var params = new OkapiConnectionParams(headers, vertx);
+      var params = new ConnectionParams(headers);
       return verifyMarcHoldings004Field(invalidIdsInMember, params);
     }
     return Future.succeededFuture(invalidIdsInMember);
   }
 
-  private Map<String, String> prepareCentralTenantConnectionParams(OkapiConnectionParams okapiParams,
+  private Map<String, String> prepareCentralTenantConnectionParams(ConnectionParams okapiParams,
                                                                    ConsortiumConfiguration consortiumConfiguration) {
     var headers = new HashMap<String, String>();
     okapiParams.getHeaders().forEach(headers::put);
@@ -761,34 +758,34 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return headers;
   }
 
-  private Future<List<String>> verifyMarcHoldings004Field(List<String> marcBibIds, OkapiConnectionParams okapiParams) {
+  private Future<List<String>> verifyMarcHoldings004Field(List<String> marcBibIds, ConnectionParams okapiParams) {
     Promise<List<String>> promise = Promise.promise();
     var sourceStorageBatchClient = getSourceStorageBatchClient(okapiParams);
     try {
       sourceStorageBatchClient.postSourceStorageBatchVerifiedRecords(marcBibIds, asyncResult -> {
-        LOGGER.info("verifyMarcHoldings004Field:: Verify list of marc bib ids: {} ", marcBibIds);
+        log.info("verifyMarcHoldings004Field:: Verify list of marc bib ids: {} ", marcBibIds);
         List<String> invalidMarcBibIds = new ArrayList<>();
         if (asyncResult.succeeded() && asyncResult.result().statusCode() == 200) {
           var body = asyncResult.result().body();
-          LOGGER.info("verifyMarcHoldings004Field:: Response from SRS with invalid MARC Bib ids: {}", body);
+          log.info("verifyMarcHoldings004Field:: Response from SRS with invalid MARC Bib ids: {}", body);
           var object = new JsonObject(body);
           var ids = object.getJsonArray("invalidMarcBibIds");
           invalidMarcBibIds = ids.getList();
-          LOGGER.info("verifyMarcHoldings004Field:: List of marc bib ids: {}", invalidMarcBibIds);
+          log.info("verifyMarcHoldings004Field:: List of marc bib ids: {}", invalidMarcBibIds);
         } else {
-          LOGGER.info("verifyMarcHoldings004Field:: The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(),
+          log.info("verifyMarcHoldings004Field:: The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(),
             asyncResult.result().statusCode());
         }
         promise.complete(invalidMarcBibIds);
       });
     } catch (Exception e) {
-      LOGGER.warn("verifyMarcHoldings004Field:: Error during call post request to SRS", e);
+      log.warn("verifyMarcHoldings004Field:: Error during call post request to SRS", e);
       promise.complete(Collections.emptyList());
     }
     return promise.future();
   }
 
-  private boolean isValidMarcHoldings(JobExecution jobExecution, OkapiConnectionParams okapiParams,
+  private boolean isValidMarcHoldings(JobExecution jobExecution, ConnectionParams okapiParams,
                                       List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
     if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
       // avoid populating error if there is already populated via 999ff-field error.
@@ -801,32 +798,32 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return true;
   }
 
-  private void populateError(Record record, JobExecution jobExecution, OkapiConnectionParams okapiParams) {
+  private void populateError(Record record, JobExecution jobExecution, ConnectionParams okapiParams) {
     var eventPayload = getDataImportPayload(record, jobExecution, okapiParams);
     eventPayload.getContext().put(RECORD_ID_HEADER, record.getId());
     var key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
-    LOGGER.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
+    log.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
     record.setParsedRecord(null);
     record.setErrorRecord(new ErrorRecord()
       .withContent(record.getRawRecord().getContent())
       .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
     );
-    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders());
+    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMap(okapiParams.getHeaders());
     kafkaHeaders.add(new KafkaHeaderImpl(RECORD_ID_HEADER, record.getId()));
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), kafkaHeaders, kafkaConfig, key)
       .onFailure(
-        th -> LOGGER.warn("populateError:: Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
+        th -> log.warn("populateError:: Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
   }
 
   private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution,
-                                                      OkapiConnectionParams okapiParams) {
+                                                      ConnectionParams okapiParams) {
     EntityType sourceRecordKey = RecordConversionUtil.getEntityType(record);
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
       .withJobExecutionId(record.getSnapshotId())
-      .withOkapiUrl(okapiParams.getOkapiUrl())
+      .withOkapiUrl(okapiParams.getConnectionUrl())
       .withTenant(okapiParams.getTenantId())
       .withToken(okapiParams.getToken())
       .withContext(new HashMap<>() {{
@@ -835,9 +832,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }});
   }
 
-  private SourceStorageBatchClient getSourceStorageBatchClient(OkapiConnectionParams okapiParams) {
+  private SourceStorageBatchClient getSourceStorageBatchClient(ConnectionParams okapiParams) {
     var token = okapiParams.getToken();
-    var okapiUrl = okapiParams.getOkapiUrl();
+    var okapiUrl = okapiParams.getConnectionUrl();
     var tenantId = okapiParams.getTenantId();
     return new SourceStorageBatchClient(okapiUrl, tenantId, token);
   }
@@ -864,7 +861,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord) {
     if (isBlank(getControlFieldValue(record, TAG_004))) {
-      LOGGER.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
+      log.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
       record.setParsedRecord(null);
       record.setErrorRecord(new ErrorRecord()
         .withContent(rawRecord)
@@ -874,7 +871,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
-                                                  OkapiConnectionParams okapiParams) {
+                                                  ConnectionParams okapiParams) {
     if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
       return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
     }
@@ -915,10 +912,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       recordParsedResult.setErrors(new JsonObject()
         .put(MESSAGE_KEY, String.format("Error during analyze leader line for determining record type for record with id %s", recordId))
         .put("error", parsedRecord));
-      LOGGER.warn("checkLeaderLine:: Marc record analyzer found problem on leader line in marc file for record with id: {}, for jobExecutionId: {} from chunk with id: {} from file: {}",
+      log.warn("checkLeaderLine:: Marc record analyzer found problem on leader line in marc file for record with id: {}, for jobExecutionId: {} from chunk with id: {} from file: {}",
         recordId, jobExecution.getId(), chunkId, fileName);
     } else {
-      LOGGER.info("checkLeaderLine:: Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}",
+      log.info("checkLeaderLine:: Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}",
         recordId, marcRecordType, jobExecution.getId(), chunkId, fileName);
     }
   }
@@ -949,7 +946,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId).withAuthorityHrid(hrId)),
                 () -> {
                   record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId));
-                  LOGGER.warn("fillParsedRecordsWithAdditionalFields:: record with id: {} does not contain the hrId field", record.getId());
+                  log.warn("fillParsedRecordsWithAdditionalFields:: record with id: {} does not contain the hrId field", record.getId());
                 });
           }
         }
@@ -975,17 +972,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param jobExecution  - job execution related to records
    * @param parsedRecords - parsed records
    */
-  private Future<List<Record>> saveRecords(OkapiConnectionParams params, JobExecution jobExecution,
+  private Future<List<Record>> saveRecords(ConnectionParams params, JobExecution jobExecution,
                                            List<Record> parsedRecords) {
     if (CollectionUtils.isEmpty(parsedRecords)) {
       return Future.succeededFuture();
     }
-    LOGGER.info("saveRecords:: Saving records in SRS, amount: {}, jobExecutionId: {}", parsedRecords.size(), jobExecution.getId());
+    log.info("saveRecords:: Saving records in SRS, amount: {}, jobExecutionId: {}", parsedRecords.size(), jobExecution.getId());
     RecordCollection recordCollection = new RecordCollection()
       .withRecords(parsedRecords)
       .withTotalRecords(parsedRecords.size());
 
-    List<KafkaHeader> kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+    List<KafkaHeader> kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMap(params.getHeaders());
 
     kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));

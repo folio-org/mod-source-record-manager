@@ -1,7 +1,7 @@
 package org.folio.services.progress;
 
 import io.vertx.core.Future;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 
@@ -59,5 +59,5 @@ public interface JobExecutionProgressService {
    * @param params        okapi connection parameters
    * @return future that returns when the notification is successful
    */
-  Future<Void> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, OkapiConnectionParams params);
+  Future<Void> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, ConnectionParams params);
 }

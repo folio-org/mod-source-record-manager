@@ -1,7 +1,7 @@
 package org.folio.services.progress;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 
 /**
@@ -10,9 +10,9 @@ import org.folio.rest.jaxrs.model.JobExecutionProgress;
  */
 public class BatchableJobExecutionProgress {
   private final JobExecutionProgress jobExecutionProgress;
-  private final OkapiConnectionParams params;
+  private final ConnectionParams params;
 
-  public BatchableJobExecutionProgress(OkapiConnectionParams params, JobExecutionProgress jobExecutionProgress) {
+  public BatchableJobExecutionProgress(ConnectionParams params, JobExecutionProgress jobExecutionProgress) {
     if (params == null || StringUtils.isBlank(params.getTenantId())) {
       throw new IllegalArgumentException("Tenant ID must be set in Okapi connection parameters");
     }
@@ -27,7 +27,7 @@ public class BatchableJobExecutionProgress {
     return jobExecutionProgress;
   }
 
-  public OkapiConnectionParams getParams() {
+  public ConnectionParams getParams() {
     return params;
   }
 }

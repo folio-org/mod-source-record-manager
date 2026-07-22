@@ -22,21 +22,22 @@ import org.folio.services.MappingRuleService;
 import org.folio.services.util.QueryPathUtil;
 import org.folio.spring.SpringContextUtil;
 
+@SuppressWarnings("java:S6813")
 public class MappingRulesProviderImpl implements MappingRules {
-  private String tenantId;
+
+  private static final Logger log = LogManager.getLogger();
+
   @Autowired
   private MappingRuleService mappingRuleService;
-  private static final Logger LOGGER = LogManager.getLogger();
 
-  public MappingRulesProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
+  public MappingRulesProviderImpl() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
-    this.tenantId = TenantTool.calculateTenantId(tenantId);
   }
 
-
   @Override
-  public void getMappingRulesByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    LOGGER.debug("getMappingRulesByRecordType:: recordType {}", recordType);
+  public void getMappingRulesByRecordType(String recordType, Map<String, String> headers, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    log.debug("getMappingRulesByRecordType:: recordType {}", recordType);
+    var tenantId = TenantTool.tenantId(headers);
     succeededFuture()
       .compose(ar -> mappingRuleService.get(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
         new BadRequestException("Only marc-bib, marc-holdings or marc-authority supported")), tenantId))
@@ -50,8 +51,9 @@ public class MappingRulesProviderImpl implements MappingRules {
 
 
   @Override
-  public void putMappingRulesByRecordType(String recordType, String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    LOGGER.debug("putMappingRulesByRecordType:: recordType {}", recordType);
+  public void putMappingRulesByRecordType(String recordType, String entity, Map<String, String> headers, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    log.debug("putMappingRulesByRecordType:: recordType {}", recordType);
+    var tenantId = TenantTool.tenantId(headers);
     succeededFuture()
       .compose(ar -> mappingRuleService.update(entity, QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
         new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))
@@ -63,8 +65,9 @@ public class MappingRulesProviderImpl implements MappingRules {
 
 
   @Override
-  public void putMappingRulesRestoreByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    LOGGER.debug("putMappingRulesRestoreByRecordType:: recordType {}", recordType);
+  public void putMappingRulesRestoreByRecordType(String recordType, Map<String, String> headers, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    log.debug("putMappingRulesRestoreByRecordType:: recordType {}", recordType);
+    var tenantId = TenantTool.tenantId(headers);
     succeededFuture()
       .compose(ar -> mappingRuleService.restore(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
         new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))

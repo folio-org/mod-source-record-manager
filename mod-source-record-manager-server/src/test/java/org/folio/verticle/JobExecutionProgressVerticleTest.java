@@ -8,7 +8,8 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.JobExecutionProgressDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
@@ -35,10 +36,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.folio.KafkaUtil.checkKafkaEventSent;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_JOB_COMPLETED;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.progress.JobExecutionProgressUtil.getBatchJobProgressProducer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -84,12 +82,12 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
     tenantId = UUID.randomUUID().toString();
   }
 
-  private OkapiConnectionParams createOkapiConnectionParams(String tenantId) {
+  private ConnectionParams createConnectionParams(String tenantId) {
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost:8080");
-    headers.put(OKAPI_TENANT_HEADER, tenantId);
-    headers.put(OKAPI_TOKEN_HEADER, "token");
-    return new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost:8080");
+    headers.put(XOkapiHeaders.TENANT, tenantId);
+    headers.put(XOkapiHeaders.TOKEN, "token");
+    return new ConnectionParams(headers);
   }
 
   @Test
@@ -124,7 +122,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withCurrentlySucceeded(2)
       .withTotal(3);
     BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
-      createOkapiConnectionParams(tenantId),
+      createConnectionParams(tenantId),
       jobExecutionProgress);
     // return appropriate objects for mocks
     when(jobExecutionService.getJobExecutionById(eq(childJobExecution.getId()), any()))
@@ -202,7 +200,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withCurrentlySucceeded(3)
       .withTotal(3);
     BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
-      createOkapiConnectionParams(tenantId),
+      createConnectionParams(tenantId),
       jobExecutionProgress);
     // return appropriate objects for mocks
     when(jobExecutionService.getJobExecutionById(eq(childJobExecution.getId()), any()))
@@ -278,7 +276,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withCurrentlySucceeded(2)
       .withTotal(3);
     BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
-      createOkapiConnectionParams(tenantId),
+      createConnectionParams(tenantId),
       jobExecutionProgress);
     // return appropriate objects for mocks
     when(jobExecutionService.getJobExecutionById(eq(childJobExecution.getId()), any()))
@@ -343,7 +341,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withCurrentlySucceeded(1)
       .withTotal(3);
     BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
-      createOkapiConnectionParams(tenantId),
+      createConnectionParams(tenantId),
       jobExecutionProgress);
     // return appropriate objects for mocks
     when(jobExecutionService.getJobExecutionById(any(), any()))
@@ -395,7 +393,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withCurrentlySucceeded(2)
       .withTotal(3);
     BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
-      createOkapiConnectionParams(tenantId),
+      createConnectionParams(tenantId),
       jobExecutionProgress);
     // return appropriate objects for mocks
     when(jobExecutionService.getJobExecutionById(eq(childJobExecution.getId()), any()))
@@ -459,7 +457,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withCurrentlySucceeded(2)
       .withTotal(1);
     BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(
-      createOkapiConnectionParams(tenantId),
+      createConnectionParams(tenantId),
       jobExecutionProgress);
     // return appropriate objects for mocks
     when(jobExecutionService.getJobExecutionById(any(), any()))
@@ -523,7 +521,7 @@ public class JobExecutionProgressVerticleTest extends AbstractRestTest {
       .withCurrentlySucceeded(3)
       .withTotal(3);
     BatchableJobExecutionProgress batchableJobExecutionProgress =
-      new BatchableJobExecutionProgress(createOkapiConnectionParams(tenantId), jobExecutionProgress);
+      new BatchableJobExecutionProgress(createConnectionParams(tenantId), jobExecutionProgress);
 
     when(jobExecutionProgressDao.updateCompletionCounts(eq(jobExecution.getId()), anyInt(), anyInt(), any()))
       .thenReturn(Future.succeededFuture(jobExecutionProgress));

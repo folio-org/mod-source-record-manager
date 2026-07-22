@@ -99,7 +99,7 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
     EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(EventTypeHandlerSelector.class);
     Assert.assertNotNull(eventTypeHandlerSelector);
 
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(eventProcessedService, eventTypeHandlerSelector, journalService);
   }
 
   String INVOICE_ID = UUID.randomUUID().toString();

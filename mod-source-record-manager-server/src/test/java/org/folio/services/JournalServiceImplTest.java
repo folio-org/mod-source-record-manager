@@ -6,7 +6,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +32,7 @@ public class JournalServiceImplTest {
   private JournalRecordDao journalRecordDao;
 
   @InjectMocks
-  private JournalService journalService = new JournalServiceImpl(journalRecordDao);
+  private JournalServiceImpl journalService;
 
   @Before
   public void setUp() {

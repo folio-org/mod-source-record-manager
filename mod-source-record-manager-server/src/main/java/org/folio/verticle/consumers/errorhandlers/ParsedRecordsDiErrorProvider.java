@@ -2,7 +2,7 @@ package org.folio.verticle.consumers.errorhandlers;
 
 import com.google.common.collect.Lists;
 import io.vertx.core.Future;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
@@ -18,8 +18,8 @@ public class ParsedRecordsDiErrorProvider {
 
   private static final String ERROR_SOURCE_CHUNK_ID = "a5fe4e07-d6b3-47c7-9b84-3e4074f7177f";
 
-  private JobExecutionService jobExecutionService;
-  private ChangeEngineServiceImpl changeEngineService;
+  private final JobExecutionService jobExecutionService;
+  private final ChangeEngineServiceImpl changeEngineService;
 
   @Autowired
   public ParsedRecordsDiErrorProvider(JobExecutionService jobExecutionService, ChangeEngineServiceImpl changeEngineService) {
@@ -35,7 +35,7 @@ public class ParsedRecordsDiErrorProvider {
    * @param rawRecordsDto the raw records dto
    * @return list of parsed records
    */
-  public Future<List<Record>> getParsedRecordsFromInitialRecords(OkapiConnectionParams okapiParams,
+  public Future<List<Record>> getParsedRecordsFromInitialRecords(ConnectionParams okapiParams,
                                                          String jobExecutionId,
                                                          RawRecordsDto rawRecordsDto) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, okapiParams.getTenantId())

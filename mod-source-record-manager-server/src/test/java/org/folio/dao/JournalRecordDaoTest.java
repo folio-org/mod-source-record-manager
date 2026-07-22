@@ -12,17 +12,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.pgclient.PgException;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -35,27 +34,15 @@ import org.folio.rest.persist.PostgresClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 @RunWith(VertxUnitRunner.class)
 public class JournalRecordDaoTest extends AbstractRestTest {
 
-  @Spy
-  PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
-
-  @Mock
-  private PostgresClient pgClient;
-
-  @InjectMocks
-  JournalRecordDao journalRecordDao = new JournalRecordDaoImpl();
+  private JournalRecordDao journalRecordDao;
 
   @Before
-  public void setUp(TestContext context) throws IOException {
-    MockitoAnnotations.openMocks(this);
-    super.setUp(context);
+  public void setUpDao() {
+    journalRecordDao = new JournalRecordDaoImpl(new PostgresClientFactory(vertx));
   }
 
   @Test
@@ -135,15 +122,18 @@ public class JournalRecordDaoTest extends AbstractRestTest {
   public void shouldRetryOnDeadlockAndSucceed(TestContext context) {
     Async async = context.async();
     // Setup mock behavior
-    when(postgresClientFactory.createInstance(anyString())).thenReturn(pgClient);
+    var factory = mock(PostgresClientFactory.class);
+    var client = mock(PostgresClient.class);
+    when(factory.createInstance(anyString())).thenReturn(client);
+    when(factory.getVertx()).thenReturn(vertx);
     PgException deadlockException = new PgException("Deadlock", "ERROR", "40P01", "Deadlock detected");
-    when(pgClient.execute(anyString(), anyList()))
+    when(client.execute(anyString(), anyList()))
       .thenReturn(Future.failedFuture(deadlockException)) // First attempt fails
       .thenReturn(Future.succeededFuture());             // Second attempt succeeds
 
-    journalRecordDao.saveBatch(journalRecords(), TENANT_ID)
+    new JournalRecordDaoImpl(factory).saveBatch(journalRecords(), TENANT_ID)
       .onComplete(context.asyncAssertSuccess(v -> {
-        verify(pgClient, times(2)).execute(anyString(), anyList());
+        verify(client, times(2)).execute(anyString(), anyList());
         async.complete();
       }));
   }
@@ -182,15 +172,17 @@ public class JournalRecordDaoTest extends AbstractRestTest {
   @Test
   public void shouldNotRetryOnOtherErrors(TestContext context) {
     Async async = context.async();
-    when(postgresClientFactory.createInstance(anyString())).thenReturn(pgClient);
+    var factory = mock(PostgresClientFactory.class);
+    var client = mock(PostgresClient.class);
+    when(factory.createInstance(anyString())).thenReturn(client);
     // Setup non-deadlock error
     PgException otherError = new PgException("Constraint violation", "ERROR", "23505", "Unique violation");
-    when(pgClient.execute(anyString(), anyList()))
+    when(client.execute(anyString(), anyList()))
       .thenReturn(Future.failedFuture(otherError));
 
-    journalRecordDao.saveBatch(journalRecords(), TENANT_ID)
+    new JournalRecordDaoImpl(factory).saveBatch(journalRecords(), TENANT_ID)
       .onComplete(context.asyncAssertFailure(throwable -> {
-        verify(pgClient, times(1)).execute(anyString(), anyList());
+        verify(client, times(1)).execute(anyString(), anyList());
         async.complete();
       }));
   }

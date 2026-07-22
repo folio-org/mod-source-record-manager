@@ -1,7 +1,6 @@
 package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 
@@ -9,9 +8,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.nio.charset.StandardCharsets;
@@ -32,8 +31,6 @@ import java.util.UUID;
 
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.mappers.processor.MappingParametersProviderTest.SYSTEM_USER_ENABLED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -51,8 +48,6 @@ public class DataImportKafkaHandlerMockTest {
   private static final String KAFKA_ENV = "folio";
   private static final String DI_KAFKA_HANDLER_ID = "6713adda-72ce-11ec-90d6-0242ac120003";
 
-  @Spy
-  private Vertx vertx = Vertx.vertx();
   @Mock
   private EventHandlingService eventHandlingService;
   @Mock
@@ -63,7 +58,7 @@ public class DataImportKafkaHandlerMockTest {
 
   @Before
   public void setUp() {
-    dataImportKafkaHandler = new DataImportKafkaHandler(vertx, eventHandlingService, eventProcessedService, flowControlService);
+    dataImportKafkaHandler = new DataImportKafkaHandler(eventHandlingService, eventProcessedService, flowControlService);
   }
 
   @Test
@@ -82,7 +77,7 @@ public class DataImportKafkaHandlerMockTest {
       .withEventPayload(Json.encode(dataImportEventPayload));
     String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
     ConsumerRecord<String, byte[]> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TENANT, TENANT_ID.getBytes()));
     consumerRecord.headers().add(new RecordHeader("recordId", UUID.randomUUID().toString().getBytes()));
     KafkaConsumerRecordImpl<String, byte[]> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
 
@@ -92,7 +87,7 @@ public class DataImportKafkaHandlerMockTest {
     // then
     Assert.assertTrue(future.succeeded());
     Assert.assertTrue(future.isComplete());
-    verify(eventHandlingService, never()).handle(anyString(), any(OkapiConnectionParams.class));
+    verify(eventHandlingService, never()).handle(anyString(), any(ConnectionParams.class));
   }
 
   @Test
@@ -100,7 +95,7 @@ public class DataImportKafkaHandlerMockTest {
     // given
     System.setProperty(SYSTEM_USER_ENABLED, "false");
     // given
-    Mockito.when(eventHandlingService.handle(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture());
+    Mockito.when(eventHandlingService.handle(anyString(), any(ConnectionParams.class))).thenReturn(Future.succeededFuture());
     Mockito.when(eventProcessedService.collectData(eq(DI_KAFKA_HANDLER_ID),eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
       .thenReturn(Future.succeededFuture());
 
@@ -115,8 +110,8 @@ public class DataImportKafkaHandlerMockTest {
       .withEventPayload(Json.encode(dataImportEventPayload));
     String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
     ConsumerRecord<String, byte[]> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, TOKEN.getBytes()));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TENANT, TENANT_ID.getBytes()));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TOKEN, TOKEN.getBytes()));
     consumerRecord.headers().add(new RecordHeader("recordId", UUID.randomUUID().toString().getBytes()));
     KafkaConsumerRecordImpl<String, byte[]> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
 
@@ -133,7 +128,7 @@ public class DataImportKafkaHandlerMockTest {
   @Test
   public void shouldHandleWhenThereIsNoRecordIdInTheKafkaRecord() {
     // given
-    Mockito.when(eventHandlingService.handle(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture());
+    Mockito.when(eventHandlingService.handle(anyString(), any(ConnectionParams.class))).thenReturn(Future.succeededFuture());
     Mockito.when(eventProcessedService.collectData(eq(DI_KAFKA_HANDLER_ID),eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
       .thenReturn(Future.succeededFuture());
 
@@ -148,8 +143,8 @@ public class DataImportKafkaHandlerMockTest {
       .withEventPayload(Json.encode(dataImportEventPayload));
     String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
     ConsumerRecord<String, byte[]> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, TOKEN.getBytes()));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TENANT, TENANT_ID.getBytes()));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TOKEN, TOKEN.getBytes()));
     consumerRecord.headers().add(new RecordHeader("recordId", UUID.randomUUID().toString().getBytes()));
     KafkaConsumerRecordImpl<String, byte[]> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
 
@@ -179,7 +174,7 @@ public class DataImportKafkaHandlerMockTest {
       .withEventPayload(Json.encode(dataImportEventPayload));
     String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
     ConsumerRecord<String, byte[]> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TENANT, TENANT_ID.getBytes()));
     consumerRecord.headers().add(new RecordHeader("recordId", UUID.randomUUID().toString().getBytes()));
     KafkaConsumerRecordImpl<String, byte[]> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
 
@@ -189,6 +184,6 @@ public class DataImportKafkaHandlerMockTest {
     Assert.assertTrue(future.failed());
     Assert.assertTrue(future.cause() instanceof SQLException);
     Assert.assertTrue(future.isComplete());
-    verify(eventHandlingService, never()).handle(anyString(), any(OkapiConnectionParams.class));
+    verify(eventHandlingService, never()).handle(anyString(), any(ConnectionParams.class));
   }
 }

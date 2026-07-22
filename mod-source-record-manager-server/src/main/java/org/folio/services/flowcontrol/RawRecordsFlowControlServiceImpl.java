@@ -1,10 +1,8 @@
 package org.folio.services.flowcontrol;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 
+@Log4j2
 @Service
 @EnableScheduling
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
-  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final Integer instanceId = new Random().nextInt(9);
 
@@ -31,8 +29,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   @Value("${di.flow.control.enable:true}")
   private boolean enableFlowControl;
 
-  @Autowired
-  private KafkaConsumersStorage consumersStorage;
+  private final KafkaConsumersStorage consumersStorage;
 
   /**
    * Represents the current state of flow control to make decisions when need to make new fetch call.
@@ -50,9 +47,13 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    */
   private final Map<String, Pair<Integer, Integer>> historyState = new ConcurrentHashMap<>();
 
+  public RawRecordsFlowControlServiceImpl(KafkaConsumersStorage consumersStorage) {
+    this.consumersStorage = consumersStorage;
+  }
+
   @PostConstruct
   public void init() {
-    LOGGER.info("init:: Flow control feature is {}, instanceId: {}", enableFlowControl ? "enabled" : "disabled", instanceId);
+    log.info("init:: Flow control feature is {}, instanceId: {}", enableFlowControl ? "enabled" : "disabled", instanceId);
   }
 
   /**
@@ -76,7 +77,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     currentState.forEach((tenantId, counterVal) -> {
-      LOGGER.info("resetState:: Tenant: [{}], instanceId:{} ", tenantId, instanceId);
+      log.info("resetState:: Tenant: [{}], instanceId:{} ", tenantId, instanceId);
       resumeIfThresholdAllows(tenantId);
     });
   }
@@ -89,7 +90,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     initFetchMode(tenantId);
     increaseCounterInDb(tenantId, recordsCount);
-    LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}], instanceId:{}. Chunk received. Record count: {}, Current state: {} ",
+    log.debug("trackChunkReceivedEvent:: Tenant: [{}], instanceId:{}. Chunk received. Record count: {}, Current state: {} ",
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
@@ -100,7 +101,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     decreaseState(tenantId, recordsCount);
-    LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
+    log.debug("trackRecordCompleteEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
@@ -111,7 +112,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     decreaseState(tenantId, recordsCount);
-    LOGGER.debug("trackChunkDuplicateEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
+    log.debug("trackChunkDuplicateEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
@@ -123,12 +124,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("triggerNextChunksFetch:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+        log.info("triggerNextChunksFetch:: Before chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
         if (consumer.demand() == 0) {
           consumer.fetch(maxSimultaneousChunks);
         }
-        LOGGER.info("triggerNextChunksFetch:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
+        log.info("triggerNextChunksFetch:: After chunks fetch, tenantId: {}, instanceId: {}, Demand: {}, Current state: {}",
           tenantId, instanceId, consumer.demand(), currentState.get(tenantId));
       });
   }
@@ -141,16 +142,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
 
-    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. Before: Current state:{}, History state: {}",
+    log.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. Before: Current state:{}, History state: {}",
       tenantId, instanceId, currentState.get(tenantId), historyState.get(tenantId));
     updatePreviousStateValue(tenantId);
 
-    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. After: Current state:{}, History state: {}",
+    log.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. After: Current state:{}, History state: {}",
       tenantId, instanceId, currentState.get(tenantId), historyState.get(tenantId));
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. DI_RAW_RECORDS_CHUNK_READ. " +
+        log.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, instanceId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
         if (((consumer.demand() == 0) && (currentState.get(tenantId) <= recordsThreshold))  || isFetchEligible(tenantId)) {
@@ -159,7 +160,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           }
           consumer.fetch(maxSimultaneousChunks);
 
-          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
+          log.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId:{}, Demand:{}, Current state:{}, History state:{}", tenantId, instanceId, consumer.getId(), consumer.demand(),
             currentState.get(tenantId), historyState.get(tenantId));
 

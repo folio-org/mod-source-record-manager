@@ -5,10 +5,9 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.StatusDto;
@@ -17,10 +16,10 @@ import org.folio.util.DataImportEventPayloadWithoutCurrentNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Log4j2
 @Service
 public class RecordProcessedEventHandlingServiceImpl implements EventHandlingService {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   public static final String ERROR_KEY = "ERROR";
   public static final String ERRORS_KEY = "ERRORS";
   private static final String EMPTY_ARRAY = "[]";
@@ -35,13 +34,13 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
   }
 
   @Override
-  public Future<Boolean> handle(String eventContent, OkapiConnectionParams params) {
+  public Future<Boolean> handle(String eventContent, ConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
     DataImportEventPayload dataImportEventPayload;
     try {
       dataImportEventPayload = Json.decodeValue(eventContent, DataImportEventPayloadWithoutCurrentNode.class);
     } catch (DecodeException e) {
-      LOGGER.warn("handle:: Failed to read eventContent {}", eventContent, e);
+      log.warn("handle:: Failed to read eventContent {}", eventContent, e);
       promise.fail(e);
       return promise.future();
     }
@@ -62,14 +61,14 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       } else if (DataImportEventTypes.DI_ERROR.equals(eventType)) {
         errorCount++;
       } else {
-        LOGGER.warn("handle:: Illegal event type specified '{}' ", eventType);
+        log.warn("handle:: Illegal event type specified '{}' ", eventType);
         return Future.succeededFuture(false);
       }
 
       jobExecutionProgressService.updateCompletionCounts(jobExecutionId, successCount, errorCount, params)
         .onComplete(ar -> {
           if (ar.failed()) {
-            LOGGER.warn("handle:: Failed to handle {} event", eventType, ar.cause());
+            log.warn("handle:: Failed to handle {} event", eventType, ar.cause());
             updateJobStatusToError(jobExecutionId, params)
               .onComplete(statusAr -> promise.fail(ar.cause()));
           } else {
@@ -77,14 +76,14 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
           }
         });
     } catch (Exception e) {
-      LOGGER.warn("handle:: Failed to handle event {}", eventContent, e);
+      log.warn("handle:: Failed to handle event {}", eventContent, e);
       updateJobStatusToError(jobExecutionId, params);
       promise.fail(e);
     }
     return promise.future();
   }
 
-  private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {
+  private Future<JobExecution> updateJobStatusToError(String jobExecutionId, ConnectionParams params) {
     return jobExecutionService.updateJobExecutionStatus(jobExecutionId, new StatusDto()
       .withStatus(StatusDto.Status.ERROR)
       .withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR), params);

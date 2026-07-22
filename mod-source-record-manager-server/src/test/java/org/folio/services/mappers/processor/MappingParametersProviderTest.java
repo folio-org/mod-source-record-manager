@@ -7,9 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
@@ -26,7 +23,8 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.util.Collections;
 import java.util.HashMap;
 import org.folio.LinkingRuleDto;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.junit.Assert;
 import org.junit.Before;
@@ -88,7 +86,7 @@ public class MappingParametersProviderTest {
     );
 
   private MappingParametersProvider mappingParametersProvider;
-  private OkapiConnectionParams okapiConnectionParams;
+  private ConnectionParams okapiConnectionParams;
 
   @Before
   public void setUp() {
@@ -97,10 +95,10 @@ public class MappingParametersProviderTest {
     url = "http://localhost:" + snapshotMockServer.port();
 
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, url);
-    headers.put(OKAPI_TENANT_HEADER, TENANT);
-    headers.put(OKAPI_TOKEN_HEADER, TOKEN);
-    okapiConnectionParams = new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, url);
+    headers.put(XOkapiHeaders.TENANT, TENANT);
+    headers.put(XOkapiHeaders.TOKEN, TOKEN);
+    okapiConnectionParams = new ConnectionParams(headers);
 
     WireMock.stubFor(
       get(AUTHORITY_IDENTIFIER_TYPES_URL)
@@ -245,19 +243,19 @@ public class MappingParametersProviderTest {
           context.assertTrue(result.isInitialized());
           context.assertTrue(!result.getLinkingRules().isEmpty());
           verify(1, getRequestedFor(urlEqualTo(LINKING_RULES_URL))
-            .withHeader(OKAPI_URL_HEADER, equalTo(url))
-            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
-            .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
+            .withHeader(XOkapiHeaders.URL, equalTo(url))
+            .withHeader(XOkapiHeaders.TENANT, equalTo(TENANT))
+            .withHeader(XOkapiHeaders.TOKEN, equalTo(TOKEN)));
 
           verify(1, getRequestedFor(urlEqualTo(TENANT_TIME_ZONE_SETTINGS_URL))
-            .withHeader(OKAPI_URL_HEADER, equalTo(url))
-            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
-            .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
+            .withHeader(XOkapiHeaders.URL, equalTo(url))
+            .withHeader(XOkapiHeaders.TENANT, equalTo(TENANT))
+            .withHeader(XOkapiHeaders.TOKEN, equalTo(TOKEN)));
 
           verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL))
-            .withHeader(OKAPI_URL_HEADER, equalTo(url))
-            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
-            .withHeader(OKAPI_TOKEN_HEADER, equalTo(TOKEN)));
+            .withHeader(XOkapiHeaders.URL, equalTo(url))
+            .withHeader(XOkapiHeaders.TENANT, equalTo(TENANT))
+            .withHeader(XOkapiHeaders.TOKEN, equalTo(TOKEN)));
           async.complete();
         });
   }
@@ -276,19 +274,19 @@ public class MappingParametersProviderTest {
           context.assertTrue(result.isInitialized());
           context.assertTrue(!result.getLinkingRules().isEmpty());
           verify(1, getRequestedFor(urlEqualTo(LINKING_RULES_URL))
-            .withHeader(OKAPI_URL_HEADER, equalTo(url))
-            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
-            .withoutHeader(OKAPI_TOKEN_HEADER));
+            .withHeader(XOkapiHeaders.URL, equalTo(url))
+            .withHeader(XOkapiHeaders.TENANT, equalTo(TENANT))
+            .withoutHeader(XOkapiHeaders.TOKEN));
 
           verify(1, getRequestedFor(urlEqualTo(TENANT_TIME_ZONE_SETTINGS_URL))
-            .withHeader(OKAPI_URL_HEADER, equalTo(url))
-            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
-            .withoutHeader(OKAPI_TOKEN_HEADER));
+            .withHeader(XOkapiHeaders.URL, equalTo(url))
+            .withHeader(XOkapiHeaders.TENANT, equalTo(TENANT))
+            .withoutHeader(XOkapiHeaders.TOKEN));
 
           verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL))
-            .withHeader(OKAPI_URL_HEADER, equalTo(url))
-            .withHeader(OKAPI_TENANT_HEADER, equalTo(TENANT))
-            .withoutHeader(OKAPI_TOKEN_HEADER));
+            .withHeader(XOkapiHeaders.URL, equalTo(url))
+            .withHeader(XOkapiHeaders.TENANT, equalTo(TENANT))
+            .withoutHeader(XOkapiHeaders.TOKEN));
           async.complete();
           System.clearProperty(SYSTEM_USER_ENABLED);
         });
@@ -354,7 +352,7 @@ public class MappingParametersProviderTest {
    */
   @Test
   public void cacheKeyEquality() {
-    OkapiConnectionParams otherParams = new OkapiConnectionParams(Collections.emptyMap(), rule.vertx());
+    ConnectionParams otherParams = new ConnectionParams(Collections.emptyMap());
     Assert.assertNotEquals(okapiConnectionParams, otherParams);
 
     MappingParametersProvider.MappingParameterKey key1 =

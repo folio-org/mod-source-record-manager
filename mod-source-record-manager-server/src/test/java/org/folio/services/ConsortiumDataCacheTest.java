@@ -14,7 +14,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.util.Map;
 import java.util.UUID;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.services.entity.ConsortiumConfiguration;
 import org.junit.Before;
@@ -64,7 +64,7 @@ public class ConsortiumDataCacheTest {
     WireMock.stubFor(get(USER_TENANTS_PATH)
       .willReturn(WireMock.ok().withBody(userTenantsCollection.encodePrettily())));
 
-    var future = consortiumDataCache.getConsortiumData(new OkapiConnectionParams(okapiHeaders, vertx));
+    var future = consortiumDataCache.getConsortiumData(new ConnectionParams(okapiHeaders));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -85,7 +85,7 @@ public class ConsortiumDataCacheTest {
     WireMock.stubFor(get(USER_TENANTS_PATH)
       .willReturn(WireMock.ok().withBody(emptyUserTenantsCollection.encodePrettily())));
 
-    var future = consortiumDataCache.getConsortiumData(new OkapiConnectionParams(okapiHeaders, vertx));
+    var future = consortiumDataCache.getConsortiumData(new ConnectionParams(okapiHeaders));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -99,7 +99,7 @@ public class ConsortiumDataCacheTest {
     Async async = context.async();
     WireMock.stubFor(get(USER_TENANTS_PATH).willReturn(WireMock.serverError()));
 
-    var future = consortiumDataCache.getConsortiumData(new OkapiConnectionParams(okapiHeaders, vertx))
+    var future = consortiumDataCache.getConsortiumData(new ConnectionParams(okapiHeaders))
       .onComplete(context.asyncAssertFailure());
 
     future.onComplete(ar -> {

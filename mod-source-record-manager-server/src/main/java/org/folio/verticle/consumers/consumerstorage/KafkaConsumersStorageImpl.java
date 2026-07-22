@@ -1,7 +1,5 @@
 package org.folio.verticle.consumers.consumerstorage;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.kafka.KafkaConsumerWrapper;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class KafkaConsumersStorageImpl implements KafkaConsumersStorage {
-  private static final Logger LOGGER = LogManager.getLogger();
 
   private final Map<String, List<KafkaConsumerWrapper<?,?>>> consumerWrappersMap = new ConcurrentHashMap<>();
 

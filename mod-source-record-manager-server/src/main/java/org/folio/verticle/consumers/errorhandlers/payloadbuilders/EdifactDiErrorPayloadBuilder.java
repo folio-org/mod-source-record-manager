@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.SneakyThrows;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.processing.mapping.MappingManager;
 import org.folio.processing.mapping.mapper.MappingContext;
 import org.folio.processing.mapping.mapper.reader.record.edifact.EdifactReaderFactory;
@@ -41,7 +41,7 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
   public static final String INVOICE_FIELD = "invoice";
   public static final String INVOICE_LINES_FIELD = "invoiceLines";
 
-  private JobExecutionService jobExecutionService;
+  private final JobExecutionService jobExecutionService;
 
   @Autowired
   public EdifactDiErrorPayloadBuilder(JobExecutionService jobExecutionService) {
@@ -68,7 +68,7 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
 
   @Override
   public Future<DataImportEventPayload> buildEventPayload(Throwable throwable,
-                                                          OkapiConnectionParams okapiParams,
+                                                          ConnectionParams okapiParams,
                                                           String jobExecutionId,
                                                           Record record) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, okapiParams.getTenantId())
@@ -85,7 +85,7 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
   }
 
   private DataImportEventPayload prepareDiErrorEventPayload(Throwable throwable,
-                                                            OkapiConnectionParams okapiParams,
+                                                            ConnectionParams okapiParams,
                                                             Record record,
                                                             String jobExecutionId) {
     HashMap<String, String> context = getPayloadContext(throwable, record);
@@ -94,7 +94,7 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
   }
 
   private DataImportEventPayload prepareEventPayloadForMapping(Throwable throwable,
-                                                               OkapiConnectionParams okapiParams,
+                                                               ConnectionParams okapiParams,
                                                                Record record,
                                                                JobExecution jobExecution) {
     ProfileSnapshotWrapper profileSnapshot = jobExecution.getJobProfileSnapshotWrapper();
@@ -111,11 +111,11 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
     return eventPayload;
   }
 
-  private DataImportEventPayload prepareEventPayload(DataImportEventTypes eventType, OkapiConnectionParams okapiParams, String jobExecutionId, HashMap<String, String> context) {
+  private DataImportEventPayload prepareEventPayload(DataImportEventTypes eventType, ConnectionParams okapiParams, String jobExecutionId, HashMap<String, String> context) {
     return new DataImportEventPayload()
       .withEventType(eventType.value())
       .withJobExecutionId(jobExecutionId)
-      .withOkapiUrl(okapiParams.getOkapiUrl())
+      .withOkapiUrl(okapiParams.getConnectionUrl())
       .withTenant(okapiParams.getTenantId())
       .withToken(okapiParams.getToken())
       .withEventsChain(Lists.newArrayList(DI_INVOICE_CREATED.value()))

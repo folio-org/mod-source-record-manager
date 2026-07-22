@@ -14,18 +14,17 @@ import io.vertx.core.json.JsonObject;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import lombok.extern.log4j.Log4j2;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.services.entity.ConsortiumConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Log4j2
 @Component
 public class ConsortiumDataCache {
 
-  private static final Logger LOG = LogManager.getLogger(ConsortiumDataCache.class);
 
   private static final String USER_TENANTS_PATH = "/user-tenants";
   private static final String LIMIT_PARAM = "limit=%d";
@@ -53,7 +52,7 @@ public class ConsortiumDataCache {
    *   if the specified in connection params tenant is not included to any consortium,
    *   then returns future with empty Optional
    */
-  public Future<Optional<ConsortiumConfiguration>> getConsortiumData(OkapiConnectionParams params) {
+  public Future<Optional<ConsortiumConfiguration>> getConsortiumData(ConnectionParams params) {
     var tenantId = params.getTenantId();
     try {
       // Ensure we're running in Vert.x context
@@ -70,12 +69,12 @@ public class ConsortiumDataCache {
       }
       return Future.fromCompletionStage(cache.get(tenantId, (key, executor) -> loadData(params)));
     } catch (Exception e) {
-      LOG.warn("getConsortiumData:: Error loading consortium data, tenantId: '{}'", tenantId, e);
+      log.warn("getConsortiumData:: Error loading consortium data, tenantId: '{}'", tenantId, e);
       return Future.failedFuture(e);
     }
   }
 
-  private CompletableFuture<Optional<ConsortiumConfiguration>> loadData(OkapiConnectionParams params) {
+  private CompletableFuture<Optional<ConsortiumConfiguration>> loadData(ConnectionParams params) {
     Promise<Optional<ConsortiumConfiguration>> promise = Promise.promise();
     RestUtil.doRequestWithSystemUser(params, USER_TENANTS_PATH + "?" + LIMIT_PARAM.formatted(1), HttpMethod.GET, null)
       .onComplete(response -> {
@@ -87,16 +86,16 @@ public class ConsortiumDataCache {
               return;
             }
 
-            LOG.info("loadConsortiumData:: Consortium data was loaded, tenantId: '{}'", params.getTenantId());
+            log.info("loadConsortiumData:: Consortium data was loaded, tenantId: '{}'", params.getTenantId());
             JsonObject userTenant = userTenants.getJsonObject(0);
             promise.complete(Optional.of(buildConsortiumConfig(userTenant)));
           } else {
             String msg = String.format("Error loading consortium data, tenantId: '%s'", params.getTenantId());
-            LOG.warn("loadConsortiumData:: {}", msg);
+            log.warn("loadConsortiumData:: {}", msg);
             promise.fail((msg));
           }
         } catch (Exception e) {
-          LOG.warn("Error loading consortium data, tenantId: {}", params.getTenantId(), e);
+          log.warn("Error loading consortium data, tenantId: {}", params.getTenantId(), e);
           promise.fail(e);
         }
       });

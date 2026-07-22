@@ -9,7 +9,8 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -22,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
@@ -33,9 +35,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -55,16 +54,13 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   @Spy
   @InjectMocks
   JobExecutionDaoImpl jobExecutionDao;
-  @Spy
-  @InjectMocks
   JobExecutionServiceImpl jobExecutionService;
   @InjectMocks
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
-  @InjectMocks
-  private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl(vertx);
+  private JobExecutionProgressService jobExecutionProgressService;
 
-  private OkapiConnectionParams params;
+  private ConnectionParams params;
 
   private final InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -75,11 +71,14 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 
+    jobExecutionService = Mockito.spy(new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig));
+    jobExecutionProgressService = Mockito.spy(new JobExecutionProgressServiceImpl(jobExecutionProgressDao, postgresClientFactory, jobExecutionDao, vertx));
+
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, "token");
-    params = new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost:" + snapshotMockServer.port());
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, "token");
+    params = new ConnectionParams(headers);
   }
 
   @Test
@@ -319,7 +318,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
     }).when(jobExecutionDao).updateBlocking(eq(parentJobId), any(), anyString());
 
     doReturn(Future.succeededFuture(new JobExecution()))
-      .when(jobExecutionService).updateSnapshotStatus(any(JobExecution.class), any(OkapiConnectionParams.class));
+      .when(jobExecutionService).updateSnapshotStatus(any(JobExecution.class), any(ConnectionParams.class));
 
     Future<JobExecution> winnerAttempt = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentToUpdate, params);
     Future<JobExecution> loserAttemptDAO = jobExecutionService.updateJobExecutionWithSnapshotStatusAsync(parentToUpdate, params);

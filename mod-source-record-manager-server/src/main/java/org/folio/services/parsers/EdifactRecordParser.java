@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.extern.log4j.Log4j2;
 import org.folio.rest.jaxrs.model.Component;
 import org.folio.rest.jaxrs.model.DataElement;
 import org.folio.rest.jaxrs.model.EdifactParsedContent;
@@ -14,8 +15,6 @@ import org.folio.rest.jaxrs.model.Segment;
 
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.xlate.edi.stream.EDIInputFactory;
 import io.xlate.edi.stream.EDIStreamReader;
 
@@ -24,9 +23,8 @@ import static io.xlate.edi.stream.EDIInputFactory.EDI_VALIDATE_CONTROL_CODE_VALU
 /**
  * Raw record parser implementation for EDIFACT format. Use staedi library
  */
+@Log4j2
 public final class EdifactRecordParser implements RecordParser {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {
@@ -90,7 +88,7 @@ public final class EdifactRecordParser implements RecordParser {
           }
       }
     } catch (Exception e) {
-      LOGGER.warn("parseRecord:: Error during parse EDIFACT record from raw record", e);
+      log.warn("parseRecord:: Error during parse EDIFACT record from raw record", e);
       prepareResultWithError(result, Collections.singletonList(new JsonObject()
         .put("name", e.getClass().getName())
         .put("message", e.getMessage())));
@@ -108,7 +106,7 @@ public final class EdifactRecordParser implements RecordParser {
   }
 
   private JsonObject processParsingEventError(EDIStreamReader reader) {
-    LOGGER.warn("processParsingEventError:: Error during parse EDIFACT {} {}, from the {} event.", reader.getText(), reader.getErrorType(), reader.getEventType());
+    log.warn("processParsingEventError:: Error during parse EDIFACT {} {}, from the {} event.", reader.getText(), reader.getErrorType(), reader.getEventType());
     return buildErrorObject(reader.getText(), reader.getErrorType().name());
   }
 

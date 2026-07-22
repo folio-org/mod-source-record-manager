@@ -5,9 +5,8 @@ import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
@@ -38,9 +37,9 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 
+@Log4j2
 @Component
 public class MarcImportEventsHandler implements SpecificEventHandler {
-  private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
@@ -134,11 +133,11 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
             journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
               journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
           } catch (JournalRecordMapperException e) {
-            LOGGER.warn("transform:: Error during build of journal records", e);
+            log.warn("transform:: Error during build of journal records", e);
             return Future.failedFuture(e);
           }
           return Future.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
-            .onFailure(th -> LOGGER.warn("transform:: Error during journal record improve", th))
+            .onFailure(th -> log.warn("transform:: Error during journal record improve", th))
             .map(ar -> ar.result().list());
         }
         return Future.succeededFuture(new ArrayList<>());

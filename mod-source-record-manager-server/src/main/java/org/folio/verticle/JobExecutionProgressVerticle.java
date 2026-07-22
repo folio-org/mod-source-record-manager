@@ -16,10 +16,9 @@ import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.core.eventbus.Message;
 import io.vertx.rxjava3.core.eventbus.MessageConsumer;
 import io.vertx.rxjava3.impl.AsyncResultSingle;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dao.JobExecutionProgressDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -57,10 +56,11 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 /**
  * A Verticle that handles the processing and updating of job execution progress.
  */
+@Log4j2
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class JobExecutionProgressVerticle extends AbstractVerticle {
-  private static final Logger LOGGER = LogManager.getLogger();
+  
   private static final int MAX_NUM_EVENTS = 100;
   private static final int MAX_DISTRIBUTION = 100;
   private static final String USER_ID_HEADER = "userId";
@@ -100,7 +100,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
     MessageConsumer<BatchableJobExecutionProgress> jobExecutionProgressConsumer = eb.localConsumer(BATCH_JOB_PROGRESS_ADDRESS);
     consumeJobExecutionProgress(jobExecutionProgressConsumer);
 
-    LOGGER.info("JobExecutionProgressVerticle started");
+    log.info("JobExecutionProgressVerticle started");
     startPromise.complete();
   }
 
@@ -183,19 +183,19 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
           Integer currentlySucceeded = batchableJobExecutionProgress.getJobExecutionProgress().getCurrentlySucceeded();
           Integer currentlyFailed = batchableJobExecutionProgress.getJobExecutionProgress().getCurrentlyFailed();
           String tenantId = batchableJobExecutionProgress.getParams().getTenantId();
-          LOGGER.info("Updating job execution progress for jobExecutionId={} tenantId={}", jobExecutionId, tenantId);
+          log.info("Updating job execution progress for jobExecutionId={} tenantId={}", jobExecutionId, tenantId);
           return AsyncResultSingle.toSingle(jobExecutionProgressDao
                 .updateCompletionCounts(jobExecutionId, currentlySucceeded, currentlyFailed, tenantId),
               Function.identity())
             .doOnError(throwable -> {
-              LOGGER.error("Something happened during batch update of job progress tenantId={} jobExecutionId={}",
+              log.error("Something happened during batch update of job progress tenantId={} jobExecutionId={}",
                 tenantId,
                 jobExecutionId,
                 throwable);
               updateJobStatusToError(jobExecutionId, batchableJobExecutionProgress.getParams());
             })
             .doOnSuccess(progress -> {
-              LOGGER.info("Updated job execution progress for jobExecutionId={} tenantId={}", jobExecutionId, tenantId);
+              log.info("Updated job execution progress for jobExecutionId={} tenantId={}", jobExecutionId, tenantId);
               updateJobExecutionIfAllRecordsProcessed(progress.getJobExecutionId(),
                 progress,
                 batchableJobExecutionProgress.getParams());
@@ -215,7 +215,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
    * @param params  the Okapi connection parameters
    * @return a future containing a boolean indicating the success of the update
    */
-  private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, OkapiConnectionParams params) {
+  private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, ConnectionParams params) {
     if (progress.getTotal() > progress.getCurrentlySucceeded() + progress.getCurrentlyFailed()) {
       return Future.succeededFuture(false);
     }
@@ -228,22 +228,22 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
         .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with jobExecutionId='%s'", jobExecutionId))));
   }
 
-  private Future<JobExecution> handleSubordinationType(JobExecution updatedExecution, OkapiConnectionParams params) {
+  private Future<JobExecution> handleSubordinationType(JobExecution updatedExecution, ConnectionParams params) {
     if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.COMPOSITE_CHILD)) {
       return handleCompositeChild(updatedExecution, params);
     }
 
     if (updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_SINGLE) ||
       updatedExecution.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)) {
-      LOGGER.info("{} subordination type for job with jobExecutionId={}. Processing...", updatedExecution.getSubordinationType(), updatedExecution.getId());
+      log.info("{} subordination type for job with jobExecutionId={}. Processing...", updatedExecution.getSubordinationType(), updatedExecution.getId());
       sendDiJobCompletedEvent(updatedExecution, params);
     }
 
     return Future.succeededFuture(updatedExecution);
   }
 
-  private Future<JobExecution> handleCompositeChild(JobExecution updatedExecution, OkapiConnectionParams params) {
-    LOGGER.info("COMPOSITE_CHILD subordination type for job with jobExecutionId={}. Processing...", updatedExecution.getId());
+  private Future<JobExecution> handleCompositeChild(JobExecution updatedExecution, ConnectionParams params) {
+    log.info("COMPOSITE_CHILD subordination type for job with jobExecutionId={}. Processing...", updatedExecution.getId());
 
     return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
       .compose(parentJobOptional -> parentJobOptional
@@ -251,10 +251,10 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
         .orElse(Future.failedFuture(format("Couldn't find parent job with jobExecutionId=%s", updatedExecution.getParentJobId()))));
   }
 
-  private Future<JobExecution> processParentExecution(JobExecution parentExecution, OkapiConnectionParams params) {
-    LOGGER.debug("processParentExecution:: Processing parent job with jobExecutionId={}", parentExecution.getId());
+  private Future<JobExecution> processParentExecution(JobExecution parentExecution, ConnectionParams params) {
+    log.debug("processParentExecution:: Processing parent job with jobExecutionId={}", parentExecution.getId());
     if (COMPLETED_STATUSES.contains(parentExecution.getUiStatus())) {
-      LOGGER.info("Parent job with jobExecutionId={} already has completed status. Skipping update.", parentExecution.getId());
+      log.info("Parent job with jobExecutionId={} already has completed status. Skipping update.", parentExecution.getId());
       return Future.succeededFuture(parentExecution);
     }
 
@@ -270,7 +270,7 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
         ).contains(child.getUiStatus())))
       .compose(allChildrenCompleted -> {
         if (Boolean.TRUE.equals(allChildrenCompleted) && !COMMITTED.equals(parentExecution.getStatus())) {
-          LOGGER.info("All children for job with jobExecutionId={} have completed!", parentExecution.getId());
+          log.info("All children for job with jobExecutionId={} have completed!", parentExecution.getId());
           parentExecution.withStatus(JobExecution.Status.COMMITTED)
             .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
             .withCompletedDate(new Date());
@@ -286,9 +286,9 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
   }
 
   private Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, JobExecutionProgress progress,
-                                                                    OkapiConnectionParams params) {
+                                                                    ConnectionParams params) {
     if (COMPLETED_STATUSES.contains(jobExecution.getUiStatus())) {
-      LOGGER.info("updateJobExecutionWithSnapshotStatus:: JobExecution with jobExecutionId='{}' is already completed with {} status, skipping job update",
+      log.info("updateJobExecutionWithSnapshotStatus:: JobExecution with jobExecutionId='{}' is already completed with {} status, skipping job update",
         jobExecution.getId(), jobExecution.getStatus());
       return Future.succeededFuture(jobExecution);
     }
@@ -312,18 +312,18 @@ public class JobExecutionProgressVerticle extends AbstractVerticle {
     return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params);
   }
 
-  private void sendDiJobCompletedEvent(JobExecution jobExecution, OkapiConnectionParams params) {
-    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+  private void sendDiJobCompletedEvent(JobExecution jobExecution, ConnectionParams params) {
+    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMap(params.getHeaders());
     kafkaHeaders.removeIf(header -> JOB_EXECUTION_ID_HEADER.equals(header.key()));
     kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
     var key = String.valueOf(indexer.incrementAndGet() % MAX_DISTRIBUTION);
     sendEventToKafka(params.getTenantId(), Json.encode(jobExecution), DI_JOB_COMPLETED.value(), kafkaHeaders, kafkaConfig, key)
-      .onSuccess(event -> LOGGER.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
-      .onFailure(event -> LOGGER.warn("sendDiJobCompletedEvent:: Error publishing DI_JOB_COMPLETED event, jobExecutionId={}", jobExecution.getId(), event));
+      .onSuccess(event -> log.info("sendDiJobCompletedEvent:: DI_JOB_COMPLETED event published, jobExecutionId={}", jobExecution.getId()))
+      .onFailure(event -> log.warn("sendDiJobCompletedEvent:: Error publishing DI_JOB_COMPLETED event, jobExecutionId={}", jobExecution.getId(), event));
   }
 
-  private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {
+  private Future<JobExecution> updateJobStatusToError(String jobExecutionId, ConnectionParams params) {
     return jobExecutionService.updateJobExecutionStatus(jobExecutionId, new StatusDto()
       .withStatus(StatusDto.Status.ERROR)
       .withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR), params);

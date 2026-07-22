@@ -24,6 +24,7 @@ import org.folio.rest.persist.PostgresClient;
 import org.folio.services.MappingRuleService;
 import org.folio.spring.SpringContextUtil;
 
+@SuppressWarnings("java:S6813")
 public class ModTenantAPI extends TenantAPI {
 
   private static final String GRANT_SEQUENCES_PERMISSION_PATTERN =

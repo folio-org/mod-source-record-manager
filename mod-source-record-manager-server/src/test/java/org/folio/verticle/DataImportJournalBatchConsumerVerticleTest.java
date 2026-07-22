@@ -14,7 +14,7 @@ import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumerRecord;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.BatchJournalService;
@@ -179,7 +179,7 @@ public class DataImportJournalBatchConsumerVerticleTest {
     when(recordMock.offset()).thenReturn(123L);
 
     JournalEvent event = new JournalEvent();
-    OkapiConnectionParams params = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
+    ConnectionParams params = new ConnectionParams(new HashMap<>());
     DataImportJournalBatchConsumerVerticle.Bundle bundle =
       new DataImportJournalBatchConsumerVerticle.Bundle(recordMock, event, params);
 

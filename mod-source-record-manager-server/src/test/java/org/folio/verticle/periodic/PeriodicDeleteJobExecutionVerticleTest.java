@@ -28,11 +28,11 @@ public class PeriodicDeleteJobExecutionVerticleTest {
   @Mock
   private JobExecutionDao jobExecutionDao;
 
-  @InjectMocks
-  private PeriodicDeleteJobExecutionVerticle verticle = new PeriodicDeleteJobExecutionVerticle();
+  private PeriodicDeleteJobExecutionVerticle verticle;
 
   @Before
   public void setUp() {
+    verticle = new PeriodicDeleteJobExecutionVerticle(jobExecutionDao, tenantDataProvider);
     ReflectionTestUtils.setField(verticle,"diffNumberOfDays", DIFF_NUMBER_OF_DAYS);
   }
 

@@ -4,8 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dao.util.PostgresClientFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -13,10 +12,9 @@ import org.springframework.stereotype.Repository;
 import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
+@Log4j2
 @Repository
 public class EventProcessedDaoImpl implements EventProcessedDao {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String EVENTS_PROCESSED_TABLE_NAME = "events_processed";
   private static final String INSERT_SQL = "INSERT INTO %s.%s (handler_id, event_id) VALUES ($1, $2)";
@@ -38,7 +36,7 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
     try {
       return pgClientFactory.createInstance(tenantId).execute(query, Tuple.of(handlerId, eventId));
     } catch (Exception e) {
-      LOGGER.warn("makeSaveCall:: Failed to save handlerId {} and eventId {} combination to table {}", handlerId,  eventId, EVENTS_PROCESSED_TABLE_NAME, e);
+      log.warn("makeSaveCall:: Failed to save handlerId {} and eventId {} combination to table {}", handlerId,  eventId, EVENTS_PROCESSED_TABLE_NAME, e);
       return Future.failedFuture(e);
     }
  }

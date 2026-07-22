@@ -1,8 +1,7 @@
 package org.folio.dao.util;
 
 import io.vertx.core.Future;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.rest.persist.Conn;
 import org.folio.rest.persist.PostgresClient;
 
@@ -11,12 +10,11 @@ import java.util.function.Function;
 /**
  * Util class containing helper methods for interacting with db
  */
+@Log4j2
 public final class DbUtil {
 
   private DbUtil() {
   }
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   /**
    * Executes passed action in transaction
@@ -29,6 +27,6 @@ public final class DbUtil {
   public static <T> Future<T> executeInTransaction(PostgresClient postgresClient,
                                                    Function<Conn, Future<T>> action) {
     return postgresClient.withTrans(action)
-      .onFailure(e -> LOGGER.warn("executeInTransaction:: Error executing action in transaction", e));
+      .onFailure(e -> log.warn("executeInTransaction:: Error executing action in transaction", e));
   }
 }

@@ -2,7 +2,7 @@ package org.folio.verticle.consumers.errorhandlers.payloadbuilders;
 
 import io.vertx.core.Future;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
@@ -14,7 +14,8 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 
 @Component
 public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
-  private MappingRuleCache mappingRuleCache;
+
+  private final MappingRuleCache mappingRuleCache;
 
   @Autowired
   public MarcBibDiErrorPayloadBuilder(MappingRuleCache mappingRuleCache) {
@@ -28,7 +29,7 @@ public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
 
   @Override
   public Future<DataImportEventPayload> buildEventPayload(Throwable throwable,
-                                                          OkapiConnectionParams okapiParams,
+                                                          ConnectionParams okapiParams,
                                                           String jobExecutionId,
                                                           Record record) {
 

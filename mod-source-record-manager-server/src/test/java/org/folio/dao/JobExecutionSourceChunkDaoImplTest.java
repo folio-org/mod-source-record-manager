@@ -5,8 +5,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import org.folio.GenericHandlerAnswer;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.test.GenericHandlerAnswer;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
@@ -16,7 +16,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -51,11 +50,11 @@ public class JobExecutionSourceChunkDaoImplTest {
   @Mock
   private PostgresClient pgClient;
 
-  @InjectMocks
-  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao = new JobExecutionSourceChunkDaoImpl();
+  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
 
   @Before
   public void setUp() {
+    jobExecutionSourceChunkDao = new JobExecutionSourceChunkDaoImpl(postgresClientFactory);
     when(postgresClientFactory.createInstance(TENANT_ID))
       .thenReturn(pgClient);
   }

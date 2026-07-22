@@ -4,7 +4,7 @@ import io.vertx.core.Future;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.util.SortField;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -49,7 +49,7 @@ public interface JobExecutionService {
    * @param params object-wrapper with params necessary to connect to OKAPI
    * @return Future
    */
-  Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto dto, OkapiConnectionParams params);
+  Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto dto, ConnectionParams params);
 
   /**
    * Updates jobExecution and calls source-record-storage to update Snapshot status
@@ -58,16 +58,16 @@ public interface JobExecutionService {
    * @param params       connection parameters
    * @return updated entity
    */
-  Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params);
+  Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, ConnectionParams params);
 
   /**
    * Updates jobExecution and calls source-record-storage to update Snapshot status by asynchronous way
    *
-   * @param jobExecution entity to update
+   * @param jobExecution entity to updatevertx
    * @param params       connection parameters
    * @return updated entity
    */
-  Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, OkapiConnectionParams params);
+  Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, ConnectionParams params);
 
   /**
    * Updates jobExecution
@@ -76,7 +76,7 @@ public interface JobExecutionService {
    * @param params       connection parameters
    * @return updated entity
    */
-  Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params);
+  Future<JobExecution> updateJobExecution(JobExecution jobExecution, ConnectionParams params);
 
   /**
    * Searches for JobExecution by id
@@ -106,7 +106,7 @@ public interface JobExecutionService {
    * @param params         connection parameters
    * @return future with updated JobExecution
    */
-  Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params);
+  Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, ConnectionParams params);
 
   /**
    * Sets JobProfile and JobProfile snapshot wrapper for JobExecution
@@ -116,7 +116,7 @@ public interface JobExecutionService {
    * @param params         connection parameters
    * @return future with updated JobExecution
    */
-  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params);
+  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, ConnectionParams params);
 
   /**
    * Sets JobExecution status to CANCELLED and sends a Kafka event to notify that the jobExecution has been cancelled
@@ -125,7 +125,7 @@ public interface JobExecutionService {
    * @param params         connection parameters
    * @return future with true if succeeded
    */
-  Future<Boolean> completeJobExecutionWithCancelledStatus(String jobExecutionId, OkapiConnectionParams params);
+  Future<Boolean> completeJobExecutionWithCancelledStatus(String jobExecutionId, ConnectionParams params);
 
   /**
    *

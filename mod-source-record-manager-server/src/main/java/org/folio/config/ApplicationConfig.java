@@ -1,17 +1,16 @@
 package org.folio.config;
 
 import io.vertx.core.Vertx;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.services.journal.JournalService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+@Log4j2
 @Configuration
 @ComponentScan(basePackages = {
   "org.folio.rest.impl",
@@ -19,7 +18,6 @@ import org.springframework.context.annotation.Configuration;
   "org.folio.services",
   "org.folio.verticle"})
 public class ApplicationConfig {
-  private static final Logger LOGGER = LogManager.getLogger();
 
   @Value("${KAFKA_HOST:kafka}")
   private String kafkaHost;
@@ -45,16 +43,13 @@ public class ApplicationConfig {
       .maxRequestSize(maxRequestSize)
       .build();
 
-    LOGGER.info("kafkaConfigBean:: kafkaConfig: " + kafkaConfig);
+    log.info("kafkaConfigBean:: kafkaConfig: {}", kafkaConfig);
 
     return kafkaConfig;
   }
 
-  @Autowired
-  private Vertx vertx;
-
   @Bean(value = "journalServiceProxy")
-  public JournalService journalServiceProxy() {
+  public JournalService journalServiceProxy(Vertx vertx) {
     return JournalService.createProxy(vertx);
   }
 
