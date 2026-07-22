@@ -82,12 +82,12 @@ public class MarcBibErrorPayloadBuilderTest {
   @Test
   public void shouldBuildPayload(TestContext context) throws IOException {
     Async async = context.async();
-    Record record = getRecordFromFile();
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
+    Record aRecord = getRecordFromFile();
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, aRecord.getRecordType())))
       .thenReturn(Future.succeededFuture(Optional.of(new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH)))));
 
     Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
-      getOkapiParams(), JOB_EXECUTION_ID, record);
+      getOkapiParams(), JOB_EXECUTION_ID, aRecord);
 
     payloadFuture.onComplete(ar -> {
       DataImportEventPayload result = ar.result();
@@ -103,12 +103,12 @@ public class MarcBibErrorPayloadBuilderTest {
   @Test
   public void shouldBuildPayloadWhenNoMappingRulesFound(TestContext context) throws IOException {
     Async async = context.async();
-    Record record = getRecordFromFile();
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
+    Record aRecord = getRecordFromFile();
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, aRecord.getRecordType())))
       .thenReturn(Future.succeededFuture(Optional.empty()));
 
     Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
-      getOkapiParams(), JOB_EXECUTION_ID, record);
+      getOkapiParams(), JOB_EXECUTION_ID, aRecord);
 
     payloadFuture.onComplete(ar -> {
       DataImportEventPayload result = ar.result();
@@ -148,13 +148,13 @@ public class MarcBibErrorPayloadBuilderTest {
   @Test
   public void shouldBuildPayloadWhenTitleNotExistsInParsedRecord(TestContext context) throws IOException {
     Async async = context.async();
-    Record record = new Record().withRecordType(Record.RecordType.MARC_BIB).withParsedRecord(
+    Record aRecord = new Record().withRecordType(Record.RecordType.MARC_BIB).withParsedRecord(
       new ParsedRecord().withId(UUID.randomUUID().toString()).withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"));
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, aRecord.getRecordType())))
       .thenReturn(Future.succeededFuture(Optional.of(new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH)))));
 
     Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
-      getOkapiParams(), JOB_EXECUTION_ID, record);
+      getOkapiParams(), JOB_EXECUTION_ID, aRecord);
 
     payloadFuture.onComplete(ar -> {
       DataImportEventPayload result = ar.result();

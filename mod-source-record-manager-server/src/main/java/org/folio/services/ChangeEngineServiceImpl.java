@@ -487,7 +487,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               && ProfileSnapshotUtil.containsDelete999FieldMappingDetail(wrapper));
 
           if (!hasPrecedingModifyMarcBib) {
-
             return true;
           }
         }
@@ -880,22 +879,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
                                                   OkapiConnectionParams okapiParams) {
-    if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
+    if (shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper())) {
       return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
     }
 
     return Future.succeededFuture(folioRecords);
   }
 
-  private Boolean shouldRemoveSubfield9FromRecordFieldsForProfile(ProfileSnapshotWrapper profileSnapshot) {
+  private boolean shouldRemoveSubfield9FromRecordFieldsForProfile(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
       if (childWrapper.getContentType() == ACTION_PROFILE) {
         ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
         if (TRUE.equals(actionProfile.getRemove9Subfields())
-          || TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+          || shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
           return true;
         }
-      } else if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+      } else if (shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
         return true;
       }
     }
