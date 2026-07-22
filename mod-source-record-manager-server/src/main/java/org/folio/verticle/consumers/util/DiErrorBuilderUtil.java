@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 
 /**
  * Util class for processing data-import errors for different types
@@ -64,15 +63,12 @@ public final class DiErrorBuilderUtil {
 
       ParsedRecord parsedRecord = currentRecord.getParsedRecord();
       if (parsedRecord == null) {
-        return new JsonObject()
-          .put(FIELDS, new JsonArray()
-            .add(new JsonObject()
-              .put(titleFieldTag, NO_TITLE_MESSAGE))).encode();
+        return new JsonObject().put(FIELDS, new JsonArray()).encode();
       }
       JsonObject parsedContent = new JsonObject(parsedRecord.getContent().toString());
       var fields = parsedContent.getJsonArray(FIELDS).getList();
       for (Object elem : fields) {
-        Object titleField = ((Map) elem).get(titleFieldTag);
+        Object titleField = ((Map<?, ?>) elem).get(titleFieldTag);
         if (titleField != null) {
           return new JsonObject()
             .put(FIELDS, new JsonArray()

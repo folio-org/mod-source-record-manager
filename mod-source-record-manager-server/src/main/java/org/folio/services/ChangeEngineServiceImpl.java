@@ -63,6 +63,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.services.util.ProfileSnapshotUtil;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.services.entity.ConsortiumConfiguration;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
@@ -469,28 +470,31 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
-    return containsCreateInstanceActionWithoutMarcBib(jobExecution.getJobProfileSnapshotWrapper());
+    return containsCreateInstanceActionWithoutPrecedingDelete999Field(jobExecution.getJobProfileSnapshotWrapper());
   }
 
-  private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
-    for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
+  private boolean containsCreateInstanceActionWithoutPrecedingDelete999Field(ProfileSnapshotWrapper profileSnapshot) {
+    List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
+    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
       if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
-        return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
-      } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
+        if (childWrapper.getReactTo() != NON_MATCH) {
+          boolean hasPrecedingModifyMarcBib = childWrappers.stream()
+            .anyMatch(wrapper -> wrapper.getContentType() == ACTION_PROFILE
+              && actionProfileMatches(wrapper, List.of(FolioRecord.MARC_BIBLIOGRAPHIC), Action.MODIFY)
+              && wrapper.getOrder() != null && childWrapper.getOrder() != null
+              && wrapper.getOrder() < childWrapper.getOrder()
+              && ProfileSnapshotUtil.containsDelete999FieldMappingDetail(wrapper));
+
+          if (!hasPrecedingModifyMarcBib) {
+            return true;
+          }
+        }
+      } else if (containsCreateInstanceActionWithoutPrecedingDelete999Field(childWrapper)) {
         return true;
       }
     }
     return false;
-  }
-
-  private boolean containsMarcBibToInstanceMappingProfile(ProfileSnapshotWrapper actionWrapper) {
-   return actionWrapper.getChildSnapshotWrappers()
-      .stream()
-      .map(mappingWrapper -> Optional.ofNullable(mappingWrapper.getContent()))
-      .filter(Optional::isPresent)
-      .map(content -> DatabindCodec.mapper().convertValue(content.get(), MappingProfile.class))
-      .anyMatch(mappingProfile -> mappingProfile.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC);
   }
 
   private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
@@ -875,22 +879,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
                                                   OkapiConnectionParams okapiParams) {
-    if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
+    if (shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper())) {
       return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
     }
 
     return Future.succeededFuture(folioRecords);
   }
 
-  private Boolean shouldRemoveSubfield9FromRecordFieldsForProfile(ProfileSnapshotWrapper profileSnapshot) {
+  private boolean shouldRemoveSubfield9FromRecordFieldsForProfile(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
       if (childWrapper.getContentType() == ACTION_PROFILE) {
         ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
         if (TRUE.equals(actionProfile.getRemove9Subfields())
-          || TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+          || shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
           return true;
         }
-      } else if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+      } else if (shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
         return true;
       }
     }

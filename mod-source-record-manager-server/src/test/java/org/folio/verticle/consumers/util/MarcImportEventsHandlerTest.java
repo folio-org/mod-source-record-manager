@@ -65,6 +65,7 @@ import org.folio.services.journal.JournalService;
 public class MarcImportEventsHandlerTest {
 
   private static final String TEST_TENANT = "tenant";
+  private static final String ERROR_KEY = "ERROR";
 
   private final MarcFactory marcFactory = MarcFactory.newInstance();
 
@@ -259,6 +260,40 @@ public class MarcImportEventsHandlerTest {
         assertEquals(title, actualJournalRecord.getTitle());
         async.complete();
       });
+  }
+
+  @Test
+  public void testShouldBuildMarcBibJournalRecordIfEventPayloadContainsParsedRecordWithEmptyFields(TestContext context) {
+    JsonObject mappingRulesJson = new JsonObject()
+      .put("245", JsonArray.of(new JsonObject()
+        .put("target", "title")
+        .put("subfield", JsonArray.of("a"))));
+
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(mappingRulesJson)));
+
+    var incomingRecord = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord()
+        .withContent("{\"fields\":[]}"));
+
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(incomingRecord));
+    payloadContext.put(ERROR_KEY, "The incoming record already contains 999ff$s or 999ff$i field");
+
+    var payload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withEventsChain(List.of())
+      .withContext(payloadContext);
+
+    handler.transform(journalService, payload, TEST_TENANT)
+      .onComplete(context.asyncAssertSuccess(journalRecords -> {
+        context.assertEquals(1, journalRecords.size());
+        var actualJournalRecord = journalRecords.iterator().next();
+        context.assertEquals(MarcImportEventsHandler.NO_TITLE_MESSAGE, actualJournalRecord.getTitle());
+        context.assertEquals(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, actualJournalRecord.getEntityType());
+        context.assertEquals(JournalRecord.ActionStatus.ERROR, actualJournalRecord.getActionStatus());
+        context.assertNotNull(actualJournalRecord.getError());
+      }));
   }
 
   @Test

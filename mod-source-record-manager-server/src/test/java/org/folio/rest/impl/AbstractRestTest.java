@@ -10,6 +10,8 @@ import static org.folio.dao.IncomingRecordDaoImpl.INCOMING_RECORDS_TABLE;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+import static org.folio.rest.jaxrs.model.ActionProfile.Action.MODIFY;
+import static org.folio.rest.jaxrs.model.MarcMappingDetail.Action.DELETE;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
@@ -69,6 +71,10 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.MappingDetail;
+import org.folio.rest.jaxrs.model.MarcField;
+import org.folio.rest.jaxrs.model.MarcMappingDetail;
+import org.folio.rest.jaxrs.model.MarcSubfield;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.ReactToType;
 import org.folio.rest.jaxrs.model.StatusDto;
@@ -213,6 +219,28 @@ public abstract class AbstractRestTest {
     .withAction(ActionProfile.Action.CREATE)
     .withFolioRecord(ActionProfile.FolioRecord.INVOICE);
 
+  private final ActionProfile modifyMarcBibActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Delete 999 field")
+    .withAction(MODIFY)
+    .withFolioRecord(ActionProfile.FolioRecord.MARC_BIBLIOGRAPHIC);
+
+  private final MappingProfile modifyMarcBibMapping = new MappingProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Delete 999 field")
+    .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
+    .withExistingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
+    .withMappingDetails(new MappingDetail()
+      .withMarcMappingOption(MappingDetail.MarcMappingOption.MODIFY)
+      .withMarcMappingDetails(List.of(new MarcMappingDetail()
+        .withAction(DELETE)
+        .withField(new MarcField()
+          .withField("999")
+          .withIndicator1("*")
+          .withIndicator2("*")
+          .withSubfields(List.of(new MarcSubfield().withSubfield("*")))
+        ))));
+
   protected ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withProfileId(jobProfile.getId())
@@ -222,7 +250,12 @@ public abstract class AbstractRestTest {
       new ProfileSnapshotWrapper()
         .withProfileId(actionProfile.getId())
         .withContentType(ACTION_PROFILE)
-        .withContent(actionProfile)));
+        .withContent(actionProfile)
+        .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(marcInstanceMappingProfile)
+        ))));
 
   protected JobProfile orderJobProfile = new JobProfile()
     .withId(UUID.randomUUID().toString())
@@ -289,6 +322,32 @@ public abstract class AbstractRestTest {
         .withContentType(MAPPING_PROFILE)
         .withContent(marcInstanceMappingProfile)
       ))));
+
+  protected ProfileSnapshotWrapper profileModifyMarcAndCreateMarcInstanceSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(new JsonObject())
+    .withChildSnapshotWrappers(List.of(
+      new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withOrder(0)
+        .withContentType(ACTION_PROFILE)
+        .withContent(modifyMarcBibActionProfile)
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(modifyMarcBibMapping))),
+      new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withOrder(1)
+        .withContentType(ACTION_PROFILE)
+        .withContent(actionProfile)
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(marcInstanceMappingProfile)
+        ))));
 
   protected ProfileSnapshotWrapper profileMarcAuthoritySnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
