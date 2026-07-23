@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -46,11 +47,11 @@ public class JobExecutionDaoImplUnitTest {
   @Mock
   private PostgresClient pgClient;
 
-  private JobExecutionDao jobExecutionDao;
+  @InjectMocks
+  private JobExecutionDaoImpl jobExecutionDao;
 
   @Before
   public void setUp() {
-    jobExecutionDao = new JobExecutionDaoImpl(postgresClientFactory);
     when(postgresClientFactory.createInstance(TENANT_ID))
       .thenReturn(pgClient);
   }

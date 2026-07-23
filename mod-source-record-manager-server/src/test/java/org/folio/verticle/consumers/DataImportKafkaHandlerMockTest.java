@@ -17,9 +17,9 @@ import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
 import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -54,12 +54,8 @@ public class DataImportKafkaHandlerMockTest {
   private EventProcessedService eventProcessedService;
   @Mock
   private RawRecordsFlowControlService flowControlService;
+  @InjectMocks
   private DataImportKafkaHandler dataImportKafkaHandler;
-
-  @Before
-  public void setUp() {
-    dataImportKafkaHandler = new DataImportKafkaHandler(eventHandlingService, eventProcessedService, flowControlService);
-  }
 
   @Test
   public void shouldSkipEventHandlingWhenDBContainsHandlerAndEventId() {

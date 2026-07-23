@@ -7,7 +7,6 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.lang.StringUtils;
 import org.folio.dataimport.util.ConnectionParams;
-import org.folio.kafka.AsyncRecordHandler;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -19,9 +18,9 @@ import org.folio.services.RecordsPublishingService;
 import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.folio.verticle.consumers.util.JobExecutionUtils;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -62,12 +61,8 @@ public class RawMarcChunksKafkaHandlerTest {
     .withInitialRecords(Lists.newArrayList(new InitialRecord()))
     .withRecordsMetadata(new RecordsMetadata().withContentType(RecordsMetadata.ContentType.MARC_JSON).withLast(true));
 
-  private AsyncRecordHandler<String, byte[]> rawMarcChunksKafkaHandler;
-
-  @Before
-  public void setUp() {
-    rawMarcChunksKafkaHandler = new RawMarcChunksKafkaHandler(eventDrivenChunkProcessingService, flowControlService, jobExecutionService);
-  }
+  @InjectMocks
+  private RawMarcChunksKafkaHandler rawMarcChunksKafkaHandler;
 
   @After
   public void invalidateCache() {

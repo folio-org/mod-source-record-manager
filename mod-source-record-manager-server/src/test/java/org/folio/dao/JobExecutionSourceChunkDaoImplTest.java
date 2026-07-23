@@ -16,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -50,11 +51,11 @@ public class JobExecutionSourceChunkDaoImplTest {
   @Mock
   private PostgresClient pgClient;
 
-  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
+  @InjectMocks
+  private JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
 
   @Before
   public void setUp() {
-    jobExecutionSourceChunkDao = new JobExecutionSourceChunkDaoImpl(postgresClientFactory);
     when(postgresClientFactory.createInstance(TENANT_ID))
       .thenReturn(pgClient);
   }
