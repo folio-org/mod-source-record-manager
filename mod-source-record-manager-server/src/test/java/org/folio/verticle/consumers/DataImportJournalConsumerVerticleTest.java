@@ -7,14 +7,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.ActionProfile;
 import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JournalRecordDao;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -41,20 +41,17 @@ import java.util.function.Predicate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.KafkaUtil.sendEvent;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
+@Log4j2
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   private EventProcessedService eventProcessedService;
   private JournalService journalService;
@@ -130,7 +127,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
           async.complete();
         }
         catch (java.lang.AssertionError e) {
-          LOGGER.warn("Assertion was not successful", e);
+          log.warn("Assertion was not successful", e);
         }
       });
     });
@@ -456,8 +453,8 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       event
     );
 
-    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
-    producerRecord.headers().add(OKAPI_URL_HEADER, snapshotMockServer.baseUrl().getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.TENANT, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.URL, snapshotMockServer.baseUrl().getBytes(UTF_8));
     producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionUUID.getBytes(UTF_8));
 
     return producerRecord;

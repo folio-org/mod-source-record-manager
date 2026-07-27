@@ -14,19 +14,17 @@ import com.google.common.io.Resources;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import org.folio.Record;
 import org.folio.dao.MappingRuleDao;
 import org.folio.services.entity.MappingRuleCacheKey;
 
+@Log4j2
 @Service
 public class MappingRuleServiceImpl implements MappingRuleService {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
   private static final String DEFAULT_HOLDINGS_RULES_PATH = "rules/marc_holdings_rules.json";
@@ -34,7 +32,6 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   private final MappingRuleDao mappingRuleDao;
   private final MappingRuleCache mappingRuleCache;
 
-  @Autowired
   public MappingRuleServiceImpl(MappingRuleDao mappingRuleDao, MappingRuleCache mappingRuleCache) {
     this.mappingRuleDao = mappingRuleDao;
     this.mappingRuleCache = mappingRuleCache;
@@ -47,7 +44,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   @Override
   public Future<Void> saveDefaultRules(Record.RecordType recordType, String tenantId) {
-    LOGGER.debug("saveDefaultRules:: recordType {}, tenantId {}", recordType, tenantId);
+    log.debug("saveDefaultRules:: recordType {}, tenantId {}", recordType, tenantId);
     Promise<Void> promise = Promise.promise();
     Optional<String> optionalRules = receiveDefaultRules(recordType);
 
@@ -58,7 +55,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           .compose(saveRulesIfNotExist(recordType, tenantId, rules))
           .onComplete(ar -> {
             if (ar.failed()) {
-              LOGGER.warn("saveDefaultRules:: Can not save rules for tenant {}", tenantId, ar.cause());
+              log.warn("saveDefaultRules:: Can not save rules for tenant {}", tenantId, ar.cause());
               promise.fail(ar.cause());
             } else {
               promise.complete();
@@ -66,12 +63,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           });
       } else {
         String errorMessage = "Can not work with rules in non-JSON format";
-        LOGGER.warn(errorMessage);
+        log.warn(errorMessage);
         promise.fail(new InternalServerErrorException(errorMessage));
       }
     } else {
       String errorMessage = "No default rules found";
-      LOGGER.warn(errorMessage);
+      log.warn(errorMessage);
       promise.fail(errorMessage);
     }
     return promise.future();
@@ -102,7 +99,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
         .onComplete(promise);
     } else {
       String errorMessage = "Can not update rules in non-JSON format";
-      LOGGER.warn(errorMessage);
+      log.warn(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
     }
     return promise.future();
@@ -117,7 +114,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       updateRules(optionalRules.get(), recordType, tenantId).onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
-      LOGGER.warn(errorMessage);
+      log.warn(errorMessage);
       promise.fail(new InternalServerErrorException(errorMessage));
     }
     return promise.future();
@@ -125,7 +122,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   private Function<Optional<JsonObject>, Future<String>> saveRulesIfNotExist(Record.RecordType recordType,
                                                                              String tenantId, String defaultRules) {
-    LOGGER.trace("saveRulesIfNotExist:: recordType {}, defaultRules {}, tenantId {}", recordType, defaultRules, tenantId);
+    log.trace("saveRulesIfNotExist:: recordType {}, defaultRules {}, tenantId {}", recordType, defaultRules, tenantId);
     return existedRules -> {
       if (existedRules.isEmpty()) {
         return mappingRuleDao.save(new JsonObject(defaultRules), recordType, tenantId);
@@ -148,10 +145,10 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise, boolean internalUpdate) {
-    LOGGER.debug("rejectUnsupportedType:: recordType {}", recordType);
+    log.debug("rejectUnsupportedType:: recordType {}", recordType);
     if (recordType == Record.RecordType.MARC_AUTHORITY && !internalUpdate) {
       String errorMessage = "Can't edit MARC Authority default mapping rules";
-      LOGGER.warn(errorMessage);
+      log.warn(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
     } else {
       promise.complete(null);
@@ -169,7 +166,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       new JsonObject(json);
       return true;
     } catch (Exception e) {
-      LOGGER.warn("isValidJson:: The specified json is invalid", e);
+      log.warn("isValidJson:: The specified json is invalid", e);
       return false;
     }
   }
@@ -181,12 +178,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
    * @return optional with resource, empty if no file in resources
    */
   private Optional<String> readResourceFromPath(String path) {
-    LOGGER.debug("readResourceFromPath:: path {}", path);
+    log.debug("readResourceFromPath:: path {}", path);
     URL url = Resources.getResource(path);
     try {
       return Optional.of(Resources.toString(url, DEFAULT_RULES_ENCODING));
     } catch (IOException e) {
-      LOGGER.warn("readResourceFromPath:: Failed to get resource from path: '{}'", path, e);
+      log.warn("readResourceFromPath:: Failed to get resource from path: '{}'", path, e);
       return Optional.empty();
     }
   }

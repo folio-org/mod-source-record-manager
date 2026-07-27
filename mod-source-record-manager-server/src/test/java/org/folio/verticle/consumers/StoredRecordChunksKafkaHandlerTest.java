@@ -9,7 +9,7 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.lang.StringUtils;
 import org.folio.TestUtil;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.rest.jaxrs.model.Event;
@@ -116,7 +116,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any());
     assertTrue(future.failed());
     assertTrue(future.cause() instanceof DuplicateEventException);
   }
@@ -164,7 +164,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.MARC_BIBLIOGRAPHIC))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
 
     when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any()))
+      .sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     // when
@@ -197,7 +197,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.MARC_AUTHORITY))).thenReturn(Future.succeededFuture(Optional.of(mappingRulesCopy)));
     when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any()))
+      .sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     // when
@@ -294,7 +294,7 @@ public class StoredRecordChunksKafkaHandlerTest {
       KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any()))
+      .sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     // when
@@ -315,7 +315,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any());
     assertTrue(future.succeeded());
   }
 

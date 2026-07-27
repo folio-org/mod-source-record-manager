@@ -4,7 +4,6 @@ import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -19,12 +18,8 @@ import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
 import org.hamcrest.Matcher;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 import java.util.Date;
 import java.util.List;
@@ -68,19 +63,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   private static final String SORT_BY_PARAM = "sortBy";
   private static final String SORT_ORDER_PARAM = "order";
 
-  @Spy
-  Vertx vertx = Vertx.vertx();
-  @Spy
-  @InjectMocks
-  PostgresClientFactory clientFactory;
-  @Spy
-  @InjectMocks
-  private JournalRecordDaoImpl journalRecordDao;
-
-  @Before
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-  }
+  private final JournalRecordDaoImpl journalRecordDao = new JournalRecordDaoImpl(new PostgresClientFactory(vertx));
 
   @Test
   public void shouldReturnEmptyListOnGetIfHasNoLogRecordsBySpecifiedJobId() {

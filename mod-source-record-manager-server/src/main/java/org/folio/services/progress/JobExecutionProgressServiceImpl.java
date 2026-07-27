@@ -6,10 +6,9 @@ import io.vertx.core.eventbus.MessageProducer;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.Progress;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
@@ -21,17 +20,18 @@ import static org.folio.services.progress.JobExecutionProgressUtil.getBatchJobPr
 @Service
 public class JobExecutionProgressServiceImpl implements JobExecutionProgressService {
 
-  @Autowired
-  private JobExecutionProgressDao jobExecutionProgressDao;
-
-  @Autowired
-  private PostgresClientFactory pgClientFactory;
-  @Autowired
-  private JobExecutionDao jobExecutionDao;
+  private final JobExecutionProgressDao jobExecutionProgressDao;
+  private final PostgresClientFactory pgClientFactory;
+  private final JobExecutionDao jobExecutionDao;
 
   private final MessageProducer<BatchableJobExecutionProgress> jobExecutionProgressMessageProducer;
 
-  public JobExecutionProgressServiceImpl(@Autowired Vertx vertx) {
+  public JobExecutionProgressServiceImpl(JobExecutionProgressDao jobExecutionProgressDao,
+                                         PostgresClientFactory pgClientFactory, JobExecutionDao jobExecutionDao,
+                                         Vertx vertx) {
+    this.jobExecutionProgressDao = jobExecutionProgressDao;
+    this.pgClientFactory = pgClientFactory;
+    this.jobExecutionDao = jobExecutionDao;
     this.jobExecutionProgressMessageProducer = getBatchJobProgressProducer(vertx);
   }
 
@@ -60,7 +60,7 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
   }
 
   @Override
-  public Future<Void> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, OkapiConnectionParams params) {
+  public Future<Void> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, ConnectionParams params) {
     JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
       .withCurrentlySucceeded(successCountDelta)
       .withCurrentlyFailed(errorCountDelta);

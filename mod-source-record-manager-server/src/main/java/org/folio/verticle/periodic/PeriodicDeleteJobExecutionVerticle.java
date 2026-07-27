@@ -21,10 +21,13 @@ public class PeriodicDeleteJobExecutionVerticle extends AbstractPeriodicJobVerti
   @Value("${job.execution.difference.number.of.days:2}")
   private long diffNumberOfDays;
 
-  @Autowired
-  private JobExecutionDao jobExecutionDao;
-  @Autowired
-  private TenantDataProvider tenantDataProvider;
+  private final JobExecutionDao jobExecutionDao;
+  private final TenantDataProvider tenantDataProvider;
+
+  public PeriodicDeleteJobExecutionVerticle(JobExecutionDao jobExecutionDao, TenantDataProvider tenantDataProvider) {
+    this.jobExecutionDao = jobExecutionDao;
+    this.tenantDataProvider = tenantDataProvider;
+  }
 
   @Override
   protected long getExecutionIntervalInMs() {

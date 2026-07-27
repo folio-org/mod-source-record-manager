@@ -20,9 +20,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import io.vertx.core.json.jackson.DatabindCodec;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import org.folio.AuthorityIdentifierType;
 import org.folio.AuthorityNoteType;
@@ -32,7 +31,7 @@ import org.folio.Authoritynotetypes;
 import org.folio.Authoritysourcefiles;
 import org.folio.LinkingRuleDto;
 import org.folio.MarcFieldProtectionSettingsCollection;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.AlternativeTitleType;
@@ -90,17 +89,15 @@ import org.folio.rest.jaxrs.model.SubjectSource;
 import org.folio.rest.jaxrs.model.SubjectSources;
 import org.folio.rest.jaxrs.model.SubjectType;
 import org.folio.rest.jaxrs.model.SubjectTypes;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
  * Provider for mapping parameters, uses in-memory cache to store parameters there
  */
+@Log4j2
 @Component
 public class MappingParametersProvider {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   @Value("${srm.mapping.parameters.settings.limit:1000}")
   private int settingsLimit;
@@ -144,7 +141,7 @@ public class MappingParametersProvider {
 
   private final InternalCache internalCache;
 
-  public MappingParametersProvider(@Autowired Vertx vertx) {
+  public MappingParametersProvider(Vertx vertx) {
     this.internalCache = new InternalCache(vertx);
   }
 
@@ -154,7 +151,7 @@ public class MappingParametersProvider {
    * @param key key with which the specified MappingParameters are associated
    * @return mapping params for the given key
    */
-  public Future<MappingParameters> get(String key, OkapiConnectionParams okapiParams) {
+  public Future<MappingParameters> get(String key, ConnectionParams okapiParams) {
     return this.internalCache.get(new MappingParameterKey(key, okapiParams));
   }
 
@@ -165,8 +162,8 @@ public class MappingParametersProvider {
    * @param okapiParams   okapi connection params
    * @return initialized mapping params
    */
-  private Future<MappingParameters> initializeParameters(MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
-    LOGGER.debug("initializeParameters:: initializing mapping parameters...");
+  private Future<MappingParameters> initializeParameters(MappingParameters mappingParams, ConnectionParams okapiParams) {
+    log.debug("initializeParameters:: initializing mapping parameters...");
     Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(okapiParams);
     Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(okapiParams);
     Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(okapiParams);
@@ -245,7 +242,7 @@ public class MappingParametersProvider {
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfigurationZone(tenantSettingsTimeZoneFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
-      ).onFailure(e -> LOGGER.error("initializeParameters:: Something happened while initializing mapping parameters", e));
+      ).onFailure(e -> log.error("initializeParameters:: Something happened while initializing mapping parameters", e));
   }
 
   /**
@@ -254,7 +251,7 @@ public class MappingParametersProvider {
    * @param params connection parameters
    * @return List of Authority Identifier types
    */
-  private Future<List<AuthorityIdentifierType>> getAuthorityIdentifierTypes(OkapiConnectionParams params) {
+  private Future<List<AuthorityIdentifierType>> getAuthorityIdentifierTypes(ConnectionParams params) {
     String identifierTypesUrl = "/authority-identifier-types?limit=" + settingsLimit;
     return loadData(params, identifierTypesUrl, IDENTIFIER_TYPES_RESPONSE_PARAM,
       response -> {
@@ -272,7 +269,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Identifier types
    */
-  private Future<List<IdentifierType>> getIdentifierTypes(OkapiConnectionParams params) {
+  private Future<List<IdentifierType>> getIdentifierTypes(ConnectionParams params) {
     String identifierTypesUrl = "/identifier-types?limit=" + settingsLimit;
     return loadData(params, identifierTypesUrl, IDENTIFIER_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(IdentifierTypes.class).getIdentifierTypes());
@@ -284,7 +281,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Classification types
    */
-  private Future<List<ClassificationType>> getClassificationTypes(OkapiConnectionParams params) {
+  private Future<List<ClassificationType>> getClassificationTypes(ConnectionParams params) {
     String classificationTypesUrl = "/classification-types?limit=" + settingsLimit;
     return loadData(params, classificationTypesUrl, CLASSIFICATION_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(ClassificationTypes.class).getClassificationTypes());
@@ -296,7 +293,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Instance types
    */
-  private Future<List<InstanceType>> getInstanceTypes(OkapiConnectionParams params) {
+  private Future<List<InstanceType>> getInstanceTypes(ConnectionParams params) {
     String instanceTypesUrl = "/instance-types?limit=" + settingsLimit;
     return loadData(params, instanceTypesUrl, INSTANCE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(InstanceTypes.class).getInstanceTypes());
@@ -308,7 +305,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Electronic Access Relationships
    */
-  private Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(OkapiConnectionParams params) {
+  private Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(ConnectionParams params) {
     String electronicAccessUrl = "/electronic-access-relationships?limit=" + settingsLimit;
     return loadData(params, electronicAccessUrl, ELECTRONIC_ACCESS_PARAM,
       response -> response.mapTo(ElectronicAccessRelationships.class).getElectronicAccessRelationships());
@@ -320,7 +317,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Instance formats
    */
-  private Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
+  private Future<List<InstanceFormat>> getInstanceFormats(ConnectionParams params) {
     String instanceFormatsUrl = "/instance-formats?limit=" + settingsLimit;
     return loadData(params, instanceFormatsUrl, INSTANCE_FORMATS_RESPONSE_PARAM,
       response -> response.mapTo(InstanceFormats.class).getInstanceFormats());
@@ -332,7 +329,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Contributor types
    */
-  private Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
+  private Future<List<ContributorType>> getContributorTypes(ConnectionParams params) {
     String contributorTypesUrl = "/contributor-types?limit=" + settingsLimit;
     return loadData(params, contributorTypesUrl, CONTRIBUTOR_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(ContributorTypes.class).getContributorTypes());
@@ -344,7 +341,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Contributor name types
    */
-  private Future<List<ContributorNameType>> getContributorNameTypes(OkapiConnectionParams params) {
+  private Future<List<ContributorNameType>> getContributorNameTypes(ConnectionParams params) {
     String contributorNameTypesUrl = "/contributor-name-types?limit=" + settingsLimit;
     return loadData(params, contributorNameTypesUrl, CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(ContributorNameTypes.class).getContributorNameTypes());
@@ -357,115 +354,115 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Contributor name types
    */
-  private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params) {
+  private Future<List<InstanceNoteType>> getInstanceNoteTypes(ConnectionParams params) {
     String instanceNoteTypesUrl = "/instance-note-types?limit=" + settingsLimit;
     return loadData(params, instanceNoteTypesUrl, INSTANCE_NOTE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(InstanceNoteTypes.class).getInstanceNoteTypes());
   }
 
-  private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params) {
+  private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(ConnectionParams params) {
     String instanceAlternativeTitleTypesUrl = "/alternative-title-types?limit=" + settingsLimit;
     return loadData(params, instanceAlternativeTitleTypesUrl, INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(AlternativeTitleTypes.class).getAlternativeTitleTypes());
   }
 
-  private Future<List<NatureOfContentTerm>> getNatureOfContentTerms(OkapiConnectionParams params) {
+  private Future<List<NatureOfContentTerm>> getNatureOfContentTerms(ConnectionParams params) {
     String natureOfContentTermsUrl = "/nature-of-content-terms?limit=" + settingsLimit;
     return loadData(params, natureOfContentTermsUrl, NATURE_OF_CONTENT_TERMS_RESPONSE_PARAM,
       response -> response.mapTo(NatureOfContentTerms.class).getNatureOfContentTerms());
   }
 
-  private Future<List<InstanceStatus>> getInstanceStatuses(OkapiConnectionParams params) {
+  private Future<List<InstanceStatus>> getInstanceStatuses(ConnectionParams params) {
     String instanceStatusesUrl = "/instance-statuses?limit=" + settingsLimit;
     return loadData(params, instanceStatusesUrl, INSTANCE_STATUSES_RESPONSE_PARAM,
       response -> response.mapTo(InstanceStatuses.class).getInstanceStatuses());
   }
 
-  private Future<List<InstanceRelationshipType>> getInstanceRelationshipTypes(OkapiConnectionParams params) {
+  private Future<List<InstanceRelationshipType>> getInstanceRelationshipTypes(ConnectionParams params) {
     String instanceRelationshipTypesUrl = "/instance-relationship-types?limit=" + settingsLimit;
     return loadData(params, instanceRelationshipTypesUrl, INSTANCE_RELATIONSHIP_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(InstanceRelationshipTypes.class).getInstanceRelationshipTypes());
   }
 
-  private Future<List<HoldingsType>> getHoldingsTypes(OkapiConnectionParams params) {
+  private Future<List<HoldingsType>> getHoldingsTypes(ConnectionParams params) {
     String holdingsTypesUrl = "/holdings-types?limit=" + settingsLimit;
     return loadData(params, holdingsTypesUrl, HOLDINGS_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(HoldingsTypes.class).getHoldingsTypes());
   }
 
-  private Future<List<HoldingsNoteType>> getHoldingsNoteTypes(OkapiConnectionParams params) {
+  private Future<List<HoldingsNoteType>> getHoldingsNoteTypes(ConnectionParams params) {
     String holdingsNoteTypesUrl = "/holdings-note-types?limit=" + settingsLimit;
     return loadData(params, holdingsNoteTypesUrl, HOLDINGS_NOTE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(HoldingsNoteTypes.class).getHoldingsNoteTypes());
   }
 
-  private Future<List<IllPolicy>> getIllPolicies(OkapiConnectionParams params) {
+  private Future<List<IllPolicy>> getIllPolicies(ConnectionParams params) {
     String illPoliciesUrl = "/ill-policies?limit=" + settingsLimit;
     return loadData(params, illPoliciesUrl, ILL_POLICIES_RESPONSE_PARAM,
       response -> response.mapTo(IllPolicies.class).getIllPolicies());
   }
 
-  private Future<List<CallNumberType>> getCallNumberTypes(OkapiConnectionParams params) {
+  private Future<List<CallNumberType>> getCallNumberTypes(ConnectionParams params) {
     String callNumberTypesUrl = "/call-number-types?limit=" + settingsLimit;
     return loadData(params, callNumberTypesUrl, CALL_NUMBER_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(CallNumberTypes.class).getCallNumberTypes());
   }
 
-  private Future<List<StatisticalCode>> getStatisticalCodes(OkapiConnectionParams params) {
+  private Future<List<StatisticalCode>> getStatisticalCodes(ConnectionParams params) {
     String statisticalCodesUrl = "/statistical-codes?limit=" + settingsLimit;
     return loadData(params, statisticalCodesUrl, STATISTICAL_CODES_RESPONSE_PARAM,
       response -> response.mapTo(StatisticalCodes.class).getStatisticalCodes());
   }
 
-  private Future<List<StatisticalCodeType>> getStatisticalCodeTypes(OkapiConnectionParams params) {
+  private Future<List<StatisticalCodeType>> getStatisticalCodeTypes(ConnectionParams params) {
     String statisticalCodeTypesUrl = "/statistical-code-types?limit=" + settingsLimit;
     return loadData(params, statisticalCodeTypesUrl, STATISTICAL_CODE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(StatisticalCodeTypes.class).getStatisticalCodeTypes());
   }
 
-  private Future<List<Location>> getLocations(OkapiConnectionParams params) {
+  private Future<List<Location>> getLocations(ConnectionParams params) {
     String locationsUrl = "/locations?limit=" + settingsLimit;
     return loadData(params, locationsUrl, LOCATIONS_RESPONSE_PARAM,
       response -> response.mapTo(Locations.class).getLocations());
   }
 
-  private Future<List<MaterialType>> getMaterialTypes(OkapiConnectionParams params) {
+  private Future<List<MaterialType>> getMaterialTypes(ConnectionParams params) {
     String materialTypesUrl = "/material-types?limit=" + settingsLimit;
     return loadData(params, materialTypesUrl, MATERIALS_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(MaterialTypes.class).getMtypes());
   }
 
-  private Future<List<ItemDamageStatus>> getItemDamagedStatuses(OkapiConnectionParams params) {
+  private Future<List<ItemDamageStatus>> getItemDamagedStatuses(ConnectionParams params) {
     String itemDamagedStatusesUrl = "/item-damaged-statuses?limit=" + settingsLimit;
     return loadData(params, itemDamagedStatusesUrl, ITEM_DAMAGED_STATUSES_RESPONSE_PARAM,
       response -> response.mapTo(ItemDamageStatuses.class).getItemDamageStatuses());
   }
 
-  private Future<List<LoanType>> getLoanTypes(OkapiConnectionParams params) {
+  private Future<List<LoanType>> getLoanTypes(ConnectionParams params) {
     String loanTypesUrl = "/loan-types?limit=" + settingsLimit;
     return loadData(params, loanTypesUrl, LOAN_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(LoanTypes.class).getLoantypes());
   }
 
-  private Future<List<ItemNoteType>> getItemNoteTypes(OkapiConnectionParams params) {
+  private Future<List<ItemNoteType>> getItemNoteTypes(ConnectionParams params) {
     String itemNoteTypesUrl = "/item-note-types?limit=" + settingsLimit;
     return loadData(params, itemNoteTypesUrl, ITEM_NOTE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(ItemNoteTypes.class).getItemNoteTypes());
   }
 
-  private Future<List<MarcFieldProtectionSetting>> getMarcFieldProtectionSettings(OkapiConnectionParams params) {
+  private Future<List<MarcFieldProtectionSetting>> getMarcFieldProtectionSettings(ConnectionParams params) {
     String fieldProtectionSettingsUrl = "/field-protection-settings/marc?limit=" + settingsLimit;
     return loadData(params, fieldProtectionSettingsUrl, FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM,
       response -> response.mapTo(MarcFieldProtectionSettingsCollection.class).getMarcFieldProtectionSettings());
   }
 
-  private Future<List<AuthorityNoteType>> getAuthorityNoteTypes(OkapiConnectionParams params) {
+  private Future<List<AuthorityNoteType>> getAuthorityNoteTypes(ConnectionParams params) {
     var authorityNoteTypesUrl = "/authority-note-types?limit=" + settingsLimit;
     return loadData(params, authorityNoteTypesUrl, AUTHORITY_NOTE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(Authoritynotetypes.class).getAuthorityNoteTypes());
   }
 
-  private Future<List<AuthoritySourceFile>> getAuthoritySourceFiles(OkapiConnectionParams params) {
+  private Future<List<AuthoritySourceFile>> getAuthoritySourceFiles(ConnectionParams params) {
     var authoritySourceFilesUrl = "/authority-source-files?limit=" + settingsLimit;
     return loadData(params, authoritySourceFilesUrl, AUTHORITY_SOURCE_FILES_RESPONSE_PARAM,
       response -> response.mapTo(Authoritysourcefiles.class).getAuthoritySourceFiles());
@@ -478,7 +475,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Issuance modes
    */
-  private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params) {
+  private Future<List<IssuanceMode>> getIssuanceModes(ConnectionParams params) {
     String issuanceModesUrl = "/modes-of-issuance?limit=" + settingsLimit;
     return loadData(params, issuanceModesUrl, ISSUANCE_MODES_RESPONSE_PARAM,
       response -> response.mapTo(IssuanceModes.class).getIssuanceModes());
@@ -491,7 +488,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List Subject sources
    */
-  private Future<List<SubjectSource>> getSubjectSources(OkapiConnectionParams params) {
+  private Future<List<SubjectSource>> getSubjectSources(ConnectionParams params) {
     String subjectSourcesUrl = "/subject-sources?limit=" + settingsLimit;
     return loadData(params, subjectSourcesUrl, SUBJECTS_SOURCES_RESPONSE_PARAM,
       response -> response.mapTo(SubjectSources.class).getSubjectSources());
@@ -504,7 +501,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List Subject types
    */
-  private Future<List<SubjectType>> getSubjectTypes(OkapiConnectionParams params) {
+  private Future<List<SubjectType>> getSubjectTypes(ConnectionParams params) {
     String subjectTypesUrl = "/subject-types?limit=" + settingsLimit;
     return loadData(params, subjectTypesUrl, SUBJECTS_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(SubjectTypes.class).getSubjectTypes());
@@ -517,7 +514,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List Instance date types
    */
-  private Future<List<InstanceDateType>> getInstanceDateTypes(OkapiConnectionParams params) {
+  private Future<List<InstanceDateType>> getInstanceDateTypes(ConnectionParams params) {
     String instanceDateTypesUrl = "/instance-date-types?limit=" + settingsLimit;
     return loadData(params, instanceDateTypesUrl, INSTANCE_DATE_TYPES_RESPONSE_PARAM,
       response -> response.mapTo(InstanceDateTypes.class).getInstanceDateTypes());
@@ -530,7 +527,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return tenant timezone
    */
-  private Future<String> getTenantSettingsTimeZone(OkapiConnectionParams params) {
+  private Future<String> getTenantSettingsTimeZone(ConnectionParams params) {
     Promise<String> promise = Promise.promise();
     RestUtil.doRequestWithSystemUser(params, TENANT_SETTINGS_TIME_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
@@ -552,7 +549,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return linking rules
    */
-  private Future<List<LinkingRuleDto>> getLinkingRules(OkapiConnectionParams params) {
+  private Future<List<LinkingRuleDto>> getLinkingRules(ConnectionParams params) {
     Promise<List<LinkingRuleDto>> promise = Promise.promise();
     RestUtil.doRequestWithSystemUser(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
@@ -563,12 +560,12 @@ public class MappingParametersProvider {
           try {
             linkingRules = DatabindCodec.mapper().readValue(response, new TypeReference<>(){});
           } catch (JsonProcessingException e) {
-            LOGGER.warn("Unable to parse linking rules response", e);
+            log.warn("Unable to parse linking rules response", e);
             promise.complete(Collections.emptyList());
           }
           promise.complete(linkingRules);
         } else {
-          LOGGER.warn("Retrieve linking rules fail: {}", result.getCode());
+          log.warn("Retrieve linking rules fail: {}", result.getCode());
           promise.complete(Collections.emptyList());
         }
       }
@@ -576,7 +573,7 @@ public class MappingParametersProvider {
     return promise.future();
   }
 
-  private <T> Future<List<T>> loadData(OkapiConnectionParams params, String requestUrl, String dataCollectionField,
+  private <T> Future<List<T>> loadData(ConnectionParams params, String requestUrl, String dataCollectionField,
                                        Function<JsonObject, List<T>> dataExtractor) {
     Promise<List<T>> promise = Promise.promise();
     RestUtil.doRequestWithSystemUser(params, requestUrl, HttpMethod.GET, null).onComplete(responseAr -> {
@@ -589,11 +586,11 @@ public class MappingParametersProvider {
             promise.complete(Collections.emptyList());
           }
         } else {
-          LOGGER.warn("loadData:: loading data by {} was not successful, status: {}, body: {}",
+          log.warn("loadData:: loading data by {} was not successful, status: {}, body: {}",
             requestUrl, responseAr.result().getCode(), responseAr.result().getBody());
         }
       } catch (Exception e) {
-        LOGGER.warn("loadData:: Failed to load {}", dataCollectionField, e);
+        log.warn("loadData:: Failed to load {}", dataCollectionField, e);
         promise.fail(e);
       }
     });
@@ -607,9 +604,9 @@ public class MappingParametersProvider {
    */
   public static class MappingParameterKey {
     private String key;
-    private OkapiConnectionParams okapiConnectionParams;
+    private ConnectionParams okapiConnectionParams;
 
-    public MappingParameterKey(String key, OkapiConnectionParams okapiParams) {
+    public MappingParameterKey(String key, ConnectionParams okapiParams) {
       this.key = key;
       this.okapiConnectionParams = okapiParams;
     }
@@ -618,7 +615,7 @@ public class MappingParametersProvider {
       return key;
     }
 
-    public OkapiConnectionParams getOkapiConnectionParams() {
+    public ConnectionParams getConnectionParams() {
       return okapiConnectionParams;
     }
 
@@ -658,7 +655,7 @@ public class MappingParametersProvider {
                         () ->
                             initializeParameters(
                                     new MappingParameters().withInitializedState(false),
-                                    key.getOkapiConnectionParams())
+                                    key.getConnectionParams())
                                 .onComplete(ar -> future.complete(ar.result())));
                     return future;
                   });

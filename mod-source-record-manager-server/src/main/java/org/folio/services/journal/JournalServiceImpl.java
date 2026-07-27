@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service("journalService")
 public class JournalServiceImpl implements JournalService, BatchJournalService {
 
-  private JournalRecordDao journalRecordDao;
+  private final JournalRecordDao journalRecordDao;
 
   @Autowired
   public JournalServiceImpl(JournalRecordDao journalRecordDao) {

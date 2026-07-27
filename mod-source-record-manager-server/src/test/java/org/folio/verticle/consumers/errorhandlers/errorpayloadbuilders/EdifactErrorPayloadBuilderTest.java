@@ -3,7 +3,6 @@ package org.folio.verticle.consumers.errorhandlers.errorpayloadbuilders;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -12,7 +11,8 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.processing.mapping.MappingManager;
 import org.folio.processing.mapping.mapper.MappingContext;
 import org.folio.rest.jaxrs.model.EntityType;
@@ -37,12 +37,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.ActionProfile.FolioRecord.INVOICE;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler.ERROR_KEY;
 import static org.folio.verticle.consumers.errorhandlers.payloadbuilders.EdifactDiErrorPayloadBuilder.INVOICE_LINES_FIELD;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,11 +61,9 @@ public class EdifactErrorPayloadBuilderTest {
 
   @Mock
   private JobExecutionService jobExecutionService;
-  @Mock
-  private Vertx vertx;
 
   @InjectMocks
-  private EdifactDiErrorPayloadBuilder payloadBuilder = new EdifactDiErrorPayloadBuilder(jobExecutionService);
+  private EdifactDiErrorPayloadBuilder payloadBuilder;
 
   @Before
   public void setUp() {
@@ -180,12 +175,12 @@ public class EdifactErrorPayloadBuilderTest {
     });
   }
 
-  private OkapiConnectionParams getOkapiParams() {
+  private ConnectionParams getOkapiParams() {
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost");
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, TOKEN);
-    return new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost");
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, TOKEN);
+    return new ConnectionParams(headers);
   }
 
   private HashMap<String, String> getPayloadContext() {

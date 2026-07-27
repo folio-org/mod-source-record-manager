@@ -7,6 +7,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.folio.DataImportEventPayload;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.EntityType;
@@ -33,12 +34,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.KafkaUtil.checkKafkaEventSent;
 import static org.folio.KafkaUtil.getValues;
 import static org.folio.KafkaUtil.sendEvent;
-import static org.folio.dataimport.util.RestUtil.OKAPI_TOKEN_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -193,8 +192,8 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
       Json.encode(event)
     );
 
-    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
-    producerRecord.headers().add(OKAPI_TOKEN_HEADER, TOKEN.getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.TENANT, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.TOKEN, TOKEN.getBytes(UTF_8));
     producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionId.getBytes(UTF_8));
 
     return producerRecord;

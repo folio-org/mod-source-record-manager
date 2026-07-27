@@ -132,7 +132,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public void setUp() throws IOException {
     MockitoAnnotations.initMocks(this);
     EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(eventProcessedService, eventTypeHandlerSelector, journalService);
     record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
     JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
     when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));

@@ -2,13 +2,11 @@ package org.folio.verticle.consumers;
 
 import com.google.common.collect.Lists;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.lang.StringUtils;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.kafka.AsyncRecordHandler;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -20,9 +18,9 @@ import org.folio.services.RecordsPublishingService;
 import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.folio.verticle.consumers.util.JobExecutionUtils;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -63,13 +61,8 @@ public class RawMarcChunksKafkaHandlerTest {
     .withInitialRecords(Lists.newArrayList(new InitialRecord()))
     .withRecordsMetadata(new RecordsMetadata().withContentType(RecordsMetadata.ContentType.MARC_JSON).withLast(true));
 
-  private Vertx vertx = Vertx.vertx();
-  private AsyncRecordHandler<String, byte[]> rawMarcChunksKafkaHandler;
-
-  @Before
-  public void setUp() {
-    rawMarcChunksKafkaHandler = new RawMarcChunksKafkaHandler(eventDrivenChunkProcessingService, flowControlService, jobExecutionService, vertx);
-  }
+  @InjectMocks
+  private RawMarcChunksKafkaHandler rawMarcChunksKafkaHandler;
 
   @After
   public void invalidateCache() {
@@ -85,7 +78,7 @@ public class RawMarcChunksKafkaHandlerTest {
     Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any());
     verify(flowControlService).triggerNextChunksFetch(TENANT_ID);
     assertTrue(future.succeeded());
   }
@@ -107,7 +100,7 @@ public class RawMarcChunksKafkaHandlerTest {
     Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any());
     verify(eventDrivenChunkProcessingService).processChunk(any(), any(), argThat(params -> StringUtils.isNotEmpty(params.getToken())));
     assertTrue(future.succeeded());
   }
@@ -131,7 +124,7 @@ public class RawMarcChunksKafkaHandlerTest {
     System.clearProperty(SYSTEM_USER_ENABLED);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any());
     verify(eventDrivenChunkProcessingService).processChunk(any(), any(), argThat(params -> StringUtils.isEmpty(params.getToken())));
     assertTrue(future.succeeded());
   }
@@ -148,7 +141,7 @@ public class RawMarcChunksKafkaHandlerTest {
     Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(ConnectionParams.class), anyString(), any());
     assertTrue(future.succeeded());
   }
 }

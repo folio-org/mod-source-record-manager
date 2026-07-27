@@ -6,8 +6,6 @@ import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.spi.VerticleFactory;
 import io.vertx.serviceproxy.ServiceBinder;
@@ -36,9 +34,11 @@ import java.util.List;
 
 import static io.vertx.core.ThreadingModel.WORKER;
 
+@SuppressWarnings({"java:S6813", "SpringJavaInjectionPointsAutowiringInspection"})
 public class InitAPIImpl implements InitAPI {
 
-  private static final Logger LOGGER = LogManager.getLogger();
+  private static final Logger log = LogManager.getLogger();
+
   private static final String SPRING_CONTEXT_KEY = "springContext";
 
   @Value("${srm.kafka.DataImportInitConsumersVerticle.instancesNumber:1}")
@@ -68,7 +68,7 @@ public class InitAPIImpl implements InitAPI {
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
-    LOGGER.info("init:: InitAPI starting...");
+    log.info("init:: InitAPI starting...");
     try {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
@@ -80,14 +80,14 @@ public class InitAPIImpl implements InitAPI {
       deployConsumersVerticles(vertx)
         .onSuccess(car -> {
           handler.handle(Future.succeededFuture());
-          LOGGER.info("init:: Consumer Verticles were successfully started");
+          log.info("init:: Consumer Verticles were successfully started");
         })
         .onFailure(th -> {
           handler.handle(Future.failedFuture(th));
-          LOGGER.warn("init:: Consumer Verticles were not started", th);
+          log.warn("init:: Consumer Verticles were not started", th);
         });
     } catch (Exception th) {
-      LOGGER.warn("init:: Error during module init", th);
+      log.warn("init:: Error during module init", th);
       handler.handle(Future.failedFuture(th));
     }
   }

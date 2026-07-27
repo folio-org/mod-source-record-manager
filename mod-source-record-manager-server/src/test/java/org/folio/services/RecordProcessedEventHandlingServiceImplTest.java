@@ -8,13 +8,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Collections.emptyList;
 import static org.folio.KafkaUtil.getKafkaHostAndPort;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.PARSING_IN_PROGRESS;
 import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.RecordProcessedEventHandlingServiceImpl.ERRORS_KEY;
 import static org.folio.services.progress.JobExecutionProgressUtil.registerCodecs;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,9 +50,10 @@ import org.folio.dao.MappingParamsSnapshotDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
@@ -82,6 +80,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -98,11 +97,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private Vertx vertx = JournalUtil.registerCodecs(Vertx.vertx());
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
-  @Spy
-  @InjectMocks
   private JobExecutionDaoImpl jobExecutionDao;
-  @Spy
-  @InjectMocks
   private JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
   @Spy
   @InjectMocks
@@ -113,53 +108,27 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Spy
   @InjectMocks
   private MappingParametersProvider mappingParametersProvider;
-  @InjectMocks
-  @Spy
   private JobExecutionServiceImpl jobExecutionService;
   @InjectMocks
   @Spy
   private MarcRecordAnalyzer marcRecordAnalyzer;
-  @InjectMocks
-  @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
-  @Spy
-  @InjectMocks
   private JobExecutionProgressServiceImpl jobExecutionProgressService;
   @Spy
   private HrIdFieldServiceImpl hrIdFieldService;
-  @Spy
-  @InjectMocks
   private JournalRecordDaoImpl journalRecordDao;
-  @Spy
-  @InjectMocks
   private JournalServiceImpl journalService;
-  @Spy
-  @InjectMocks
   private MarcImportEventsHandler marcImportEventsHandler;
-  @Spy
-  @InjectMocks
   private MappingRulesSnapshotDaoImpl mappingRulesSnapshotDao;
-  @Spy
-  @InjectMocks
   private MappingParamsSnapshotDaoImpl mappingParamsSnapshotDao;
-  @Spy
-  @InjectMocks
   private FieldModificationServiceImpl fieldModificationService;
-  @Spy
-  @InjectMocks
   private IncomingRecordServiceImpl incomingRecordService;
-  @Spy
-  @InjectMocks
   private ConsortiumDataCache consortiumDataCache;
-  @Spy
-  @InjectMocks
   private JournalRecordServiceImpl journalRecordService;
-  @Spy
-  @InjectMocks
   private IncomingRecordDaoImpl incomingRecordDao;
   private ChunkProcessingService chunkProcessingService;
   private RecordProcessedEventHandlingServiceImpl recordProcessedEventHandlingService;
-  private OkapiConnectionParams params;
+  private ConnectionParams params;
 
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -193,13 +162,30 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     MockitoAnnotations.openMocks(this);
 
     registerCodecs(vertx);
+
+    jobExecutionDao = Mockito.spy(new JobExecutionDaoImpl(postgresClientFactory));
+    jobExecutionSourceChunkDao = Mockito.spy(new JobExecutionSourceChunkDaoImpl(postgresClientFactory));
+    jobExecutionService = Mockito.spy(new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig));
+    jobExecutionProgressDao = Mockito.spy(new JobExecutionProgressDaoImpl(postgresClientFactory));
+    jobExecutionProgressService = Mockito.spy(new JobExecutionProgressServiceImpl(jobExecutionProgressDao, postgresClientFactory, jobExecutionDao, vertx));
+    journalRecordDao = Mockito.spy(new JournalRecordDaoImpl(postgresClientFactory));
+    journalService = Mockito.spy(new JournalServiceImpl(journalRecordDao));
+    journalRecordService = Mockito.spy(new JournalRecordServiceImpl(journalRecordDao));
+    mappingRulesSnapshotDao = Mockito.spy(new MappingRulesSnapshotDaoImpl(postgresClientFactory));
+    mappingParamsSnapshotDao = Mockito.spy(new MappingParamsSnapshotDaoImpl(postgresClientFactory));
+    incomingRecordDao = Mockito.spy(new IncomingRecordDaoImpl(postgresClientFactory));
+    incomingRecordService = Mockito.spy(new IncomingRecordServiceImpl(incomingRecordDao));
+    consortiumDataCache = Mockito.spy(new ConsortiumDataCache(vertx));
+
     vertx.deployVerticle(new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService, kafkaConfig));
 
     MappingRuleCache mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
-    mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
+    mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(ConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
+    fieldModificationService = Mockito.spy(new FieldModificationServiceImpl(mappingParametersProvider));
+    marcImportEventsHandler = Mockito.spy(new MarcImportEventsHandler(mappingRuleCache, journalRecordService));
     MappingMetadataService mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao, CACHE_EXPIRATION_TIME, CACHE_MAX_SIZE);
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
     RecordsPublishingService recordsPublishingService = new RecordsPublishingServiceImpl(jobExecutionService,
@@ -214,10 +200,10 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
     recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService);
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, "token");
-    params = new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost:" + snapshotMockServer.port());
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, "token");
+    params = new ConnectionParams(headers);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));

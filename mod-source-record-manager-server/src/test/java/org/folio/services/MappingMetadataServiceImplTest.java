@@ -8,7 +8,7 @@ import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.MappingParamsSnapshotDao;
 import org.folio.dao.MappingRulesSnapshotDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.processor.MappingParametersProvider;
@@ -63,7 +63,7 @@ public class MappingMetadataServiceImplTest {
     MappingParameters mappingParameters = new MappingParameters();
     String jobExecutionId = UUID.randomUUID().toString();
     String tenantId = UUID.randomUUID().toString();
-    OkapiConnectionParams params = mock(OkapiConnectionParams.class);
+    ConnectionParams params = mock(ConnectionParams.class);
     Mockito.when(params.getTenantId()).thenReturn(tenantId);
 
     // Mock DAO calls that happen on the first, cache-miss call

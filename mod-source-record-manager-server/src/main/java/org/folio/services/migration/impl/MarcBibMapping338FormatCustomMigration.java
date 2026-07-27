@@ -7,18 +7,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+@Log4j2
 @Component
 public class MarcBibMapping338FormatCustomMigration extends BaseMappingRulesMigration {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final int ORDER = 14;
   private static final UUID MIGRATION_ID = UUID.fromString("a65b7666-bba8-4c5b-bad3-0410015250cd");
@@ -43,12 +42,12 @@ public class MarcBibMapping338FormatCustomMigration extends BaseMappingRulesMigr
       if (currentRule.equals(unmodifiedRule)) {
         JsonArray updatedRule = new JsonArray(Resources.toString(Resources.getResource(UPDATED_RULE), StandardCharsets.UTF_8));
         rules.put(RULE_TAG, updatedRule);
-        LOGGER.info("Updated 338 rule in marc-bib mapping rules");
+        log.info("Updated 338 rule in marc-bib mapping rules");
       } else {
-        LOGGER.warn("338 rule is customized and was not updated");
+        log.warn("338 rule is customized and was not updated");
       }
     } catch (Exception e) {
-      LOGGER.warn("Cannot update 338 rule in marc-bib mapping rules", e);
+      log.warn("Cannot update 338 rule in marc-bib mapping rules", e);
     }
 
     return rules.encode();

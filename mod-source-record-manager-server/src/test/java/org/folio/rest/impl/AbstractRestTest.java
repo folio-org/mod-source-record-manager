@@ -7,16 +7,14 @@ import static org.folio.KafkaUtil.getKafkaHostAndPort;
 import static org.folio.KafkaUtil.startKafka;
 import static org.folio.KafkaUtil.stopKafka;
 import static org.folio.dao.IncomingRecordDaoImpl.INCOMING_RECORDS_TABLE;
-import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+import static org.folio.okapi.common.XOkapiHeaders.*;
 import static org.folio.rest.jaxrs.model.ActionProfile.Action.MODIFY;
 import static org.folio.rest.jaxrs.model.MarcMappingDetail.Action.DELETE;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -61,6 +59,7 @@ import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
@@ -84,7 +83,6 @@ import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.Envs;
 import org.folio.rest.tools.utils.NetworkUtils;
-import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.SharedDataUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -535,9 +533,9 @@ public abstract class AbstractRestTest {
     clearTable(context);
     spec = new RequestSpecBuilder()
       .setContentType(ContentType.JSON)
-      .addHeader(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port())
-      .addHeader(OKAPI_TENANT_HEADER, TENANT_ID)
-      .addHeader(RestVerticle.OKAPI_USERID_HEADER, okapiUserIdHeader)
+      .addHeader(URL, "http://localhost:" + snapshotMockServer.port())
+      .addHeader(TENANT, TENANT_ID)
+      .addHeader(USER_ID, okapiUserIdHeader)
       .addHeader("Accept", "text/plain, application/json")
       .setBaseUri("http://localhost:" + port)
       .build();
@@ -731,17 +729,17 @@ public abstract class AbstractRestTest {
 
   protected <V> ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
     ConsumerRecord<java.lang.String, String> consumerRecord = new ConsumerRecord<>("folio", 0, 0, topic, Json.encode(event));
-    consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(TENANT, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(URL, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TOKEN, (TOKEN).getBytes(StandardCharsets.UTF_8)));
     return consumerRecord;
   }
 
   protected <V> ConsumerRecord<String, byte[]> buildConsumerRecordAsByteArray(String topic, Event event) {
     ConsumerRecord<java.lang.String, byte[]> consumerRecord = new ConsumerRecord<>("folio", 0, 0, topic, Json.encode(event).getBytes(StandardCharsets.UTF_8));
-    consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(TENANT, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(URL, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TOKEN, (TOKEN).getBytes(StandardCharsets.UTF_8)));
     return consumerRecord;
   }
 }

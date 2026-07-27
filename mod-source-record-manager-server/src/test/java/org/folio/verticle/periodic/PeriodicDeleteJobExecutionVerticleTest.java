@@ -29,7 +29,7 @@ public class PeriodicDeleteJobExecutionVerticleTest {
   private JobExecutionDao jobExecutionDao;
 
   @InjectMocks
-  private PeriodicDeleteJobExecutionVerticle verticle = new PeriodicDeleteJobExecutionVerticle();
+  private PeriodicDeleteJobExecutionVerticle verticle;
 
   @Before
   public void setUp() {

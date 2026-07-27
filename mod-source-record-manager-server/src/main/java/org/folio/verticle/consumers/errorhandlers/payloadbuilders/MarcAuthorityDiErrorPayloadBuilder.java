@@ -2,7 +2,7 @@ package org.folio.verticle.consumers.errorhandlers.payloadbuilders;
 
 import io.vertx.core.Future;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.verticle.consumers.util.DiErrorBuilderUtil;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ public class MarcAuthorityDiErrorPayloadBuilder implements DiErrorPayloadBuilder
 
   @Override
   public Future<DataImportEventPayload> buildEventPayload(Throwable throwable,
-                                                          OkapiConnectionParams okapiParams,
+                                                          ConnectionParams okapiParams,
                                                           String jobExecutionId,
                                                           Record currentRecord) {
     DataImportEventPayload diErrorPayload = DiErrorBuilderUtil.prepareDiErrorEventPayload(throwable, okapiParams, jobExecutionId, currentRecord);

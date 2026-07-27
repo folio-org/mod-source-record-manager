@@ -1,7 +1,6 @@
 package org.folio.verticle.consumers.errorhandlers.errorpayloadbuilders;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -10,7 +9,8 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
@@ -37,9 +37,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.folio.verticle.consumers.DataImportJournalConsumerVerticleMockTest.MAPPING_RULES_PATH;
 import static org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler.ERROR_KEY;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.mockito.Mockito.when;
 
@@ -56,11 +53,9 @@ public class MarcBibErrorPayloadBuilderTest {
 
   @Mock
   private MappingRuleCache mappingRuleCache;
-  @Mock
-  private Vertx vertx;
 
   @InjectMocks
-  private MarcBibDiErrorPayloadBuilder payloadBuilder = new MarcBibDiErrorPayloadBuilder(mappingRuleCache);
+  private MarcBibDiErrorPayloadBuilder payloadBuilder;
 
   @Before
   public void setUp() {
@@ -167,12 +162,12 @@ public class MarcBibErrorPayloadBuilderTest {
     });
   }
 
-  private OkapiConnectionParams getOkapiParams() {
+  private ConnectionParams getOkapiParams() {
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost");
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, TOKEN);
-    return new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost");
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, TOKEN);
+    return new ConnectionParams(headers);
   }
 
   private Record getRecordFromFile() throws IOException {

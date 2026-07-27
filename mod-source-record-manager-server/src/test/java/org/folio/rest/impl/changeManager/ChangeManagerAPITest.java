@@ -93,7 +93,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
 
 /**
  * REST tests for ChangeManager to manager JobExecution entities initialization
@@ -208,7 +207,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
     WireMock.stubFor(
       WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_INSTANCE_JOB_PROFILE_ID + "?withRelations=false&")
         .willReturn(WireMock.ok().withBody(
@@ -424,7 +422,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JsonObject().toString())
       .when()
-      .put(JOB_EXECUTION_PATH + UUID.randomUUID().toString())
+      .put(JOB_EXECUTION_PATH + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -496,7 +494,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + CHILDREN_PATH)
+      .get(JOB_EXECUTION_PATH + UUID.randomUUID() + CHILDREN_PATH)
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -588,7 +586,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(status).toString())
       .when()
-      .put(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + STATUS_PATH)
+      .put(JOB_EXECUTION_PATH + UUID.randomUUID() + STATUS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -599,7 +597,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JsonObject().toString())
       .when()
-      .put(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + STATUS_PATH)
+      .put(JOB_EXECUTION_PATH + UUID.randomUUID() + STATUS_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -611,7 +609,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(status.toString())
       .when()
-      .put(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + STATUS_PATH)
+      .put(JOB_EXECUTION_PATH + UUID.randomUUID() + STATUS_PATH)
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
@@ -1018,7 +1016,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
       .when()
-      .put(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + JOB_PROFILE_PATH)
+      .put(JOB_EXECUTION_PATH + UUID.randomUUID() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -1030,7 +1028,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
       .when()
-      .put(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + JOB_PROFILE_PATH)
+      .put(JOB_EXECUTION_PATH + UUID.randomUUID() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -1129,7 +1127,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JsonObject().toString())
       .when()
-      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + UUID.randomUUID() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -1140,7 +1138,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + UUID.randomUUID() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }

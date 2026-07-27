@@ -13,17 +13,17 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Repository;
 
 import org.folio.Record;
 import org.folio.dao.util.PostgresClientFactory;
 
+@Log4j2
 @Repository
+@RequiredArgsConstructor
 public class MappingRuleDaoImpl implements MappingRuleDao {
-  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TABLE_NAME = "mapping_rules";
   private static final String RULES_JSON_FIELD = "mappingRules";
@@ -31,8 +31,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
   private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = $1 WHERE record_type = $2";
   private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, record_type) VALUES ($1, $2, $3)";
 
-  @Autowired
-  private PostgresClientFactory pgClientFactory;
+  private final PostgresClientFactory pgClientFactory;
 
   @Override
   public Future<Optional<JsonObject>> get(Record.RecordType recordType, String tenantId) {
@@ -42,7 +41,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
       Tuple queryParams = Tuple.of(recordType != null ? recordType.toString() : null);
       pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("get:: Error getting mapping rules", e);
+      log.warn("get:: Error getting mapping rules", e);
       promise.fail(e);
     }
     return promise.future().map(resultSet -> {
@@ -58,7 +57,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
 
   @Override
   public Future<String> save(JsonObject rules, Record.RecordType recordType, String tenantId) {
-    LOGGER.trace("save:: Saving mapping rules tenant id {}", tenantId);
+    log.trace("save:: Saving mapping rules tenant id {}", tenantId);
     UUID id = UUID.randomUUID();
     String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(
@@ -66,7 +65,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
       new JsonObject().put(RULES_JSON_FIELD, rules),
       recordType.toString());
     return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
-      .onFailure(e -> LOGGER.warn("save:: Error saving rules", e))
+      .onFailure(e -> log.warn("save:: Error saving rules", e))
       .map(id.toString());
   }
 
@@ -75,7 +74,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
     String query = format(UPDATE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(new JsonObject().put(RULES_JSON_FIELD, rules), recordType.toString());
     return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
-      .onFailure(e -> LOGGER.warn("update:: Error updating rules", e))
+      .onFailure(e -> log.warn("update:: Error updating rules", e))
       .map(rules);
   }
 }

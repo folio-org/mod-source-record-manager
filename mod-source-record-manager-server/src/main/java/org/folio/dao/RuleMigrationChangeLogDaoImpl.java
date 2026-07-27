@@ -14,16 +14,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.StreamSupport;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.services.migration.CustomMigration;
 import org.springframework.stereotype.Repository;
 
+@Log4j2
 @Repository
 public class RuleMigrationChangeLogDaoImpl implements RuleMigrationChangeLogDao {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   private static final String TABLE_NAME = "rule_migration_change_log";
   private static final String MIGRATION_ID_FIELD = "migration_id";
   private static final String SELECT_QUERY = "SELECT migration_id FROM %s.%s";
@@ -41,7 +40,7 @@ public class RuleMigrationChangeLogDaoImpl implements RuleMigrationChangeLogDao 
 
   @Override
   public Future<List<UUID>> getMigrationIds(String tenantId) {
-    LOGGER.trace("getMigrationIds:: Getting migrationIds for tenant {}", tenantId);
+    log.trace("getMigrationIds:: Getting migrationIds for tenant {}", tenantId);
 
     Promise<RowSet<Row>> promise = Promise.promise();
     var query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
@@ -70,14 +69,14 @@ public class RuleMigrationChangeLogDaoImpl implements RuleMigrationChangeLogDao 
       migration.getDescription(),
       LocalDateTime.now());
     try {
-      LOGGER.trace("save:: Saving RuleMigrationChangeLog with migrationId: {} for tenant {}",
+      log.trace("save:: Saving RuleMigrationChangeLog with migrationId: {} for tenant {}",
         migration.getMigrationId(), tenantId);
 
       return pgClientFactory.createInstance(tenantId)
         .execute(query, queryParams)
         .mapEmpty();
     } catch (Exception e) {
-      LOGGER.error("save:: Failed to save RuleMigrationChangeLog with migrationId: {} for tenant {}. Error: {}",
+      log.error("save:: Failed to save RuleMigrationChangeLog with migrationId: {} for tenant {}. Error: {}",
         migration.getMigrationId(), tenantId, e);
       return Future.failedFuture(e);
     }

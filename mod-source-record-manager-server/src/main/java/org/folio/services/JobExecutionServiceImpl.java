@@ -6,15 +6,14 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.kafka.client.producer.KafkaHeader;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.util.SortField;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
 import org.folio.kafka.KafkaConfig;
@@ -42,7 +41,6 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.folio.services.util.EventHandlingUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
@@ -75,10 +73,10 @@ import static org.folio.verticle.JobExecutionProgressVerticle.COMPLETED_STATUSES
  * @see JobExecutionDao
  * @see JobExecution
  */
+@Log4j2
 @Service
 public class JobExecutionServiceImpl implements JobExecutionService {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   private static final String GET_USER_URL = "/users?query=id==";
   private static final String DEFAULT_LASTNAME = "SYSTEM";
   private static final String NO_FILE_NAME = "No file name";
@@ -90,10 +88,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       JobExecution.UiStatus.RUNNING_COMPLETE
     ));
 
-  private JobExecutionDao jobExecutionDao;
-  private KafkaConfig kafkaConfig;
+  private final JobExecutionDao jobExecutionDao;
+  private final KafkaConfig kafkaConfig;
 
-  @Autowired
   public JobExecutionServiceImpl(JobExecutionDao jobExecutionDao, KafkaConfig kafkaConfig) {
     this.jobExecutionDao = jobExecutionDao;
     this.kafkaConfig = kafkaConfig;
@@ -105,11 +102,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, OkapiConnectionParams params) {
-    LOGGER.debug("initializeJobExecutions:: userId {}", jobExecutionsRqDto.getUserId());
+  public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, ConnectionParams params) {
+    log.debug("initializeJobExecutions:: userId {}", jobExecutionsRqDto.getUserId());
     if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.FILES) && jobExecutionsRqDto.getFiles().isEmpty()) {
       String errorMessage = "Received files must not be empty";
-      LOGGER.warn(errorMessage);
+      log.warn(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       String parentJobId = jobExecutionsRqDto.getParentJobId();
@@ -130,16 +127,16 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId={}", jobExecution.getId());
+  public Future<JobExecution> updateJobExecutionWithSnapshotStatusAsync(JobExecution jobExecution, ConnectionParams params) {
+    log.debug("updateJobExecutionWithSnapshotStatusAsync:: jobExecutionId={}", jobExecution.getId());
 
     Function<JobExecution, Future<JobExecution>> updateChain = execToUpdate ->
       updateJobExecution(execToUpdate, params)
         .compose(updatedExec -> updateSnapshotStatus(updatedExec, params))
-        .onSuccess(updatedExec -> LOGGER.info("Successfully updated snapshot status for jobExecutionId={}", jobExecution.getId()));
+        .onSuccess(updatedExec -> log.info("Successfully updated snapshot status for jobExecutionId={}", jobExecution.getId()));
 
     if (jobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT) {
-      LOGGER.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={}", jobExecution.getId());
+      log.debug("updateJobExecutionWithSnapshotStatusAsync:: Handle parent job with jobExecutionId={}", jobExecution.getId());
       return getJobExecutionById(jobExecution.getId(), params.getTenantId())
         .compose(parentJobOptional -> {
           if (parentJobOptional.isEmpty()) {
@@ -151,7 +148,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           if (COMPLETED_STATUSES.contains(parentJobInDb.getUiStatus())) {
             String errorMessage = String.format("updateJobExecutionWithSnapshotStatusAsync:: Parent job with jobExecutionId=%s already has completed status. Skipping update.",
               parentJobInDb.getId());
-            LOGGER.warn(errorMessage);
+            log.warn(errorMessage);
             return Future.failedFuture(new BadRequestException(errorMessage));
           } else {
             return updateChain.apply(jobExecution);
@@ -162,20 +159,20 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
   }
 
-  public Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
+  public Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, ConnectionParams params) {
     return updateJobExecution(jobExecution, params)
       .compose(jobExec -> updateSnapshotStatus(jobExecution, params));
   }
 
   @Override
-  public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecution:: jobExecutionId={}", jobExecution.getId());
+  public Future<JobExecution> updateJobExecution(JobExecution jobExecution, ConnectionParams params) {
+    log.debug("updateJobExecution:: jobExecutionId={}", jobExecution.getId());
     return jobExecutionDao.updateBlocking(jobExecution.getId(), currentJobExec -> {
       Promise<JobExecution> promise = Promise.promise();
       if (JobExecution.Status.PARENT.equals(jobExecution.getStatus()) ^ JobExecution.Status.PARENT.equals(currentJobExec.getStatus())) {
         String errorMessage = format("JobExecution %s current status is %s and cannot be updated to %s",
           currentJobExec.getId(), currentJobExec.getStatus(), jobExecution.getStatus());
-        LOGGER.warn(errorMessage);
+        log.warn(errorMessage);
         promise.fail(new BadRequestException(errorMessage));
       } else {
         currentJobExec = jobExecution;
@@ -208,11 +205,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecutionStatus:: jobExecutionId={}, status {}", jobExecutionId, status.getStatus());
+  public Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, ConnectionParams params) {
+    log.debug("updateJobExecutionStatus:: jobExecutionId={}, status {}", jobExecutionId, status.getStatus());
     if (JobExecution.Status.PARENT.name().equals(status.getStatus().name())) {
       String errorMessage = "Cannot update JobExecution status to PARENT";
-      LOGGER.warn(errorMessage);
+      log.warn(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
@@ -220,7 +217,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           try {
             if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
               String message = format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
-              LOGGER.warn(message);
+              log.warn(message);
               promise.fail(new BadRequestException(message));
             } else {
               jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
@@ -230,7 +227,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             }
           } catch (Exception e) {
             String errorMessage = "Error updating JobExecution with jobExecutionId=" + jobExecutionId;
-            LOGGER.warn(errorMessage, e);
+            log.warn(errorMessage, e);
             promise.fail(errorMessage);
           }
           return promise.future();
@@ -257,7 +254,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                   )
                   .compose(allChildrenCompleted -> {
                     if (Boolean.TRUE.equals(allChildrenCompleted)) {
-                      LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+                      log.info("All children for job {} have completed!", parentExecution.getId());
                       parentExecution.withStatus(JobExecution.Status.COMMITTED)
                         .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
                         .withCompletedDate(new Date());
@@ -273,8 +270,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
-    LOGGER.debug("setJobProfileToJobExecution:: jobExecutionId={}, jobProfileId {}", jobExecutionId, jobProfile.getId());
+  public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, ConnectionParams params) {
+    log.debug("setJobProfileToJobExecution:: jobExecutionId={}, jobProfileId {}", jobExecutionId, jobProfile.getId());
     return loadJobProfileById(jobProfile.getId(), params)
       .map(profile -> jobProfile.withName(profile.getName()))
       .compose(v -> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
@@ -298,33 +295,33 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.getRelatedJobProfiles(offset, limit, tenantId);
   }
 
-  private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {
-    LOGGER.debug("createJobProfileSnapshotWrapper:: jobProfileId {}", jobProfile.getId());
+  private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, ConnectionParams params) {
+    log.debug("createJobProfileSnapshotWrapper:: jobProfileId {}", jobProfile.getId());
     Promise<ProfileSnapshotWrapper> promise = Promise.promise();
-    DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    DataImportProfilesClient client = new DataImportProfilesClient(params.getConnectionUrl(), params.getTenantId(), params.getToken());
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
       if (response.result().statusCode() == HTTP_CREATED.toInt()) {
         promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(ProfileSnapshotWrapper.class)));
       } else {
         String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.result().statusCode());
-        LOGGER.warn(message);
+        log.warn(message);
         promise.fail(message);
       }
     });
     return promise.future();
   }
 
-  private Future<JobProfile> loadJobProfileById(String jobProfileId, OkapiConnectionParams params) {
-    LOGGER.debug("loadJobProfileById:: jobProfileId {}", jobProfileId);
+  private Future<JobProfile> loadJobProfileById(String jobProfileId, ConnectionParams params) {
+    log.debug("loadJobProfileById:: jobProfileId {}", jobProfileId);
     Promise<JobProfile> promise = Promise.promise();
-    DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    DataImportProfilesClient client = new DataImportProfilesClient(params.getConnectionUrl(), params.getTenantId(), params.getToken());
     client.getDataImportProfilesJobProfilesById(jobProfileId, false, response -> {
       if (response.result().statusCode() == HTTP_OK.toInt()) {
         promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(JobProfile.class)));
       } else {
         String message = String.format("Error loading JobProfile by JobProfile id '%s', response code %s", jobProfileId, response.result().statusCode());
-        LOGGER.warn(message);
+        log.warn(message);
         promise.fail(message);
       }
     });
@@ -333,7 +330,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<Boolean> completeJobExecutionWithCancelledStatus(String jobExecutionId, OkapiConnectionParams params) {
+  public Future<Boolean> completeJobExecutionWithCancelledStatus(String jobExecutionId, ConnectionParams params) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
@@ -344,14 +341,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .recover(throwable -> throwable instanceof JobDuplicateUpdateException
         ? Future.succeededFuture(true)
         : Future.failedFuture(throwable))
-      .onSuccess(v -> LOGGER.info("completeJobExecutionWithCancelledStatus:: Job execution was cancelled successfully, jobExecutionId: '{}'",
+      .onSuccess(v -> log.info("completeJobExecutionWithCancelledStatus:: Job execution was cancelled successfully, jobExecutionId: '{}'",
         jobExecutionId))
-      .onFailure(e -> LOGGER.warn("completeJobExecutionWithCancelledStatus:: Failed to complete job execution with CANCELLED status, jobExecutionId: '{}'",
+      .onFailure(e -> log.warn("completeJobExecutionWithCancelledStatus:: Failed to complete job execution with CANCELLED status, jobExecutionId: '{}'",
         jobExecutionId, e));
   }
 
-  private Future<Void> updateJobExecutionWithCancelledStatus(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateJobExecutionWithCancelledStatus:: Trying to update job execution with CANCELLED status, jobExecutionId: '{}'", jobExecution.getId());
+  private Future<Void> updateJobExecutionWithCancelledStatus(JobExecution jobExecution, ConnectionParams params) {
+    log.debug("updateJobExecutionWithCancelledStatus:: Trying to update job execution with CANCELLED status, jobExecutionId: '{}'", jobExecution.getId());
     return jobExecutionDao.updateJobExecution(jobExecution, params.getTenantId())
       .compose(updatedJob -> Future.all(
         sendDiJobCancelledEvent(jobExecution, params),
@@ -360,8 +357,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .mapEmpty();
   }
 
-  private Future<Void> sendDiJobCancelledEvent(JobExecution jobExecution, OkapiConnectionParams params) {
-    List<KafkaHeader> kafkaHeaders = new ArrayList<>(KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()));
+  private Future<Void> sendDiJobCancelledEvent(JobExecution jobExecution, ConnectionParams params) {
+    List<KafkaHeader> kafkaHeaders = new ArrayList<>(KafkaHeaderUtils.kafkaHeadersFromMap(params.getHeaders()));
     kafkaHeaders.add(KafkaHeader.header(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     return EventHandlingUtil.sendEventToKafka(params.getTenantId(), jobExecution.getId(), DI_JOB_CANCELLED.value(), kafkaHeaders, kafkaConfig, jobExecution.getId())
       .mapEmpty();
@@ -448,7 +445,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param params Okapi connection params
    * @return Future with found UserInfo
    */
-  private Future<UserInfo> lookupUser(String userId, OkapiConnectionParams params) {
+  private Future<UserInfo> lookupUser(String userId, ConnectionParams params) {
     Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .onComplete(getUserResult -> {
@@ -460,11 +457,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             int recordCount = response.getInteger("totalRecords");
             if (recordCount > 1) {
               String errorMessage = "There are more then one user by requested user id : " + userId;
-              LOGGER.warn(errorMessage);
+              log.warn(errorMessage);
               promise.fail(errorMessage);
             } else if (recordCount == 0) {
               String errorMessage = "No user found by user id :" + userId;
-              LOGGER.warn(errorMessage);
+              log.warn(errorMessage);
               promise.fail(errorMessage);
             } else {
               JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
@@ -488,7 +485,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * Create new JobExecution object and fill fields
    */
   private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, boolean isComposite, String parentJobExecutionId, String fileName, String userId) {
-    LOGGER.debug("buildNewJobExecution:: parentJobExecutionId={}, fileName {}, userId {}", parentJobExecutionId, fileName, userId);
+    log.debug("buildNewJobExecution:: parentJobExecutionId={}, fileName {}, userId {}", parentJobExecutionId, fileName, userId);
     JobExecution job = new JobExecution()
       .withId(isParent ? parentJobExecutionId : UUID.randomUUID().toString())
       .withParentJobId(parentJobExecutionId)
@@ -549,7 +546,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @return future
    */
   private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions, String tenantId) {
-    LOGGER.debug("saveJobExecutions:: jobExecutionIds {}, tenantId {}",
+    log.debug("saveJobExecutions:: jobExecutionIds {}, tenantId {}",
       jobExecutions.stream().map(JobExecution::getId).toList(), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
@@ -567,7 +564,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param params    object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
-  private Future<List<String>> saveSnapshots(List<Snapshot> snapshots, OkapiConnectionParams params) {
+  private Future<List<String>> saveSnapshots(List<Snapshot> snapshots, ConnectionParams params) {
     List<Future<String>> postedSnapshotFutures = new ArrayList<>();
     for (Snapshot snapshot : snapshots) {
       Future<String> postedSnapshotFuture = postSnapshot(snapshot, params);
@@ -583,17 +580,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param params   object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
-  private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
-    LOGGER.debug("postSnapshot:: jobExecutionId={}", snapshot.getJobExecutionId());
+  private Future<String> postSnapshot(Snapshot snapshot, ConnectionParams params) {
+    log.debug("postSnapshot:: jobExecutionId={}", snapshot.getJobExecutionId());
 
-    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getConnectionUrl(), params.getTenantId(), params.getToken());
     try {
       return client.postSourceStorageSnapshots(snapshot)
-        .onFailure(e -> LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
+        .onFailure(e -> log.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
           snapshot.getJobExecutionId(), e))
         .compose(response -> {
         if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
-          LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}. Status code: {}, body: '{}'",
+          log.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}. Status code: {}, body: '{}'",
             snapshot.getJobExecutionId(), response.statusCode(), response.bodyAsString());
           return Future.failedFuture(new HttpException(response.statusCode(), "Error during post for new Snapshot."));
         } else {
@@ -601,31 +598,31 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
       });
     } catch (Exception e) {
-      LOGGER.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
+      log.warn("postSnapshot:: Error during post for new Snapshot, jobExecutionId: {}",
         snapshot.getJobExecutionId(), e);
       return Future.failedFuture(e);
     }
   }
 
-  protected Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("updateSnapshotStatus:: jobExecutionId={}", jobExecution.getId());
+  protected Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, ConnectionParams params) {
+    log.debug("updateSnapshotStatus:: jobExecutionId={}", jobExecution.getId());
     Promise<JobExecution> promise = Promise.promise();
     Snapshot snapshot = new Snapshot()
       .withJobExecutionId(jobExecution.getId())
       .withStatus(Snapshot.Status.fromValue(jobExecution.getStatus().name()));
 
-    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getConnectionUrl(), params.getTenantId(), params.getToken());
     try {
       client.putSourceStorageSnapshotsByJobExecutionId(jobExecution.getId(), snapshot, response -> {
         if (response.result().statusCode() == HttpStatus.HTTP_OK.toInt()) {
           promise.complete(jobExecution);
         } else {
-          LOGGER.warn(
+          log.warn(
             "Update snapshot status failed for jobExecution with id {}. Response code={}",
             jobExecution.getId(),
             response.result().statusCode()
           );
-          LOGGER.warn("Response: {}", response.result().bodyAsString());
+          log.warn("Response: {}", response.result().bodyAsString());
           jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
             Promise<JobExecution> jobExecutionPromise = Promise.promise();
             jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
@@ -636,13 +633,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             return jobExecutionPromise.future();
           }, params.getTenantId()).onComplete(jobExecutionUpdate -> {
             String message = "Couldn't update snapshot status for jobExecution with id " + jobExecution.getId();
-            LOGGER.warn(message);
+            log.warn(message);
             promise.fail(message);
           });
         }
       });
     } catch (Exception e) {
-      LOGGER.warn("updateSnapshotStatus:: Error during update for Snapshot with id {}", jobExecution.getId(), e);
+      log.warn("updateSnapshotStatus:: Error during update for Snapshot with id {}", jobExecution.getId(), e);
       promise.fail(e);
     }
     return promise.future();
@@ -652,7 +649,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED
       || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
-      LOGGER.info(msg);
+      log.info(msg);
       throw new JobDuplicateUpdateException(msg);
     }
     return jobExecution;

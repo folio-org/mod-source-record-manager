@@ -1,8 +1,7 @@
 package org.folio.services.parsers;
 
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.marc4j.MarcJsonWriter;
 import org.marc4j.MarcXmlReader;
@@ -15,8 +14,8 @@ import java.nio.charset.StandardCharsets;
 /**
  * Record parser implementation for records in MARC XML format. Uses marc4j library
  */
+@Log4j2
 public class XmlRecordParser implements RecordParser {
-  private static final Logger LOGGER = LogManager.getLogger();
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {
@@ -33,7 +32,7 @@ public class XmlRecordParser implements RecordParser {
         result.setParsedRecord(new JsonObject());
       }
     } catch (Exception e) {
-      LOGGER.warn("parseRecord:: Error during parse MARC record from MARC XML data", e);
+      log.warn("parseRecord:: Error during parse MARC record from MARC XML data", e);
       result.setErrors(new JsonObject()
         .put("name", e.getClass().getName())
         .put("message", e.getMessage()));

@@ -48,7 +48,7 @@ public class JobExecutionDaoImplUnitTest {
   private PostgresClient pgClient;
 
   @InjectMocks
-  private JobExecutionDao jobExecutionDao = new JobExecutionDaoImpl();
+  private JobExecutionDaoImpl jobExecutionDao;
 
   @Before
   public void setUp() {

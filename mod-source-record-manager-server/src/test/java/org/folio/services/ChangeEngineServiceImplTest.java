@@ -52,10 +52,11 @@ import java.util.UUID;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.kafka.KafkaConfig;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitialRecord;
@@ -135,7 +136,7 @@ public class ChangeEngineServiceImplTest {
   @Captor
   private ArgumentCaptor<List<KafkaHeader>> kafkaHeadersCaptor;
 
-  private final OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(Map.of("x-okapi-tenant", "diku"), Vertx.vertx());
+  private final ConnectionParams okapiConnectionParams = new ConnectionParams(Map.of(XOkapiHeaders.TENANT, "diku"));
 
   @InjectMocks
   private ChangeEngineServiceImpl service;
@@ -147,7 +148,7 @@ public class ChangeEngineServiceImplTest {
     ReflectionTestUtils.setField(service, "batchSize", 100);
     ReflectionTestUtils.setField(service, "journalRecordProducer", messageProducer);
 
-    when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class)))
+    when(mappingMetadataService.getMappingMetadataDto(anyString(), any(ConnectionParams.class)))
       .thenReturn(Future.succeededFuture(new MappingMetadataDto()));
 
     when(jobProfileSnapshotValidationService

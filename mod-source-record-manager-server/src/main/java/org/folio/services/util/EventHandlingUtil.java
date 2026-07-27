@@ -7,8 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.kafka.SimpleKafkaProducerManager;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+@Log4j2
 public final class EventHandlingUtil {
 
   public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
@@ -33,8 +33,6 @@ public final class EventHandlingUtil {
 
   private EventHandlingUtil() {
   }
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   /**
    * Prepares and sends event with payload to kafka
@@ -57,7 +55,7 @@ public final class EventHandlingUtil {
     String jobExecutionId = extractHeader(kafkaHeaders, JOB_EXECUTION_ID_HEADER);
 
     String producerName = eventType + "_Producer";
-    LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {}, jobExecutionId: {}, recordId: {} and chunkId: {}",
+    log.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {}, jobExecutionId: {}, recordId: {} and chunkId: {}",
       eventType, jobExecutionId, recordId, chunkId);
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
@@ -70,10 +68,10 @@ public final class EventHandlingUtil {
 
   private static void logSendingSucceeded(String eventType, String jobExecutionId, String chunkId, String recordId) {
     if (recordId == null) {
-      LOGGER.info("logSendingSucceeded:: Event with type: {} for jobExecutionId: {} and chunkId: {} was sent to kafka",
+      log.info("logSendingSucceeded:: Event with type: {} for jobExecutionId: {} and chunkId: {} was sent to kafka",
         eventType, jobExecutionId, chunkId);
     } else {
-      LOGGER.info("logSendingSucceeded:: Event with type: {} for jobExecutionId: {} and recordId: {} was sent to kafka",
+      log.info("logSendingSucceeded:: Event with type: {} for jobExecutionId: {} and recordId: {} was sent to kafka",
         eventType, jobExecutionId, recordId);
     }
   }
@@ -134,7 +132,7 @@ public final class EventHandlingUtil {
       String eventPayload, String producerName, String eventType, Throwable cause) {
 
     var err = wrapKafkaException(eventPayload, cause);
-    LOGGER.warn("{} write error for event {}:", producerName, eventType, err);
+    log.warn("{} write error for event {}:", producerName, eventType, err);
     return Future.failedFuture(err);
   }
 

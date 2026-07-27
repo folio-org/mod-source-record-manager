@@ -31,11 +31,8 @@ public class MappingParamsSnapshotDaoImplTest extends AbstractRestTest {
 
   private static final String MARC_PARAMS_PATH = "src/test/resources/org/folio/services/marc_mapping_params.json";
 
-  @Spy
-  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
-
   @InjectMocks
-  private MappingParamsSnapshotDao mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl();
+  private MappingParamsSnapshotDao mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl(new PostgresClientFactory(vertx));
 
   private AutoCloseable mocksCloseable;
   private MappingParameters mappingParameters;

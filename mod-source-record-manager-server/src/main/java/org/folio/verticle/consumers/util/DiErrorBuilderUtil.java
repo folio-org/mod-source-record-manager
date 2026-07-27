@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.util.RecordConversionUtil;
@@ -32,7 +32,7 @@ public final class DiErrorBuilderUtil {
   private static final String FIELDS = "fields";
 
   public static DataImportEventPayload prepareDiErrorEventPayload(Throwable throwable,
-                                                                  OkapiConnectionParams okapiParams,
+                                                                  ConnectionParams okapiParams,
                                                                   String jobExecutionId, Record currentRecord) {
     HashMap<String, String> context = new HashMap<>();
     context.put(RawMarcChunksErrorHandler.ERROR_KEY, throwable.getMessage());
@@ -42,7 +42,7 @@ public final class DiErrorBuilderUtil {
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withJobExecutionId(jobExecutionId)
-      .withOkapiUrl(okapiParams.getOkapiUrl())
+      .withOkapiUrl(okapiParams.getConnectionUrl())
       .withTenant(okapiParams.getTenantId())
       .withToken(okapiParams.getToken())
       .withContext(context);

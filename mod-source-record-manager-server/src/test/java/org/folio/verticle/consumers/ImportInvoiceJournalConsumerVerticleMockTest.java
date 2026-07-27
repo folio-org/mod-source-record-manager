@@ -132,7 +132,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
     when(eventProcessedService.collectData(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, EVENT_ID, TENANT_ID))
       .thenReturn(Future.succeededFuture());
     EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(eventProcessedService, eventTypeHandlerSelector, journalService);
   }
 
   @Test

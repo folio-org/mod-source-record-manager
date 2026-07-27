@@ -8,9 +8,8 @@ import io.vertx.core.eventbus.MessageProducer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.IncomingRecord;
@@ -47,9 +46,9 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 /**
  * Journal util class for building specific 'JournalRecord'-objects, based on parameters.
  */
+@Log4j2
 public class JournalUtil {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   public static final String ERROR_KEY = "ERROR";
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
   public static final String MULTIPLE_ERRORS_KEY = "ERRORS";
@@ -167,7 +166,7 @@ public class JournalUtil {
 
       return Lists.newArrayList(baseRecord);
     } catch (Exception e) {
-      LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
+      log.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
   }

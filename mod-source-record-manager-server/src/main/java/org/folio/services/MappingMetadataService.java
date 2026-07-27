@@ -2,7 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.Record;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import io.vertx.core.json.JsonObject;
@@ -19,7 +19,7 @@ public interface MappingMetadataService {
    * @param okapiParams    okapi connection params
    * @return MappingMetadataDto
    */
-  Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams);
+  Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, ConnectionParams okapiParams);
 
   /**
    * Returns Mapping rules and Mapping parameters in MappingMetadataDto entity by recordType
@@ -28,7 +28,7 @@ public interface MappingMetadataService {
    * @param okapiParams  okapi connection params
    * @return MappingMetadataDto
    */
-  Future<MappingMetadataDto> getMappingMetadataDtoByRecordType(Record.RecordType recordType, OkapiConnectionParams okapiParams);
+  Future<MappingMetadataDto> getMappingMetadataDtoByRecordType(Record.RecordType recordType, ConnectionParams okapiParams);
 
   /**
    * Creates a snapshot of Mapping parameters and saves it to DB
@@ -37,7 +37,7 @@ public interface MappingMetadataService {
    * @param okapiParams    okapi connection params
    * @return Mapping Parameters snapshot
    */
-  Future<MappingParameters> saveMappingParametersSnapshot(String jobExecutionId, OkapiConnectionParams okapiParams);
+  Future<MappingParameters> saveMappingParametersSnapshot(String jobExecutionId, ConnectionParams okapiParams);
 
   /**
    * Creates a snapshot of Mapping rules and saves it to DB

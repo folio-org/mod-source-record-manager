@@ -2,11 +2,11 @@ package org.folio.verticle.consumers.errorhandlers;
 
 import com.google.common.collect.Lists;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ParsedRecord;
@@ -29,12 +29,8 @@ import java.util.UUID;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
@@ -49,7 +45,7 @@ public class ParsedRecordsDiErrorProviderTest {
   private ChangeEngineServiceImpl changeEngineService;
 
   @InjectMocks
-  private ParsedRecordsDiErrorProvider diErrorProvider = new ParsedRecordsDiErrorProvider(jobExecutionService, changeEngineService);
+  private ParsedRecordsDiErrorProvider diErrorProvider;
 
   @Before
   public void setUp() {
@@ -91,12 +87,12 @@ public class ParsedRecordsDiErrorProviderTest {
     });
   }
 
-  private OkapiConnectionParams getOkapiParams() {
+  private ConnectionParams getOkapiParams() {
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost");
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, TOKEN);
-    return new OkapiConnectionParams(headers, mock(Vertx.class));
+    headers.put(XOkapiHeaders.URL, "http://localhost");
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, TOKEN);
+    return new ConnectionParams(headers);
   }
 
 }

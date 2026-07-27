@@ -30,11 +30,8 @@ public class MappingRulesSnapshotDaoImplTest extends AbstractRestTest {
 
   private static final String MARC_BIB_RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
 
-  @Spy
-  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
-
   @InjectMocks
-  private MappingRulesSnapshotDao mappingRulesSnapshotDao = new MappingRulesSnapshotDaoImpl();
+  private MappingRulesSnapshotDao mappingRulesSnapshotDao = new MappingRulesSnapshotDaoImpl(new PostgresClientFactory(vertx));
 
   private AutoCloseable mocksCloseable;
   private JsonObject mappingRules;

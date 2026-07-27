@@ -1,5 +1,6 @@
 package org.folio;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -12,8 +13,6 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
 import org.testcontainers.kafka.KafkaContainer;
@@ -33,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 import static java.time.Duration.ofMinutes;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+@Log4j2
 public final class KafkaUtil {
-  private static final Logger logger = LogManager.getLogger();
 
   public static final DockerImageName IMAGE_NAME
     = DockerImageName.parse("apache/kafka-native:4.2.0");
@@ -49,29 +48,29 @@ public final class KafkaUtil {
   public static void startKafka() {
     KAFKA_CONTAINER.start();
 
-    logger.info("starting Kafka host={} port={}",
+    log.info("starting Kafka host={} port={}",
       KAFKA_CONTAINER.getHost(), KAFKA_CONTAINER.getFirstMappedPort());
 
     var kafkaHost = KAFKA_CONTAINER.getHost();
     var kafkaPort = String.valueOf(KAFKA_CONTAINER.getFirstMappedPort());
-    logger.info("Starting Kafka host={} port={}", kafkaHost, kafkaPort);
+    log.info("Starting Kafka host={} port={}", kafkaHost, kafkaPort);
     System.setProperty("kafka-port", kafkaPort);
     System.setProperty("kafka-host", kafkaHost);
 
     await().atMost(ofMinutes(1)).until(KAFKA_CONTAINER::isRunning);
 
-    logger.info("finished starting Kafka");
+    log.info("finished starting Kafka");
   }
 
   public static void stopKafka() {
     if (KAFKA_CONTAINER.isRunning()) {
-      logger.info("stopping Kafka host={} port={}",
+      log.info("stopping Kafka host={} port={}",
         KAFKA_CONTAINER.getHost(), KAFKA_CONTAINER.getFirstMappedPort());
 
       KAFKA_CONTAINER.stop();
-      logger.info("finished stopping Kafka");
+      log.info("finished stopping Kafka");
     } else {
-      logger.info("Kafka container already stopped");
+      log.info("Kafka container already stopped");
     }
   }
 

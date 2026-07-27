@@ -2,7 +2,7 @@ package org.folio.verticle.consumers.errorhandlers.payloadbuilders;
 
 import io.vertx.core.Future;
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.Record.RecordType;
 
@@ -28,7 +28,7 @@ public interface DiErrorPayloadBuilder {
    * @return event payload with DI_ERROR event type and error message
    */
   Future<DataImportEventPayload> buildEventPayload(Throwable throwable,
-                                                   OkapiConnectionParams okapiParams,
+                                                   ConnectionParams okapiParams,
                                                    String jobExecutionId,
                                                    Record record);
 }

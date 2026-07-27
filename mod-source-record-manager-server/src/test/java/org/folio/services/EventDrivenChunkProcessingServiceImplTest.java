@@ -11,10 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Collections.emptyList;
 import static org.folio.KafkaUtil.getKafkaHostAndPort;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,9 +47,10 @@ import org.folio.dao.MappingParamsSnapshotDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
@@ -109,14 +107,10 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Spy
   @InjectMocks
   private MappingParametersProvider mappingParametersProvider;
-  @Spy
   @InjectMocks
+  @Spy
   private JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
-  @InjectMocks
-  @Spy
   private JobExecutionServiceImpl jobExecutionService;
-  @InjectMocks
-  @Spy
   private IncomingRecordServiceImpl incomingRecordService;
   @Spy
   @InjectMocks
@@ -133,8 +127,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
-  @Spy
-  @InjectMocks
   private JobExecutionProgressServiceImpl jobExecutionProgressService;
   @Spy
   private HrIdFieldServiceImpl hrIdFieldService;
@@ -156,7 +148,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
-  private OkapiConnectionParams params;
+  private ConnectionParams params;
   private MappingMetadataService mappingMetadataService;
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -192,7 +184,11 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
-    mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
+    mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(ConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
+
+    jobExecutionService = Mockito.spy(new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig));
+    jobExecutionProgressService = Mockito.spy(new JobExecutionProgressServiceImpl(jobExecutionProgressDao, postgresClientFactory, jobExecutionDao, vertx));
+    incomingRecordService = Mockito.spy(new IncomingRecordServiceImpl(incomingRecordDao));
 
     mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao, CACHE_EXPIRATION_TIME, CACHE_MAX_SIZE);
 
@@ -208,10 +204,10 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
 
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, "token");
-    params = new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost:" + snapshotMockServer.port());
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, "token");
+    params = new ConnectionParams(headers);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -236,7 +232,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> statusCaptor = ArgumentCaptor.forClass(StatusDto.class);
       ArgumentCaptor<String> jobExecutionIdCaptor = ArgumentCaptor.forClass(String.class);
-      Mockito.verify(jobExecutionService).updateJobExecutionStatus(jobExecutionIdCaptor.capture(), statusCaptor.capture(), isA(OkapiConnectionParams.class));
+      Mockito.verify(jobExecutionService).updateJobExecutionStatus(jobExecutionIdCaptor.capture(), statusCaptor.capture(), isA(ConnectionParams.class));
       Mockito.verify(jobExecutionProgressService).initializeJobExecutionProgress(anyString(), eq(rawRecordsDto.getRecordsMetadata().getTotal()), eq(TENANT_ID));
       context.assertTrue(PARSING_IN_PROGRESS.equals(statusCaptor.getValue().getStatus()));
 
@@ -263,7 +259,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
-      Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
+      Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(ConnectionParams.class));
       verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
       async.complete();
     });
@@ -287,7 +283,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
-      Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
+      Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(ConnectionParams.class));
       context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getAllValues().getFirst().getStatus()));
       verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
       async.complete();
@@ -315,7 +311,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
-      Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
+      Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(ConnectionParams.class));
       context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getValue().getStatus()));
       verify(1, postRequestedFor(urlPathEqualTo(SNAPSHOT_SERVICE_URL)));
       async.complete();

@@ -14,6 +14,7 @@ import org.folio.MatchProfile;
 import org.folio.KafkaUtil;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
@@ -51,12 +52,10 @@ import static java.util.Collections.emptyList;
 import static org.folio.KafkaUtil.checkKafkaEventSent;
 import static org.folio.KafkaUtil.getValues;
 import static org.folio.KafkaUtil.sendEvent;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.ProfileType.*;
 import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
@@ -277,8 +276,8 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       Json.encode(event)
     );
 
-    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
-    producerRecord.headers().add(OKAPI_URL_HEADER, snapshotMockServer.baseUrl().getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.TENANT, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.URL, snapshotMockServer.baseUrl().getBytes(UTF_8));
     producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionId.getBytes(UTF_8));
 
     // when
@@ -474,8 +473,8 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       Json.encode(event)
     );
 
-    producerRecord.headers().add(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(UTF_8));
-    producerRecord.headers().add(OKAPI_URL_HEADER, snapshotMockServer.baseUrl().getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.TENANT, TENANT_ID.getBytes(UTF_8));
+    producerRecord.headers().add(XOkapiHeaders.URL, snapshotMockServer.baseUrl().getBytes(UTF_8));
     producerRecord.headers().add(JOB_EXECUTION_ID_HEADER, jobExecutionId.getBytes(UTF_8));
 
     return producerRecord;

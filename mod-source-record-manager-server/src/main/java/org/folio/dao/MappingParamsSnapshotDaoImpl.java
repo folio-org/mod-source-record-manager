@@ -6,11 +6,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -20,13 +19,12 @@ import java.util.UUID;
 import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
+@Log4j2
 @Repository
+@RequiredArgsConstructor
 public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
 
-  @Autowired
-  private PostgresClientFactory pgClientFactory;
-
-  private static final Logger LOGGER = LogManager.getLogger();
+  private final PostgresClientFactory pgClientFactory;
 
   private static final String TABLE_NAME = "mapping_params_snapshots";
   private static final String SELECT_QUERY = "SELECT params FROM %s.%s WHERE job_execution_id = $1";
@@ -52,7 +50,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
 
   @Override
   public Future<String> save(MappingParameters params, String jobExecutionId, String tenantId) {
-    LOGGER.trace("save:: Saving mapping parameters for jobExecution {}", jobExecutionId);
+    log.trace("save:: Saving mapping parameters for jobExecution {}", jobExecutionId);
     try {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
@@ -62,17 +60,17 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
       );
       return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
         .onFailure(e ->
-          LOGGER.warn("save:: Failed to save MappingParamsSnapshot entity, jobExecutionId: {}", jobExecutionId, e))
+          log.warn("save:: Failed to save MappingParamsSnapshot entity, jobExecutionId: {}", jobExecutionId, e))
         .map(jobExecutionId);
     } catch (Exception e) {
-      LOGGER.warn("save:: Error saving MappingParamsSnapshot entity, jobExecutionId: {}", jobExecutionId, e);
+      log.warn("save:: Error saving MappingParamsSnapshot entity, jobExecutionId: {}", jobExecutionId, e);
       return Future.failedFuture(e);
     }
   }
 
   @Override
   public Future<Boolean> delete(String jobExecutionId, String tenantId) {
-    LOGGER.trace("delete:: Deleting jobExecution {} for tenant {}", jobExecutionId, tenantId);
+    log.trace("delete:: Deleting jobExecution {} for tenant {}", jobExecutionId, tenantId);
     String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
     return pgClientFactory.createInstance(tenantId).execute(query, queryParams)

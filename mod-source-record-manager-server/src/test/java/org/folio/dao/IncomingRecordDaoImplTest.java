@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,10 +23,8 @@ public class IncomingRecordDaoImplTest extends AbstractRestTest {
 
   private static final String TENANT_ID = "diku";
 
-  @Spy
-  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
   @InjectMocks
-  private IncomingRecordDao incomingRecordDao = new IncomingRecordDaoImpl();
+  private IncomingRecordDao incomingRecordDao = new IncomingRecordDaoImpl(new PostgresClientFactory(vertx));
 
   @Before
   public void setUp(TestContext context) throws IOException {

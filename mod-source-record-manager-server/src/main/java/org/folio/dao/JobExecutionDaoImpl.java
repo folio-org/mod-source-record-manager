@@ -7,11 +7,11 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
@@ -33,7 +33,6 @@ import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.persist.Conn;
 import org.folio.rest.persist.PostgresClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.BadRequestException;
@@ -103,10 +102,10 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
  * @see JobExecutionDao
  * @see org.folio.rest.persist.PostgresClient
  */
+@Log4j2
 @Repository
+@RequiredArgsConstructor
 public class JobExecutionDaoImpl implements JobExecutionDao {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TABLE_NAME = "job_execution";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
@@ -136,8 +135,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT = "total_records_count";
   public static final String JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED = "currently_processed";
 
-  @Autowired
-  private PostgresClientFactory pgClientFactory;
+  private final PostgresClientFactory pgClientFactory;
 
   @Override
   public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter,
@@ -152,7 +150,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);
+      log.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapToJobExecutionDtoCollection);
@@ -168,7 +166,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       Tuple queryParams = Tuple.of(UUID.fromString(parentId), limit, offset);
       pgClientFactory.createInstance(tenantId).selectRead(sql, queryParams, promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("getChildrenJobExecutionsByParentId:: Error getting jobExecutions by parent id", e);
+      log.warn("getChildrenJobExecutionsByParentId:: Error getting jobExecutions by parent id", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapToJobExecutionDtoCollection);
@@ -182,7 +180,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(GET_BY_ID_SQL, jobTable);
       pgClientFactory.createInstance(tenantId).select(query, Tuple.of(UUID.fromString(id)), promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("getJobExecutionById:: Error getting jobExecution by id", e);
+      log.warn("getJobExecutionById:: Error getting jobExecution by id", e);
       promise.fail(e);
     }
     return promise.future().map(rowSet -> rowSet.rowCount() == 0 ? Optional.empty()
@@ -197,7 +195,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(GET_RELATED_JOB_PROFILES_SQL, jobTable);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("getRelatedJobProfiles:: Error getting related Job Profiles", e);
+      log.warn("getRelatedJobProfiles:: Error getting related Job Profiles", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapRowToJobProfileInfoCollection);
@@ -229,7 +227,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .compose(rowSet -> rowSet.rowCount() != 1
           ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture(jobExecution));
     } catch (Exception e) {
-      LOGGER.warn("updateJobExecution:: Error updating jobExecution", e);
+      log.warn("updateJobExecution:: Error updating jobExecution", e);
       return Future.failedFuture(e);
     }
   }
@@ -244,7 +242,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .compose(rowSet -> rowSet.rowCount() != 1
           ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture());
     } catch (Exception e) {
-      LOGGER.warn("updateJobExecutionProgress:: Error updating jobExecution progress, jobId: {}", progress.getJobExecutionId(), e);
+      log.warn("updateJobExecutionProgress:: Error updating jobExecution progress, jobId: {}", progress.getJobExecutionId(), e);
       return Future.failedFuture(e);
     }
   }
@@ -252,38 +250,38 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   @Override
   public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId) {
     Promise<JobExecution> jobExecutionPromise = Promise.promise();
-    LOGGER.debug("updateBlocking:: Starting transaction for jobExecutionId={}", jobExecutionId);
+    log.debug("updateBlocking:: Starting transaction for jobExecutionId={}", jobExecutionId);
 
     return pgClientFactory.createInstance(tenantId).withTrans(connection -> {
-        LOGGER.debug("updateBlocking:: Transaction started for jobExecutionId={}", jobExecutionId);
+        log.debug("updateBlocking:: Transaction started for jobExecutionId={}", jobExecutionId);
         String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 AND is_deleted = false LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
         return connection.execute(selectForUpdate, Tuple.of(jobExecutionId))
           .compose(rowSet -> {
             if (rowSet.rowCount() != 1) {
               String errorMessage = String.format("updateBlocking:: JobExecution not found for id %s", jobExecutionId);
-              LOGGER.error(errorMessage);
+              log.error(errorMessage);
               throw new NotFoundException(errorMessage);
             }
             JobExecution existingJobExecution = mapRowToJobExecution(rowSet.iterator().next());
-            LOGGER.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={} with subordinationType={} and status={}",
+            log.debug("updateBlocking:: Retrieved JobExecution for update, jobExecutionId={} with subordinationType={} and status={}",
               jobExecutionId, existingJobExecution.getSubordinationType().value(), existingJobExecution.getStatus().value());
             if (existingJobExecution.getSubordinationType() == JobExecution.SubordinationType.COMPOSITE_PARENT
               && existingJobExecution.getStatus() == JobExecution.Status.COMMITTED) {
               String errorMessage = String.format("updateBlocking:: JobExecution is COMPOSITE_PARENT and already with COMMITTED status, skipping update, jobExecutionId=%s", jobExecutionId);
-              LOGGER.warn(errorMessage);
+              log.warn(errorMessage);
               return Future.failedFuture(new BadRequestException(errorMessage));
             }
             return mutator.mutate(existingJobExecution).onComplete(jobExecutionPromise);
           }).compose(jobExecution -> {
-            LOGGER.debug("updateBlocking:: Mutated JobExecution, jobExecutionId={}", jobExecutionId);
+            log.debug("updateBlocking:: Mutated JobExecution, jobExecutionId={}", jobExecutionId);
             String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
             Tuple queryParams = mapToTuple(jobExecution);
             return connection.execute(preparedQuery, queryParams).map(jobExecution);
           });
       }).onSuccess(v ->
-        LOGGER.debug("updateBlocking:: Transaction completed successfully for jobExecutionId={}", jobExecutionId))
+        log.debug("updateBlocking:: Transaction completed successfully for jobExecutionId={}", jobExecutionId))
       .onFailure(e ->
-        LOGGER.warn("updateBlocking:: Error updating jobExecution, jobExecutionId={}", jobExecutionId, e));
+        log.warn("updateBlocking:: Error updating jobExecution, jobExecutionId={}", jobExecutionId, e));
   }
 
   @Override
@@ -302,7 +300,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       return pgClientFactory.createInstance(tenantId).execute(query)
         .map(this::mapRowSetToDeleteChangeManagerJobExeResp);
     } catch (Exception e) {
-      LOGGER.warn("softDeleteJobExecutionsByIds:: Error deleting jobExecution by ids {}, ", ids, e);
+      log.warn("softDeleteJobExecutionsByIds:: Error deleting jobExecution by ids {}, ", ids, e);
       return Future.failedFuture(e);
     }
   }
@@ -315,7 +313,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(GET_UNIQUE_USERS, tableName);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("getRelatedUsersInfo:: Error getting unique users ", e);
+      log.warn("getRelatedUsersInfo:: Error getting unique users ", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapRowToJobExecutionUserInfoCollection);
@@ -582,7 +580,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       fetchJobExecutionIdsConsideredForDeleting(tenantId, diffNumberOfDays, connection)
         .compose(rowSet -> {
           if (rowSet.rowCount() < 1) {
-            LOGGER.info("hardDeleteJobExecutions:: Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
+            log.info("hardDeleteJobExecutions:: Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
             return Future.succeededFuture();
           }
           return mapRowsetValuesToListOfString(rowSet);

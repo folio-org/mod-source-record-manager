@@ -23,9 +23,9 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 
 public class JournalParams {
 
-  public JournalRecord.ActionType journalActionType;
-  public JournalRecord.EntityType journalEntityType;
-  public JournalRecord.ActionStatus journalActionStatus;
+  public final JournalRecord.ActionType journalActionType;
+  public final JournalRecord.EntityType journalEntityType;
+  public final JournalRecord.ActionStatus journalActionStatus;
 
   public JournalParams(JournalRecord.ActionType journalActionType,
                        JournalRecord.EntityType journalEntityType,

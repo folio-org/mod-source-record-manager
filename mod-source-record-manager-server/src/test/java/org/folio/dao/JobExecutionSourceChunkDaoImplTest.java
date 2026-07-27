@@ -5,8 +5,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import org.folio.GenericHandlerAnswer;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.test.GenericHandlerAnswer;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
@@ -52,7 +52,7 @@ public class JobExecutionSourceChunkDaoImplTest {
   private PostgresClient pgClient;
 
   @InjectMocks
-  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao = new JobExecutionSourceChunkDaoImpl();
+  private JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
 
   @Before
   public void setUp() {

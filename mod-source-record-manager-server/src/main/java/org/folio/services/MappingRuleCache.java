@@ -10,8 +10,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,10 +20,9 @@ import org.folio.services.entity.MappingRuleCacheKey;
 /**
  * In-memory cache for the mapping rules
  */
+@Log4j2
 @Component
 public class MappingRuleCache {
-
-  private static final Logger LOGGER = LogManager.getLogger();
 
   private final AsyncLoadingCache<MappingRuleCacheKey, Optional<JsonObject>> cache;
 
@@ -42,7 +40,7 @@ public class MappingRuleCache {
       .map(optional -> optional.isPresent() ? optional : Optional.of(new JsonObject()))
       .onComplete(ar -> {
         if (ar.failed()) {
-          LOGGER.warn("loadMappingRules:: Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
+          log.warn("loadMappingRules:: Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
           future.completeExceptionally(ar.cause());
           return;
         }

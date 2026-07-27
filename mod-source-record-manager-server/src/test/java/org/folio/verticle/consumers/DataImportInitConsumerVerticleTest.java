@@ -14,8 +14,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.DataImportInitConfig;
 import org.folio.rest.jaxrs.model.Event;
@@ -30,16 +31,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+import static org.folio.okapi.common.XOkapiHeaders.TENANT;
+import static org.folio.okapi.common.XOkapiHeaders.URL;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INITIALIZATION_STARTED;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.mappers.processor.MappingParametersProviderTest.SYSTEM_USER_ENABLED;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +56,7 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
 
   @Spy
   private Vertx vertx = Vertx.vertx();
-  private OkapiConnectionParams params;
+  private ConnectionParams params;
   private String jobExecutionId;
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -75,25 +76,24 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
 
 
-  @Spy
-  @InjectMocks
   private JobExecutionProgressServiceImpl jobExecutionProgressService;
-  @Spy
-  @InjectMocks
   private JobExecutionServiceImpl jobExecutionService;
 
-  @InjectMocks
-  private DataImportInitKafkaHandler initKafkaHandler = new DataImportInitKafkaHandler(vertx, jobExecutionProgressService, jobExecutionService);
+  private DataImportInitKafkaHandler initKafkaHandler;
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
+
+    jobExecutionService = Mockito.spy(new JobExecutionServiceImpl(jobExecutionDao, kafkaConfig));
+    jobExecutionProgressService = Mockito.spy(new JobExecutionProgressServiceImpl(jobExecutionProgressDao, postgresClientFactory, jobExecutionDao, vertx));
+    initKafkaHandler = new DataImportInitKafkaHandler(jobExecutionProgressService, jobExecutionService);
 
     HashMap<String, String> headers = new HashMap<>();
-    headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
-    headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    headers.put(OKAPI_TOKEN_HEADER, "token");
-    params = new OkapiConnectionParams(headers, vertx);
+    headers.put(XOkapiHeaders.URL, "http://localhost:" + snapshotMockServer.port());
+    headers.put(XOkapiHeaders.TENANT, TENANT_ID);
+    headers.put(XOkapiHeaders.TOKEN, "token");
+    params = new ConnectionParams(headers);
   }
 
   @Test
@@ -195,11 +195,13 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
   }
 
   private void assertProgressAndJobExecutionStatus(JobExecution.Status statusToCheck, Async async) {
-    jobExecutionProgressService.getByJobExecutionId(jobExecutionId, TENANT_ID).onSuccess(progress -> {
+    jobExecutionProgressService.getByJobExecutionId(jobExecutionId, TENANT_ID)
+      .onSuccess(progress -> {
       assertEquals(jobExecutionId, progress.getJobExecutionId());
       assertEquals(TOTAL_RECORDS, progress.getTotal());
 
-      jobExecutionService.getJobExecutionById(jobExecutionId, TENANT_ID).onSuccess(jobExecutionOptional -> {
+      jobExecutionService.getJobExecutionById(jobExecutionId, TENANT_ID)
+        .onSuccess(jobExecutionOptional -> {
         JobExecution jobExecution = jobExecutionOptional.get();
         assertEquals(statusToCheck, jobExecution.getStatus());
         async.complete();

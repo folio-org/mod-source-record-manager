@@ -3,14 +3,13 @@ package org.folio.services;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgException;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
 import org.folio.MatchDetail;
 import org.folio.MatchProfile;
 import org.folio.dao.JobExecutionSourceChunkDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitialRecord;
@@ -32,9 +31,9 @@ import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
 
-
+@Log4j2
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
-  private static final Logger LOGGER = LogManager.getLogger();
+  
   private static final String JOB_EXECUTION_MARKED_AS_ERROR_MSG = "Couldn't update JobExecution status, JobExecution already marked as ERROR";
   private static final String JOB_EXECUTION_MARKED_AS_CANCELLED_MSG = "Couldn't update JobExecution status, JobExecution already marked as CANCELLED";
   public static final String UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
@@ -49,8 +48,8 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   @Override
-  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, boolean acceptInstanceId, OkapiConnectionParams params) {
-    LOGGER.debug("AbstractChunkProcessingService:: processChunk for jobExecutionId: {}", jobExecutionId);
+  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, boolean acceptInstanceId, ConnectionParams params) {
+    log.debug("AbstractChunkProcessingService:: processChunk for jobExecutionId: {}", jobExecutionId);
     prepareChunk(incomingChunk);
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
@@ -59,13 +58,13 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   @Override
-  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.debug("AbstractChunkProcessingService:: processChunk with jobExecutionId: {}", jobExecution.getId());
+  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, JobExecution jobExecution, ConnectionParams params) {
+    log.debug("AbstractChunkProcessingService:: processChunk with jobExecutionId: {}", jobExecution.getId());
     prepareChunk(incomingChunk);
     return mapJobExecution(incomingChunk, jobExecution, false, params);
   }
 
-  private Future<Boolean> mapJobExecution(RawRecordsDto incomingChunk, JobExecution jobExecution, boolean acceptInstanceId, OkapiConnectionParams params) {
+  private Future<Boolean> mapJobExecution(RawRecordsDto incomingChunk, JobExecution jobExecution, boolean acceptInstanceId, ConnectionParams params) {
     if (isNotSupportedJobProfileExists(jobExecution)) {
       return Future.failedFuture(new UnsupportedProfileException("Unsupported type of Job Profile."));
     }
@@ -177,7 +176,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
    * @return future with boolean
    */
   protected abstract Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk,
-                                                            String jobExecutionId, boolean acceptInstanceId, OkapiConnectionParams params);
+                                                            String jobExecutionId, boolean acceptInstanceId, ConnectionParams params);
 
   /**
    * Checks JobExecution current status and updates it if needed
@@ -187,19 +186,19 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
    * @param params         - okapi connection params
    * @return future
    */
-  protected Future<JobExecution> checkAndUpdateJobExecutionStatusIfNecessary(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
+  protected Future<JobExecution> checkAndUpdateJobExecutionStatusIfNecessary(String jobExecutionId, StatusDto status, ConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
-          LOGGER.debug("Checking JobExecution status for jobExecutionId: {}, current status: {}, required status: {}",
+          log.debug("Checking JobExecution status for jobExecutionId: {}, current status: {}, required status: {}",
             jobExecutionId, jobExecution.getStatus(), status.getStatus());
 
           if (jobExecution.getStatus() == JobExecution.Status.ERROR) {
-            LOGGER.warn(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
+            log.warn(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
             return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
           }
           if (jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
-            LOGGER.warn(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
+            log.warn(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
             return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
           }
           if (jobExecution.getStatus() == JobExecution.Status.COMMITTED) {

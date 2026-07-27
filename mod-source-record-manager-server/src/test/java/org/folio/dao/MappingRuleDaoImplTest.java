@@ -22,11 +22,8 @@ import org.folio.rest.impl.AbstractRestTest;
 @RunWith(VertxUnitRunner.class)
 public class MappingRuleDaoImplTest extends AbstractRestTest {
 
-  @Spy
-  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
-
   @InjectMocks
-  private MappingRuleDao mappingRuleDao = new MappingRuleDaoImpl();
+  private MappingRuleDao mappingRuleDao = new MappingRuleDaoImpl(new PostgresClientFactory(vertx));
 
   private AutoCloseable mocks;
 

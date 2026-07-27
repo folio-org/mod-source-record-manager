@@ -9,9 +9,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import lombok.extern.log4j.Log4j2;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
@@ -28,7 +27,6 @@ import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.util.ParsedRecordUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -55,10 +53,11 @@ import static org.folio.services.journal.JournalUtil.getJournalMessageProducer;
 import static org.folio.verticle.consumers.util.JobExecutionUtils.isNeedToSkip;
 import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 
+@Log4j2
 @Component
 @Qualifier("StoredRecordChunksKafkaHandler")
 public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, byte[]> {
-  private static final Logger LOGGER = LogManager.getLogger();
+
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
   public static final String STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID = "4d39ced7-9b67-4bdc-b232-343dbb5b8cef";
   public static final String ORDER_TYPE = "ORDER";
@@ -73,31 +72,29 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     EDIFACT, DI_INCOMING_EDIFACT_RECORD_PARSED
   );
 
-  private RecordsPublishingService recordsPublishingService;
-  private EventProcessedService eventProcessedService;
-  private MappingRuleCache mappingRuleCache;
-  private JobExecutionService jobExecutionService;
-  private Vertx vertx;
-  private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
+  private final RecordsPublishingService recordsPublishingService;
+  private final EventProcessedService eventProcessedService;
+  private final MappingRuleCache mappingRuleCache;
+  private final JobExecutionService jobExecutionService;
+  private final MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
 
-  public StoredRecordChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
-                                        @Autowired @Qualifier("eventProcessedService") EventProcessedService eventProcessedService,
-                                        @Autowired JobExecutionService jobExecutionService,
-                                        @Autowired MappingRuleCache mappingRuleCache,
-                                        @Autowired Vertx vertx) {
+  public StoredRecordChunksKafkaHandler(@Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
+                                        @Qualifier("eventProcessedService") EventProcessedService eventProcessedService,
+                                        JobExecutionService jobExecutionService,
+                                        MappingRuleCache mappingRuleCache,
+                                        Vertx vertx) {
     this.recordsPublishingService = recordsPublishingService;
     this.eventProcessedService = eventProcessedService;
     this.mappingRuleCache = mappingRuleCache;
     this.jobExecutionService = jobExecutionService;
-    this.vertx = vertx;
     this.journalRecordProducer = getJournalMessageProducer(vertx);
   }
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
     List<KafkaHeader> kafkaHeaders = record.headers();
-    OkapiConnectionParams okapiConnectionParams = OkapiConnectionParams.createSystemUserConnectionParams(
-      KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+    ConnectionParams okapiConnectionParams = ConnectionParams.createSystemUserConnectionParams(
+      KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders));
     String chunkId = okapiConnectionParams.getHeaders().get("chunkId");
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
     String jobExecutionId = okapiConnectionParams.getHeaders().get("jobExecutionId");
@@ -106,7 +103,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
       .compose(jobExecutionOptional -> jobExecutionOptional.map(jobExecution -> {
 
           if (isNeedToSkip(jobExecution)) {
-            LOGGER.info("handle:: do not handle because jobExecution with id: {} was cancelled", jobExecutionId);
+            log.info("handle:: do not handle because jobExecution with id: {} was cancelled", jobExecutionId);
             return Future.succeededFuture(chunkId);
           }
 
@@ -122,30 +119,30 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
                   ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.getFirst().getRecordType())
                   : DI_INCOMING_MARC_BIB_RECORD_PARSED;
 
-                LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+                log.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
                 saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
                 return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId, okapiConnectionParams, eventType.value(), null)
                   .compose(b -> {
-                    LOGGER.debug("handle:: RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+                    log.debug("handle:: RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
                     return Future.succeededFuture(chunkId);
                   }, th -> {
-                    LOGGER.warn("handle:: RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
+                    log.warn("handle:: RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
                     return Future.failedFuture(th);
                   });
               });
           } catch (Exception e) {
-            LOGGER.warn("handle:: Can't process kafka record, jobExecutionId: {}", jobExecutionId, e);
+            log.warn("handle:: Can't process kafka record, jobExecutionId: {}", jobExecutionId, e);
             return new FailedFuture<String>(e);
           }
         })
         .orElseGet(() -> {
-          LOGGER.warn("handle:: Couldn't find JobExecution by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
+          log.warn("handle:: Couldn't find JobExecution by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
           return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s chunkId:%s chunkNumber: %s", jobExecutionId, chunkId, chunkNumber)));
         }));
   }
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {
-    LOGGER.debug("saveCreatedRecordsInfoToDataImportLog :: count: {}", storedRecords.size());
+    log.debug("saveCreatedRecordsInfoToDataImportLog :: count: {}", storedRecords.size());
     MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, storedRecords.getFirst().getRecordType());
 
     mappingRuleCache.get(cacheKey).onComplete(rulesAr -> {

@@ -6,7 +6,7 @@ import io.vertx.core.Future;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.folio.LinkingRuleDto;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.marc4j.marc.DataField;
@@ -25,7 +25,7 @@ public class FieldModificationServiceImpl implements FieldModificationService {
   }
 
   @Override
-  public Future<List<Record>> remove9Subfields(String jobExecutionId, List<Record> folioRecords, OkapiConnectionParams okapiParams) {
+  public Future<List<Record>> remove9Subfields(String jobExecutionId, List<Record> folioRecords, ConnectionParams okapiParams) {
     log.trace("remove9Subfields:: called for job {}", jobExecutionId);
     return mappingParametersProvider.get(jobExecutionId, okapiParams).map(mappingParameters -> {
       if (mappingParameters.getLinkingRules() == null || mappingParameters.getLinkingRules().isEmpty()) {

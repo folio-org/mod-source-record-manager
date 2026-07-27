@@ -5,9 +5,9 @@ import io.vertx.core.Promise;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Tuple;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -26,7 +26,6 @@ import org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.interfaces.Results;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
@@ -40,10 +39,11 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
  * @see JobExecutionSourceChunkDao
  * @see org.folio.rest.persist.PostgresClient
  */
+@Log4j2
 @Repository
+@RequiredArgsConstructor
 public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDao {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   private static final String TABLE_NAME = "job_execution_source_chunks";
 
   private static final String ID_FIELD = "id";
@@ -58,14 +58,12 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, jobExecutionId) VALUES ($1, $2, $3)";
   private static final String SELECT_QUERY = "SELECT * FROM %s.%s WHERE jobExecutionId = $1 AND jsonb->>'last' = $2 OFFSET $3 LIMIT $4";
 
-
-  @Autowired
-  private PostgresClientFactory pgClientFactory;
+  private final PostgresClientFactory pgClientFactory;
 
   @Override
   public Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
     try {
-      LOGGER.trace("save:: Saving jobExecutionSourceChunk {} for tenant {}", jobExecutionChunk.getId(), tenantId);
+      log.trace("save:: Saving jobExecutionSourceChunk {} for tenant {}", jobExecutionChunk.getId(), tenantId);
       String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
         StringUtils.defaultIfEmpty(jobExecutionChunk.getId(), /* generate UUID for the empty last chunk */ UUID.randomUUID().toString()),
@@ -74,7 +72,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       return pgClientFactory.createInstance(tenantId).execute(query, queryParams)
         .map(jobExecutionChunk.getId());
     } catch (Exception e) {
-      LOGGER.warn("save:: Failed to save JobExecutionSourceChunk with id: {}", jobExecutionChunk.getId(), e);
+      log.warn("save:: Failed to save JobExecutionSourceChunk with id: {}", jobExecutionChunk.getId(), e);
       return Future.failedFuture(e);
     }
   }
@@ -87,7 +85,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       Tuple queryParams = Tuple.of(jobExecutionId, Boolean.toString(isLast), offset, limit);
       pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("get:: Error while searching for JobExecutionSourceChunks", e);
+      log.warn("get:: Error while searching for JobExecutionSourceChunks", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapResultSetToJobExecutionSourceChunks);
@@ -113,7 +111,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<Optional<JobExecutionSourceChunk>> getById(String id, String tenantId) {
     try {
       if (StringUtils.isBlank(id)) {
-        LOGGER.warn("getById:: Can't retrieve JobExecutionSourceChunk by empty id.");
+        log.warn("getById:: Can't retrieve JobExecutionSourceChunk by empty id.");
         return Future.succeededFuture(Optional.empty());
       }
       Criteria idCrit = constructCriteria(ID_FIELD, id).setJSONB(false);
@@ -123,7 +121,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
         .map(jobExecutionSourceChunks -> jobExecutionSourceChunks.isEmpty()
           ? Optional.empty() : Optional.of(jobExecutionSourceChunks.getFirst()));
     } catch (Exception e) {
-      LOGGER.warn("getById:: Error querying JobExecutionSourceChunk by id {}", id, e);
+      log.warn("getById:: Error querying JobExecutionSourceChunk by id {}", id, e);
       return Future.failedFuture(e);
     }
   }
@@ -136,18 +134,18 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       pgClientFactory.createInstance(tenantId)
         .update(TABLE_NAME, jobExecutionChunk, new Criterion(idCrit), true, updateResult -> {
           if (updateResult.failed()) {
-            LOGGER.warn("update:: Could not update jobExecutionSourceChunk with id {}", jobExecutionChunk.getId(), updateResult.cause());
+            log.warn("update:: Could not update jobExecutionSourceChunk with id {}", jobExecutionChunk.getId(), updateResult.cause());
             promise.fail(updateResult.cause());
           } else if (updateResult.result().rowCount() != 1) {
             String errorMessage = String.format("update:: JobExecutionSourceChunk with id '%s' was not found", jobExecutionChunk.getId());
-            LOGGER.warn(errorMessage);
+            log.warn(errorMessage);
             promise.fail(new NotFoundException(errorMessage));
           } else {
             promise.complete(jobExecutionChunk);
           }
         });
     } catch (Exception e) {
-      LOGGER.warn("update:: Error updating jobExecutionSourceChunk", e);
+      log.warn("update:: Error updating jobExecutionSourceChunk", e);
       promise.fail(e);
     }
     return promise.future();
@@ -166,7 +164,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       return pgClientFactory.createInstance(tenantId).select(query)
         .map(resultSet -> resultSet.iterator().next().getBoolean(0));
     } catch (Exception e) {
-      LOGGER.warn("isAllChunksProcessed:: Error while checking if processing is completed for JobExecution {}", jobExecutionId, e);
+      log.warn("isAllChunksProcessed:: Error while checking if processing is completed for JobExecution {}", jobExecutionId, e);
       return Future.failedFuture(e);
     }
   }
@@ -178,7 +176,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       String query = String.format(ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY, jobExecutionId);
       pgClientFactory.createInstance(tenantId).select(query, promise::handle);
     } catch (Exception e) {
-      LOGGER.warn("containsErrorChunks:: Error while checking if any errors occurred for JobExecution {}", jobExecutionId, e);
+      log.warn("containsErrorChunks:: Error while checking if any errors occurred for JobExecution {}", jobExecutionId, e);
       promise.fail(e);
     }
     return promise.future().map(resultSet -> resultSet.iterator().next().getBoolean(0));
@@ -191,7 +189,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       return pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit))
         .map(updateResult -> updateResult.rowCount() != 0);
     } catch (Exception e) {
-      LOGGER.warn("deleteByJobExecutionId:: Error deleting JobExecutionSourceChunks by JobExecution id {}", jobExecutionId, e);
+      log.warn("deleteByJobExecutionId:: Error deleting JobExecutionSourceChunks by JobExecution id {}", jobExecutionId, e);
       return Future.failedFuture(e);
     }
   }

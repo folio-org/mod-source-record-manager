@@ -1,7 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.List;
@@ -21,6 +21,6 @@ public interface RecordsPublishingService {
    * @param eventType      event type
    * @return true if successful
    */
-  Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType, Map<String, String> context);
+  Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, ConnectionParams params, String eventType, Map<String, String> context);
 
 }
