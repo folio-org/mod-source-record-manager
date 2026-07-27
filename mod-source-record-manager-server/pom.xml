@@ -16,7 +16,7 @@
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
 
     <data-import-utils.version>3.0.0-SNAPSHOT</data-import-utils.version>
-    <data-import-processing-core.version>5.1.0-SNAPSHOT</data-import-processing-core.version>
+    <data-import-processing-core.version>6.0.0-SNAPSHOT</data-import-processing-core.version>
     <folio-di-support.version>4.1.0-SNAPSHOT</folio-di-support.version>
     <folio-kafka-wrapper.version>4.1.0-SNAPSHOT</folio-kafka-wrapper.version>
     <mod-source-record-storage-client.version>6.1.0-SNAPSHOT</mod-source-record-storage-client.version>
