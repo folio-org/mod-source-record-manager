@@ -1,7 +1,6 @@
 package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
-import io.restassured.response.ValidatableResponse;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.ext.unit.Async;
@@ -1046,7 +1045,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      ValidatableResponse r = RestAssured.given()
+      RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
@@ -1081,7 +1080,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      ValidatableResponse r = RestAssured.given()
+      RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
@@ -1116,7 +1115,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      ValidatableResponse r = RestAssured.given()
+      RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
@@ -1149,7 +1148,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      ValidatableResponse r = RestAssured.given()
+      RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
@@ -1185,7 +1184,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      ValidatableResponse r = RestAssured.given()
+      RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
@@ -1584,6 +1583,49 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries[1].relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-2"))
         .body("entries[1].relatedInvoiceLineInfo.error", is(errorMsg))
         .body("entries[1].invoiceLineJournalRecordId", notNullValue());
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDataForInvoiceLinesWithAlphanumericVendorInvoiceNumber(TestContext context) {
+    // Vendor invoice numbers are not guaranteed to be purely numeric (e.g. "M31001419"), unlike the invoice line
+    // number suffix. The get_job_log_entries() function must not fail to cast such a value while building the
+    // sort key for the default sortBy=source_record_order, but should fall back to using source_record_order.
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceId = UUID.randomUUID().toString();
+    String invoiceHrid = "228D126";
+    String invoiceVendorNumber = "M31001419";
+    String invoiceLineId1 = UUID.randomUUID().toString();
+    String invoiceLineId2 = UUID.randomUUID().toString();
+    String invoiceLineDescription = "Some description";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, CREATE, EDIFACT, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceId, invoiceHrid, "INVOICE", 0, CREATE, INVOICE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId1, invoiceVendorNumber + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId2, invoiceVendorNumber + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(2))
+        .body("totalRecords", is(2))
+        .body("entries[0].sourceRecordTitle", is(invoiceLineDescription + "1"))
+        .body("entries[0].sourceRecordOrder", is(invoiceVendorNumber + "-1"))
+        .body("entries[0].relatedInvoiceLineInfo.id", is(invoiceLineId1))
+        .body("entries[0].relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-1"))
+        .body("entries[1].sourceRecordTitle", is(invoiceLineDescription + "2"))
+        .body("entries[1].sourceRecordOrder", is(invoiceVendorNumber + "-2"))
+        .body("entries[1].relatedInvoiceLineInfo.id", is(invoiceLineId2))
+        .body("entries[1].relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-2"));
       async.complete();
     }));
   }
