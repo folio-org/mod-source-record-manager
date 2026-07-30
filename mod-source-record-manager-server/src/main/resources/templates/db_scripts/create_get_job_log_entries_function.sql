@@ -612,7 +612,8 @@ bottomSQL TEXT := '
          invoiceLineJournalRecordId AS invoice_line_journal_record_id,
          records_actions.source_record_entity_type,
          CASE
-           WHEN get_entity_status(invoice_actions, invoice_errors_number) IS NOT null THEN string_to_array(entity_hrid, ''-'')::int[]
+           WHEN get_entity_status(invoice_actions, invoice_errors_number) IS NOT null AND entity_hrid ~ ''^[0-9]+(-[0-9]+)*$''
+             THEN string_to_array(entity_hrid, ''-'')::int[]
            ELSE ARRAY[source_record_order]
            END AS source_record_order_array,
          null AS order_action_status,
