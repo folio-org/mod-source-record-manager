@@ -17,6 +17,7 @@ BEGIN
                        WHEN journal_records.entity_type != 'PO_LINE' AND (action_type_by_source.error_max != '' OR journal_records.action_type = 'NON_MATCH') THEN 'DISCARDED'
                        WHEN journal_records.entity_type = 'PO_LINE' AND journal_records.action_status = 'ERROR' THEN 'DISCARDED'
                        WHEN journal_records.action_type = 'CREATE' THEN 'CREATED'
+                       WHEN journal_records.action_type = 'DELETE' THEN 'DELETED'
                        WHEN journal_records.action_type = 'UPDATE' THEN 'UPDATED'
                    END AS action_type,
                    journal_records.action_status,
@@ -40,7 +41,7 @@ BEGIN
                            ELSE
                                CASE action_status WHEN 'ERROR' THEN 1 ELSE 2 END
                            END,
-                           array_position(array['CREATE', 'UPDATE', 'NON_MATCH'], action_type)))[1] AS id_max,
+                           array_position(array['CREATE', 'UPDATE', 'NON_MATCH', 'DELETE'], action_type)))[1] AS id_max,
                        MAX(journal_records.title) AS title
                 FROM journal_records
                 WHERE journal_records.job_execution_id = jobExecutionId

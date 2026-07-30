@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.DELETE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
@@ -58,6 +59,9 @@ public class JournalUtil {
   public static final String INSTANCE_ID_KEY = "instanceId";
   public static final String HRID_KEY = "hrid";
   public static final String MATCHED_ID_KEY = "matchedId";
+  // Set by mod-source-record-storage when it removes the SRS record, so the id of the
+  // deleted inventory authority is still available to the journal after the deletion.
+  public static final String AUTHORITY_RECORD_ID_KEY = "AUTHORITY_RECORD_ID";
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
@@ -138,6 +142,11 @@ public class JournalUtil {
 
       var baseRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
         .withEntityType(entityType);
+
+      if (isAuthorityDeletion(entityType, actionType)) {
+        return buildAuthorityDeleteJournalRecords(baseRecord, entityJsonString, actionStatus, actionType,
+          sourceRecord, eventPayload, context, incomingRecordId);
+      }
 
       if (isRelatedEntityRecordNeeded(entityType, actionType)) {
         var relatedRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
@@ -308,6 +317,40 @@ public class JournalUtil {
 
   private static String getIncomingRecordId(Map<String, String> context, Record sourceRecord) {
     return context.get(INCOMING_RECORD_ID) != null ? context.get(INCOMING_RECORD_ID) : sourceRecord.getId();
+  }
+
+  private static boolean isAuthorityDeletion(JournalRecord.EntityType entityType, JournalRecord.ActionType actionType) {
+    return actionType == DELETE && entityType == MARC_AUTHORITY;
+  }
+
+  /**
+   * Builds the journal records for an authority removed by a delete job.
+   * <p>
+   * A deletion is reported by a single event, but it affects two entities the job log
+   * shows in separate columns, so both are journalled here: the SRS record, whose id is
+   * taken from the record still held in the payload context, and the authority,
+   * whose id is taken from {@link #AUTHORITY_RECORD_ID_KEY}. The authority itself is gone
+   * by this point, so its id is the only thing left to record.
+   *
+   * @return a MARC_AUTHORITY record and an AUTHORITY record, both carrying the DELETE action
+   */
+  private static List<JournalRecord> buildAuthorityDeleteJournalRecords(JournalRecord baseRecord,
+                                                                        String entityJsonString,
+                                                                        JournalRecord.ActionStatus actionStatus,
+                                                                        JournalRecord.ActionType actionType,
+                                                                        Record sourceRecord,
+                                                                        DataImportEventPayload eventPayload,
+                                                                        Map<String, String> context,
+                                                                        String incomingRecordId) {
+    if (!isEmpty(entityJsonString)) {
+      baseRecord.setEntityId(new JsonObject(entityJsonString).getString(MATCHED_ID_KEY));
+    }
+
+    var authorityRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)
+      .withEntityType(AUTHORITY)
+      .withEntityId(context.get(AUTHORITY_RECORD_ID_KEY));
+
+    return Lists.newArrayList(baseRecord, authorityRecord);
   }
 
   private static boolean isRelatedEntityRecordNeeded(JournalRecord.EntityType entityType, JournalRecord.ActionType actionType) {
