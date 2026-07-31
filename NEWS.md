@@ -1,6 +1,23 @@
-## 2026-mm-dd v4.1.0-SNAPSHOT
-* [MODSOURMAN-1433](https://folio-org.atlassian.net/browse/MODSOURMAN-1433) Data import log not sorted issues
-* [MODSOURMAN-1447](https://folio-org.atlassian.net/browse/MODSOURMAN-1447) Import of MARC bib with 999 ff $s (only) completes without error
+## XXXX-XX-XX v4.1.0
+### Breaking changes
+
+### New APIs versions
+* Provides `API_NAME vX.Y`
+* Requires `API_NAME vX.Y`
+
+### Features
+
+### Bug fixes
+* Data import log not sorted issues ([MODSOURMAN-1433](https://folio-org.atlassian.net/browse/MODSOURMAN-1433))
+* Import of MARC bib with 999 ff $s (only) completes without error ([MODSOURMAN-1447](https://folio-org.atlassian.net/browse/MODSOURMAN-1447))
+* Fix "invalid input syntax for type integer" error in get_job_log_entries for invoices with alphanumeric vendor invoice numbers ([MODSOURMAN-1346](https://folio-org.atlassian.net/browse/MODSOURMAN-1346))
+
+### Tech Dept
+
+### Dependencies
+* Bump `LIB_NAME` from `OLD_VERSION` to `NEW_VERSION`
+* Add `LIB_NAME VERSION`
+* Remove `LIB_NAME`
 
 ## 2026-04-16 v4.0.0
 * [MODSOURMAN-1355](https://folio-org.atlassian.net/browse/MODSOURMAN-1355) Replace advisory lock with consistent record ordering to prevent deadlocks in journal record insertions
