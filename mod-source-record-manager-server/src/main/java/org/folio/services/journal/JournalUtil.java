@@ -59,9 +59,8 @@ public class JournalUtil {
   public static final String INSTANCE_ID_KEY = "instanceId";
   public static final String HRID_KEY = "hrid";
   public static final String MATCHED_ID_KEY = "matchedId";
-  // Set by mod-source-record-storage when it removes the SRS record, so the id of the
-  // deleted inventory authority is still available to the journal after the deletion.
   public static final String AUTHORITY_RECORD_ID_KEY = "AUTHORITY_RECORD_ID";
+  public static final String DELETED_MARC_AUTHORITY_KEY = "DELETED_MARC_AUTHORITY";
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
@@ -144,7 +143,7 @@ public class JournalUtil {
         .withEntityType(entityType);
 
       if (isAuthorityDeletion(entityType, actionType)) {
-        return buildAuthorityDeleteJournalRecords(baseRecord, entityJsonString, actionStatus, actionType,
+        return buildAuthorityDeleteJournalRecords(baseRecord, actionStatus, actionType,
           sourceRecord, eventPayload, context, incomingRecordId);
       }
 
@@ -327,23 +326,23 @@ public class JournalUtil {
    * Builds the journal records for an authority removed by a delete job.
    * <p>
    * A deletion is reported by a single event, but it affects two entities the job log
-   * shows in separate columns, so both are journalled here: the SRS record, whose id is
-   * taken from the record still held in the payload context, and the authority,
-   * whose id is taken from {@link #AUTHORITY_RECORD_ID_KEY}. The authority itself is gone
-   * by this point, so its id is the only thing left to record.
+   * shows in separate columns, so both are journalled here. The SRS record id comes from
+   * the deleted record that mod-source-record-storage leaves under
+   * {@link #DELETED_MARC_AUTHORITY_KEY}, and the authority id from
+   * {@link #AUTHORITY_RECORD_ID_KEY}.
    *
    * @return a MARC_AUTHORITY record and an AUTHORITY record, both carrying the DELETE action
    */
   private static List<JournalRecord> buildAuthorityDeleteJournalRecords(JournalRecord baseRecord,
-                                                                        String entityJsonString,
                                                                         JournalRecord.ActionStatus actionStatus,
                                                                         JournalRecord.ActionType actionType,
                                                                         Record sourceRecord,
                                                                         DataImportEventPayload eventPayload,
                                                                         Map<String, String> context,
                                                                         String incomingRecordId) {
-    if (!isEmpty(entityJsonString)) {
-      baseRecord.setEntityId(new JsonObject(entityJsonString).getString(MATCHED_ID_KEY));
+    var deletedRecordJson = context.get(DELETED_MARC_AUTHORITY_KEY);
+    if (!isEmpty(deletedRecordJson)) {
+      baseRecord.setEntityId(new JsonObject(deletedRecordJson).getString(MATCHED_ID_KEY));
     }
 
     var authorityRecord = buildCommonJournalRecord(actionStatus, actionType, sourceRecord, eventPayload, context, incomingRecordId)

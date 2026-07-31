@@ -12,8 +12,11 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_DELETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -60,6 +63,7 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
+import org.folio.services.journal.JournalUtil;
 
 @RunWith(VertxUnitRunner.class)
 public class MarcImportEventsHandlerTest {
@@ -425,6 +429,111 @@ public class MarcImportEventsHandlerTest {
     assertEquals(JournalRecord.ActionType.UPDATE, actualJournalRecord.getActionType());
     assertEquals(JournalRecord.ActionStatus.ERROR, actualJournalRecord.getActionStatus());
     assertEquals(expectedTitleStart, actualJournalRecord.getTitle());
+  }
+
+  @Test
+  public void testSaveAuthorityJournalRecordWithTitleOfDeletedRecord() throws JournalRecordMapperException {
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject())));
+
+    var incomingMarcRecord = marcFactory.newRecord();
+    incomingMarcRecord.addVariableField(marcFactory.newDataField("150", '0', '0', "a", "Heading from the file"));
+
+    var deletedTitle = "Heading of the deleted record";
+    var deletedMarcRecord = marcFactory.newRecord();
+    deletedMarcRecord.addVariableField(marcFactory.newDataField("150", '0', '0', "a", deletedTitle));
+
+    var payload = constructAuthorityDeletePayload(incomingMarcRecord, deletedMarcRecord);
+
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
+
+    assertEquals(JournalRecord.EntityType.MARC_AUTHORITY, actualJournalRecord.getEntityType());
+    assertEquals(JournalRecord.ActionType.DELETE, actualJournalRecord.getActionType());
+    assertEquals(deletedTitle, actualJournalRecord.getTitle());
+  }
+
+  @Test
+  public void testSaveAuthorityJournalRecordWithIncomingTitleWhenDeletedRecordIsAbsent() throws JournalRecordMapperException {
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject())));
+
+    var incomingTitle = "Heading from the file";
+    var incomingMarcRecord = marcFactory.newRecord();
+    incomingMarcRecord.addVariableField(marcFactory.newDataField("150", '0', '0', "a", incomingTitle));
+
+    var payload = constructAuthorityDeletePayload(incomingMarcRecord, null);
+
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
+
+    assertEquals(JournalRecord.ActionType.DELETE, actualJournalRecord.getActionType());
+    assertEquals(incomingTitle, actualJournalRecord.getTitle());
+  }
+
+  @Test
+  public void testSaveAuthorityJournalRecordsForMultipleMatchesDuringDeletion() throws JournalRecordMapperException {
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject())));
+
+    var incomingTitle = "Heading from the file";
+    var incomingMarcRecord = marcFactory.newRecord();
+    incomingMarcRecord.addVariableField(marcFactory.newDataField("150", '0', '0', "a", incomingTitle));
+
+    var incomingRecord = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(incomingMarcRecord)));
+
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_AUTHORITY.value(), Json.encode(incomingRecord));
+    payloadContext.put(ERROR_KEY, "Found multiple records matching specified conditions");
+
+    var payload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withEventsChain(List.of(DI_MARC_FOR_DELETE_RECEIVED.value(), DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED.value()))
+      .withContext(payloadContext);
+
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var journalRecords = journalRecordCaptor.getValue();
+    assertEquals(2, journalRecords.size());
+
+    var marcAuthorityRecord = journalRecords.getJsonObject(0).mapTo(JournalRecord.class);
+    assertEquals(JournalRecord.EntityType.MARC_AUTHORITY, marcAuthorityRecord.getEntityType());
+    assertEquals(JournalRecord.ActionType.NON_MATCH, marcAuthorityRecord.getActionType());
+    assertEquals(JournalRecord.ActionStatus.ERROR, marcAuthorityRecord.getActionStatus());
+    assertNotNull(marcAuthorityRecord.getError());
+    assertEquals(incomingTitle, marcAuthorityRecord.getTitle());
+
+    var authorityRecord = journalRecords.getJsonObject(1).mapTo(JournalRecord.class);
+    assertEquals(JournalRecord.EntityType.AUTHORITY, authorityRecord.getEntityType());
+    assertEquals(JournalRecord.ActionType.NON_MATCH, authorityRecord.getActionType());
+    assertEquals(JournalRecord.ActionStatus.ERROR, authorityRecord.getActionStatus());
+    assertNotNull(authorityRecord.getError());
+  }
+
+  private DataImportEventPayload constructAuthorityDeletePayload(org.marc4j.marc.Record incomingMarcRecord,
+                                                                 org.marc4j.marc.Record deletedMarcRecord) {
+    var incomingRecord = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(incomingMarcRecord)));
+
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_AUTHORITY.value(), Json.encode(incomingRecord));
+    if (deletedMarcRecord != null) {
+      var deletedRecord = new Record()
+        .withId(UUID.randomUUID().toString())
+        .withMatchedId(UUID.randomUUID().toString())
+        .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(deletedMarcRecord)));
+      payloadContext.put(JournalUtil.DELETED_MARC_AUTHORITY_KEY, Json.encode(deletedRecord));
+    }
+
+    return new DataImportEventPayload()
+      .withEventType(DI_COMPLETED.value())
+      .withEventsChain(List.of(DI_SRS_MARC_AUTHORITY_RECORD_DELETED.value()))
+      .withContext(payloadContext);
   }
 
   private DataImportEventPayload constructMatchHoldingsPayload(org.marc4j.marc.Record marcRecord) {

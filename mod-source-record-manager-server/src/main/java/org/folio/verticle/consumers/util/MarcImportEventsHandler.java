@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.DELETE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -174,7 +175,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
       journalRecord.setTitle(NO_TITLE_MESSAGE);
-      String recordAsString = eventPayload.getContext().get(entityType.value());
+      String recordAsString = extractRecordForTitle(journalRecord, entityType, eventPayload);
       if (StringUtils.isNotBlank(recordAsString)) {
         var parsedRecord = Json.decodeValue(recordAsString, Record.class).getParsedRecord();
         return mappingRuleCache.get(new MappingRuleCacheKey(eventPayload.getTenant(), entityType))
@@ -197,5 +198,24 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       }
     }
     return Future.succeededFuture(journalRecord);
+  }
+
+  /**
+   * Chooses the record the log title is read from.
+   * <p>
+   * The log should show the title of the record that was actually
+   * deleted rather than the vendor's version of it. Falls back to the incoming record when
+   * the deleted one is unavailable.
+   */
+  private String extractRecordForTitle(JournalRecord journalRecord, JournalRecord.EntityType entityType,
+                                       DataImportEventPayload eventPayload) {
+    var context = eventPayload.getContext();
+    if (journalRecord.getActionType() == DELETE && entityType == MARC_AUTHORITY) {
+      var deletedRecord = context.get(JournalUtil.DELETED_MARC_AUTHORITY_KEY);
+      if (StringUtils.isNotBlank(deletedRecord)) {
+        return deletedRecord;
+      }
+    }
+    return context.get(entityType.value());
   }
 }

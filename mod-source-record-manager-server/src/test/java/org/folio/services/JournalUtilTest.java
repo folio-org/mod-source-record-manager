@@ -41,6 +41,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 import static org.folio.services.journal.JournalUtil.AUTHORITY_RECORD_ID_KEY;
+import static org.folio.services.journal.JournalUtil.DELETED_MARC_AUTHORITY_KEY;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 import static org.folio.services.journal.JournalUtil.MARC_BIB_RECORD_CREATED;
 
@@ -1596,12 +1597,18 @@ public class JournalUtilTest {
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    JsonObject deletedRecordJson = new JsonObject()
+      .put("id", UUID.randomUUID().toString())
       .put("matchedId", matchedId)
       .put("snapshotId", snapshotId)
       .put("order", 1);
 
     HashMap<String, String> context = new HashMap<>();
     context.put(MARC_AUTHORITY.value(), recordJson.encode());
+    context.put(DELETED_MARC_AUTHORITY_KEY, deletedRecordJson.encode());
     context.put(INCOMING_RECORD_ID, incomingRecordId);
     context.put(AUTHORITY_RECORD_ID_KEY, authorityId);
 
@@ -1639,14 +1646,12 @@ public class JournalUtilTest {
   @Test
   public void shouldBuildJournalRecordsForFailedMarcAuthorityDeletion() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
-    String matchedId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
     String incomingRecordId = UUID.randomUUID().toString();
     String errorMessage = "Error while deleting MARC record, record is not found";
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
-      .put("matchedId", matchedId)
       .put("snapshotId", snapshotId)
       .put("order", 1);
 
@@ -1670,9 +1675,8 @@ public class JournalUtilTest {
     Assert.assertEquals(DELETE, journalRecordMarcAuthority.getActionType());
     Assert.assertEquals(ERROR, journalRecordMarcAuthority.getActionStatus());
     Assert.assertEquals(errorMessage, journalRecordMarcAuthority.getError());
-    Assert.assertEquals(matchedId, journalRecordMarcAuthority.getEntityId());
+    Assert.assertNull(journalRecordMarcAuthority.getEntityId());
 
-    // the deletion never got far enough for mod-source-record-storage to report the authority id
     JournalRecord journalRecordAuthority = journalRecords.get(1);
     Assert.assertEquals(AUTHORITY, journalRecordAuthority.getEntityType());
     Assert.assertEquals(DELETE, journalRecordAuthority.getActionType());
