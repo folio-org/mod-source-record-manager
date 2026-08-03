@@ -72,7 +72,14 @@ public final class ParsedRecordUtil {
   }
 
   private static JsonArray getFields(ParsedRecord parsedRecord) {
-    JsonObject parsedContent = new JsonObject(parsedRecord.getContent().toString());
+    Object content = parsedRecord.getContent();
+    if (content == null) {
+      return null;
+    }
+
+    JsonObject parsedContent = content instanceof String contentAsString
+      ? new JsonObject(contentAsString)
+      : JsonObject.mapFrom(content);
     return parsedContent.getJsonArray("fields");
   }
 }

@@ -256,12 +256,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private ActionType getAction(List<Record> parsedRecords, JobExecution jobExecution) {
+    if (deleteMarcActionExists(jobExecution)) {
+      return ActionType.DELETE_RECORD;
+    }
     if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)
       || isCreateOrUpdateItemOrHoldingsActionExists(jobExecution, parsedRecords) || isMarcAuthorityMatchProfile(jobExecution)) {
       return ActionType.UPDATE_RECORD;
-    }
-    if (deleteMarcActionExists(jobExecution)) {
-      return ActionType.DELETE_RECORD;
     }
     if (createOrderActionExists(jobExecution)) {
       return ActionType.CREATE_ORDER;

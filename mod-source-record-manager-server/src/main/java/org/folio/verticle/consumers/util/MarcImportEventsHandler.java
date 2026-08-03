@@ -137,9 +137,13 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
             log.warn("transform:: Error during build of journal records", e);
             return Future.failedFuture(e);
           }
-          return Future.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
-            .onFailure(th -> log.warn("transform:: Error during journal record improve", th))
-            .map(ar -> ar.result().list());
+          Future<Collection<JournalRecord>> improvedRecords =
+            Future.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
+              .map(ar -> ar.result().list());
+          return improvedRecords.recover(th -> {
+            log.warn("transform:: Error during journal record improve, journal records are saved without it", th);
+            return Future.succeededFuture(journalRecords);
+          });
         }
         return Future.succeededFuture(new ArrayList<>());
   }
