@@ -60,6 +60,7 @@ import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.DELETE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
@@ -957,6 +958,80 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("orderSummary", nullValue())
         .body("invoiceSummary", nullValue())
         .body("totalErrors", is(0)).extract().response().prettyPrint();
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDeletedAuthoritySummary(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, DELETE, MARC_AUTHORITY, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, DELETE, AUTHORITY, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(jobExecutionId))
+        // a delete job has no other counts, so the summaries must not be suppressed
+        .body("sourceRecordSummary.totalDeletedEntities", is(1))
+        .body("sourceRecordSummary.totalCreatedEntities", is(0))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("authoritySummary.totalDeletedEntities", is(1))
+        .body("authoritySummary.totalCreatedEntities", is(0))
+        .body("authoritySummary.totalUpdatedEntities", is(0))
+        .body("authoritySummary.totalDiscardedEntities", is(0))
+        .body("authoritySummary.totalErrors", is(0))
+        .body("instanceSummary", nullValue())
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReportFailedAuthorityDeletionAsDiscardedInSummary(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst().getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String errorMessage = "Error while deleting MARC record, record is not found";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, DELETE, MARC_AUTHORITY, ERROR, errorMessage))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, DELETE, AUTHORITY, ERROR, errorMessage))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(jobExecutionId))
+        // nothing was removed, so the records count as discarded rather than deleted
+        .body("sourceRecordSummary.totalDeletedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(1))
+        .body("sourceRecordSummary.totalErrors", is(1))
+        .body("authoritySummary.totalDeletedEntities", is(0))
+        .body("authoritySummary.totalDiscardedEntities", is(1))
+        .body("authoritySummary.totalErrors", is(1))
+        .body("totalErrors", is(1));
 
       async.complete();
     }));
