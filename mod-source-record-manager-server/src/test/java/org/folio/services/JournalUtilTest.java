@@ -40,6 +40,8 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
+import static org.folio.services.journal.JournalUtil.AUTHORITY_RECORD_ID_KEY;
+import static org.folio.services.journal.JournalUtil.DELETED_MARC_AUTHORITY_KEY;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 import static org.folio.services.journal.JournalUtil.MARC_BIB_RECORD_CREATED;
 
@@ -1583,6 +1585,104 @@ public class JournalUtilTest {
     Assert.assertEquals(COMPLETED, journalRecordAuthority.getActionStatus());
     Assert.assertNull(journalRecordAuthority.getEntityId());
     Assert.assertNotNull(journalRecordAuthority.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordsForDeletedMarcAuthority() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    JsonObject deletedRecordJson = new JsonObject()
+      .put("id", UUID.randomUUID().toString())
+      .put("matchedId", matchedId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_AUTHORITY.value(), recordJson.encode());
+    context.put(DELETED_MARC_AUTHORITY_KEY, deletedRecordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+    context.put(AUTHORITY_RECORD_ID_KEY, authorityId);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_SRS_MARC_AUTHORITY_RECORD_DELETED")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      DELETE, MARC_AUTHORITY, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordMarcAuthority = journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecordMarcAuthority.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordMarcAuthority.getSourceId());
+    Assert.assertEquals(1, journalRecordMarcAuthority.getSourceRecordOrder().intValue());
+    Assert.assertEquals(MARC_AUTHORITY, journalRecordMarcAuthority.getEntityType());
+    Assert.assertEquals(DELETE, journalRecordMarcAuthority.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordMarcAuthority.getActionStatus());
+    Assert.assertEquals(matchedId, journalRecordMarcAuthority.getEntityId());
+    Assert.assertNotNull(journalRecordMarcAuthority.getActionDate());
+
+    JournalRecord journalRecordAuthority = journalRecords.get(1);
+    Assert.assertEquals(snapshotId, journalRecordAuthority.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordAuthority.getSourceId());
+    Assert.assertEquals(1, journalRecordAuthority.getSourceRecordOrder().intValue());
+    Assert.assertEquals(AUTHORITY, journalRecordAuthority.getEntityType());
+    Assert.assertEquals(DELETE, journalRecordAuthority.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordAuthority.getActionStatus());
+    Assert.assertEquals(authorityId, journalRecordAuthority.getEntityId());
+    Assert.assertNotNull(journalRecordAuthority.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordsForFailedMarcAuthorityDeletion() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String errorMessage = "Error while deleting MARC record, record is not found";
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_AUTHORITY.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+    context.put(ERROR_KEY, errorMessage);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      DELETE, MARC_AUTHORITY, ERROR);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordMarcAuthority = journalRecords.get(0);
+    Assert.assertEquals(MARC_AUTHORITY, journalRecordMarcAuthority.getEntityType());
+    Assert.assertEquals(DELETE, journalRecordMarcAuthority.getActionType());
+    Assert.assertEquals(ERROR, journalRecordMarcAuthority.getActionStatus());
+    Assert.assertEquals(errorMessage, journalRecordMarcAuthority.getError());
+    Assert.assertNull(journalRecordMarcAuthority.getEntityId());
+
+    JournalRecord journalRecordAuthority = journalRecords.get(1);
+    Assert.assertEquals(AUTHORITY, journalRecordAuthority.getEntityType());
+    Assert.assertEquals(DELETE, journalRecordAuthority.getActionType());
+    Assert.assertEquals(ERROR, journalRecordAuthority.getActionStatus());
+    Assert.assertEquals(errorMessage, journalRecordAuthority.getError());
+    Assert.assertNull(journalRecordAuthority.getEntityId());
   }
 
   @Test

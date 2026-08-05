@@ -143,6 +143,14 @@ public class JournalParams {
         return Optional.of(new JournalParams(UPDATE, sourceRecordType, JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_MARC_FOR_DELETE_RECEIVED { //added for correct processing of DI_ERROR event raised before the record was deleted
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(DELETE,
+          JournalRecord.EntityType.MARC_AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INCOMING_MARC_BIB_RECORD_PARSED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {

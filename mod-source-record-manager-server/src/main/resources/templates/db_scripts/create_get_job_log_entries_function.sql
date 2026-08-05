@@ -70,10 +70,11 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
           WHEN ''%5$s'' = ''sort_source_action'' THEN
             (SELECT
                CASE
-                 WHEN MAX(error) != '''' OR bool_or(action_type = ''NON_MATCH'') THEN ''2'' -- DISCARDED
+                 WHEN MAX(error) != '''' OR bool_or(action_type = ''NON_MATCH'') THEN ''3'' -- DISCARDED
                  WHEN bool_or(action_type = ''CREATE'') THEN ''1'' -- CREATED
-                 WHEN bool_or(action_type = ''UPDATE'') THEN ''3'' -- UPDATED
-                 ELSE ''4''
+                 WHEN bool_or(action_type = ''DELETE'') THEN ''2'' -- DELETED
+                 WHEN bool_or(action_type = ''UPDATE'') THEN ''4'' -- UPDATED
+                 ELSE ''5''
                END
              FROM journal_records
              WHERE source_id = qualifying_source_ids.source_id
@@ -97,6 +98,7 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
              WHEN entity_type = ''PO_LINE'' AND action_status = ''ERROR'' THEN ''DISCARDED''
              WHEN action_type = ''NON_MATCH'' THEN ''DISCARDED''
              WHEN action_type = ''CREATE'' THEN ''CREATED''
+             WHEN action_type = ''DELETE'' THEN ''DELETED''
              WHEN action_type = ''UPDATE'' THEN ''UPDATED''
              WHEN action_type = ''MODIFY'' THEN ''UPDATED''
            END AS action_type,
@@ -111,7 +113,7 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
                ELSE
                  CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END
                END,
-               array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)))[1] AS id_max
+               array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY'', ''DELETE''], action_type)))[1] AS id_max
       FROM relevant_records
       WHERE entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type != ''MATCH''
       GROUP BY entity_type, entity_id, source_id
@@ -256,6 +258,7 @@ originalSQL TEXT := '
                WHEN entity_type = ''PO_LINE'' AND action_status = ''ERROR'' THEN ''DISCARDED''
                WHEN action_type = ''NON_MATCH'' THEN ''DISCARDED''
                WHEN action_type = ''CREATE'' THEN ''CREATED''
+               WHEN action_type = ''DELETE'' THEN ''DELETED''
                WHEN action_type = ''UPDATE'' THEN ''UPDATED''
                WHEN action_type = ''MODIFY'' THEN ''UPDATED''
                END AS action_type,
@@ -269,7 +272,7 @@ originalSQL TEXT := '
                  ELSE
                    CASE action_status WHEN ''ERROR'' THEN 1 ELSE 2 END
                  END,
-                 array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY''], action_type)))[1] AS id_max
+                 array_position(array[''NON_MATCH'', ''CREATE'', ''UPDATE'', ''MODIFY'', ''DELETE''], action_type)))[1] AS id_max
         FROM journal_records
         WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type != ''MATCH''
         GROUP BY entity_type, entity_id, source_id

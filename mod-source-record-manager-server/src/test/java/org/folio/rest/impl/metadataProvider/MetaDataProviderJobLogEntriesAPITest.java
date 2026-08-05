@@ -3,6 +3,7 @@ package org.folio.rest.impl.metadataProvider;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.DELETE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
@@ -19,6 +20,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 import static org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder.ASC;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.in;
@@ -1068,6 +1070,141 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordId", is(marcAuthorityId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnAuthorityDataIfAuthorityWasDeleted(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcAuthorityId, null, recordTitle, 0, DELETE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, authorityId, null, null, 0, DELETE, AUTHORITY, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordId", is(marcAuthorityId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is("0"))
+        .body("sourceRecordActionStatus", is(ActionStatus.DELETED.value()))
+        .body("relatedAuthorityInfo.actionStatus", is(ActionStatus.DELETED.value()))
+        .body("relatedAuthorityInfo.idList[0]", is(authorityId))
+        .body("relatedAuthorityInfo.error", emptyOrNullString())
+        .body("error", emptyOrNullString());
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOneLogEntryAuthorityDataIfAuthorityWasDeleted(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcAuthorityId, null, recordTitle, 0, DELETE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, authorityId, null, null, 0, DELETE, AUTHORITY, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "?limit=100&order=asc")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(incomingRecordId))
+        .body("entries[0].sourceRecordId", is(marcAuthorityId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DELETED.value()))
+        .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DELETED.value()))
+        .body("entries[0].relatedAuthorityInfo.idList[0]", is(authorityId));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedWhenAuthorityDeletionFailed(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String incomingRecordId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String errorMessage = "Error while deleting MARC record, record is not found";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcAuthorityId, null, recordTitle, 0, DELETE, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, DELETE, AUTHORITY, ERROR, errorMessage, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "?limit=100&order=asc")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(incomingRecordId))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        // both the SRS record and the authority carry the failure, so the entry aggregates them
+        .body("entries[0].error", containsString(errorMessage));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldSortEntriesByActionStatusWithDeletedBetweenCreatedAndDiscarded(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String createdRecordId = UUID.randomUUID().toString();
+    String deletedRecordId = UUID.randomUUID().toString();
+    String discardedRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String errorMessage = "Error while deleting MARC record, record is not found";
+
+    // inserted out of order, so the assertion below reflects the sort rather than the insertion order
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), deletedRecordId, UUID.randomUUID().toString(), null, recordTitle, 1, DELETE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), discardedRecordId, UUID.randomUUID().toString(), null, recordTitle, 2, DELETE, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), createdRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, MARC_AUTHORITY, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId()
+          + "?limit=100&sortBy=source_record_action_status&order=asc")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("totalRecords", is(3))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+        .body("entries[1].sourceRecordActionStatus", is(ActionStatus.DELETED.value()))
+        .body("entries[2].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()));
       async.complete();
     }));
   }

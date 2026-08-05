@@ -5,11 +5,13 @@ import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.AUTHORITY;
 import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.ReactToType.MATCH;
 import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
@@ -313,6 +315,39 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
     assertThat(actual.getFirst().getErrorRecord(), nullValue());
+  }
+
+  @Test
+  public void shouldSendDeleteEventWhenDeleteActionIsReachedThroughMatchProfile() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_AUTHORITY_REC_VALID);
+    JobExecution jobExecution = getTestJobExecution();
+    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withContentType(MATCH_PROFILE)
+        .withContent(new JsonObject(Json.encode(new MatchProfile()
+          .withExistingRecordType(EntityType.MARC_AUTHORITY)
+          .withIncomingRecordType(EntityType.MARC_AUTHORITY))).getMap())
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withContentType(ACTION_PROFILE)
+          .withReactTo(MATCH)
+          .withContent(new JsonObject(Json.encode(new ActionProfile()
+            .withAction(ActionProfile.Action.DELETE)
+            .withFolioRecord(MARC_AUTHORITY))).getMap())))))
+    );
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.AUTHORITY);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
+      .thenReturn(Future.succeededFuture(true));
+
+    executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    verify(recordsPublishingService).sendEventsWithRecords(any(), any(), any(),
+      eq(DI_MARC_FOR_DELETE_RECEIVED.value()), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(),
+      eq(DI_MARC_FOR_UPDATE_RECEIVED.value()), any());
   }
 
   @Test
