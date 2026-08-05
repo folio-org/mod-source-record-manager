@@ -983,7 +983,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("jobExecutionId", is(jobExecutionId))
-        // a delete job has no other counts, so the summaries must not be suppressed
         .body("sourceRecordSummary.totalDeletedEntities", is(1))
         .body("sourceRecordSummary.totalCreatedEntities", is(0))
         .body("sourceRecordSummary.totalUpdatedEntities", is(0))
@@ -1024,7 +1023,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("jobExecutionId", is(jobExecutionId))
-        // nothing was removed, so the records count as discarded rather than deleted
         .body("sourceRecordSummary.totalDeletedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(1))
         .body("sourceRecordSummary.totalErrors", is(1))
