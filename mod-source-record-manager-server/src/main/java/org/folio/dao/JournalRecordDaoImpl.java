@@ -113,6 +113,13 @@ import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_INVOICES;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ITEMS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ORDERS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_SOURCE_RECORDS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DELETED_AUTHORITIES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DELETED_HOLDINGS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DELETED_INSTANCES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DELETED_INVOICES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DELETED_ITEMS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DELETED_ORDERS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DELETED_SOURCE_RECORDS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_AUTHORITIES;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_HOLDINGS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_INSTANCES;
@@ -560,35 +567,38 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
       .withTotalErrors(row.getInteger(TOTAL_ERRORS))
       .withSourceRecordSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_SOURCE_RECORDS, TOTAL_UPDATED_SOURCE_RECORDS,
-        TOTAL_DISCARDED_SOURCE_RECORDS, TOTAL_SOURCE_RECORDS_ERRORS))
+        TOTAL_DELETED_SOURCE_RECORDS, TOTAL_DISCARDED_SOURCE_RECORDS, TOTAL_SOURCE_RECORDS_ERRORS))
       .withInstanceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INSTANCES, TOTAL_UPDATED_INSTANCES,
-        TOTAL_DISCARDED_INSTANCES, TOTAL_INSTANCES_ERRORS))
+        TOTAL_DELETED_INSTANCES, TOTAL_DISCARDED_INSTANCES, TOTAL_INSTANCES_ERRORS))
       .withHoldingSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_HOLDINGS, TOTAL_UPDATED_HOLDINGS,
-        TOTAL_DISCARDED_HOLDINGS, TOTAL_HOLDINGS_ERRORS))
+        TOTAL_DELETED_HOLDINGS, TOTAL_DISCARDED_HOLDINGS, TOTAL_HOLDINGS_ERRORS))
       .withItemSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ITEMS, TOTAL_UPDATED_ITEMS,
-        TOTAL_DISCARDED_ITEMS, TOTAL_ITEMS_ERRORS))
+        TOTAL_DELETED_ITEMS, TOTAL_DISCARDED_ITEMS, TOTAL_ITEMS_ERRORS))
       .withAuthoritySummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_AUTHORITIES, TOTAL_UPDATED_AUTHORITIES,
-        TOTAL_DISCARDED_AUTHORITIES, TOTAL_AUTHORITIES_ERRORS))
+        TOTAL_DELETED_AUTHORITIES, TOTAL_DISCARDED_AUTHORITIES, TOTAL_AUTHORITIES_ERRORS))
       .withInvoiceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INVOICES, TOTAL_UPDATED_INVOICES,
-        TOTAL_DISCARDED_INVOICES, TOTAL_INVOICES_ERRORS))
+        TOTAL_DELETED_INVOICES, TOTAL_DISCARDED_INVOICES, TOTAL_INVOICES_ERRORS))
       .withOrderSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ORDERS, TOTAL_UPDATED_ORDERS,
-        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS));
+        TOTAL_DELETED_ORDERS, TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS));
   }
 
   private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,
-                                                               String totalDiscardedColumn, String totalErrorsColumn) {
+                                                               String totalDeletedColumn, String totalDiscardedColumn,
+                                                               String totalErrorsColumn) {
     Integer totalCreated = row.getInteger(totalCreatedColumn);
     Integer totalUpdated = row.getInteger(totalUpdatedColumn);
+    Integer totalDeleted = row.getInteger(totalDeletedColumn);
     Integer totalDiscarded = row.getInteger(totalDiscardedColumn);
     Integer totalErrors = row.getInteger(totalErrorsColumn);
 
-    if (0 == totalCreated && 0 == totalUpdated && 0 == totalDiscarded && 0 == totalErrors) {
+    if (0 == totalCreated && 0 == totalUpdated && 0 == totalDeleted && 0 == totalDiscarded && 0 == totalErrors) {
       return null;
     }
 
     return new EntityProcessingSummary()
       .withTotalCreatedEntities(totalCreated)
       .withTotalUpdatedEntities(totalUpdated)
+      .withTotalDeletedEntities(totalDeleted)
       .withTotalDiscardedEntities(totalDiscarded)
       .withTotalErrors(totalErrors);
   }
