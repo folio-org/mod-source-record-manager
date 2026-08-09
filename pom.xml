@@ -24,8 +24,8 @@
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <raml-module-builder.version>36.0.0</raml-module-builder.version>
-    <vertx.version>5.1.5</vertx.version>
+    <raml-module-builder.version>36.0.1</raml-module-builder.version>
+    <vertx.version>5.1.6</vertx.version>
     <spring.version>7.0.8</spring.version>
     <log4j.version>2.26.1</log4j.version>
 
