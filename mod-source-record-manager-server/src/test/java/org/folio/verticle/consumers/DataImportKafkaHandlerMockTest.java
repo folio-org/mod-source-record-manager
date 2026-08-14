@@ -4,7 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;

@@ -21,7 +21,7 @@ import java.util.function.Function;
 
 import io.vertx.core.json.jackson.DatabindCodec;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.folio.AuthorityIdentifierType;
 import org.folio.AuthorityNoteType;

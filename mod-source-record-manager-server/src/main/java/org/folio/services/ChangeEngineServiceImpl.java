@@ -59,7 +59,7 @@ import javax.ws.rs.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.MappingProfile;
 import org.folio.services.util.ProfileSnapshotUtil;

@@ -10,7 +10,7 @@ import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dao.util.JournalRecordsColumns;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.EntityProcessingSummary;
