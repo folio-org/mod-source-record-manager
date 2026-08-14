@@ -10,7 +10,7 @@ import io.vertx.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.JobExecutionMutator;

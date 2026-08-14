@@ -7,7 +7,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.TestUtil;
 import org.folio.dataimport.util.ConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;

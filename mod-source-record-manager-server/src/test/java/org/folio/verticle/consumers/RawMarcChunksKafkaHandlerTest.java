@@ -5,7 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.dataimport.util.ConnectionParams;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.InitialRecord;

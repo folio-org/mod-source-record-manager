@@ -8,7 +8,7 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
