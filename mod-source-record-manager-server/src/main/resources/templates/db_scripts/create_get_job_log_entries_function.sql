@@ -80,6 +80,30 @@ v_sortingField text DEFAULT sortingfield;      -- for bottomSQL | originalSQL
              WHERE source_id = qualifying_source_ids.source_id
                AND job_execution_id = ''%1$s''
                AND entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY''))
+          WHEN ''%5$s'' = ''sort_holdings_action'' THEN
+            (SELECT
+               CASE
+                 WHEN MAX(error) != '''' OR bool_or(action_type = ''NON_MATCH'') THEN ''3'' -- DISCARDED
+                 WHEN bool_or(action_type = ''CREATE'') THEN ''1'' -- CREATED
+                 WHEN bool_or(action_type = ''UPDATE'') THEN ''2'' -- UPDATED
+                 ELSE ''4''
+               END
+             FROM journal_records
+             WHERE source_id = qualifying_source_ids.source_id
+               AND job_execution_id = ''%1$s''
+               AND entity_type = ''HOLDINGS'')
+          WHEN ''%5$s'' = ''sort_items_action'' THEN
+            (SELECT
+               CASE
+                 WHEN MAX(error) != '''' OR bool_or(action_type = ''NON_MATCH'') THEN ''3'' -- DISCARDED
+                 WHEN bool_or(action_type = ''CREATE'') THEN ''1'' -- CREATED
+                 WHEN bool_or(action_type = ''UPDATE'') THEN ''2'' -- UPDATED
+                 ELSE ''4''
+               END
+             FROM journal_records
+             WHERE source_id = qualifying_source_ids.source_id
+               AND job_execution_id = ''%1$s''
+               AND entity_type = ''ITEM'')
         END %6$s,
         (SELECT MIN(source_record_order) FROM journal_records WHERE source_id = qualifying_source_ids.source_id AND job_execution_id = ''%1$s'') %6$s
       LIMIT %7$s OFFSET %8$s
@@ -677,7 +701,8 @@ BEGIN
       v_entityAttribute := ARRAY[upper(entityType)];
   END IF;
 
-    IF sortingField IN ('source_record_order', 'title', 'error', 'source_record_action_status') THEN
+    IF sortingField IN ('source_record_order', 'title', 'error', 'source_record_action_status',
+                      'holdings_action_status', 'item_action_status') THEN
       v_useOptimized := true;
 
     CASE sortingField
@@ -700,6 +725,16 @@ BEGIN
             v_sortingField := 'source_record_action_status';
             v_orderByPagination := 'sort_source_action';
             v_orderByFinal := 'COALESCE(mb.action_type, ma.action_type, mh.action_type)';
+
+    WHEN 'holdings_action_status' THEN
+            v_sortingField := 'holdings_action_status';
+            v_orderByPagination := 'sort_holdings_action';
+            v_orderByFinal := 'h.action_type';
+
+    WHEN 'item_action_status' THEN
+            v_sortingField := 'item_action_status';
+            v_orderByPagination := 'sort_items_action';
+            v_orderByFinal := 'it.action_type';
     END CASE;
 
     --RAISE NOTICE 'Using OPTIMIZED query for sortBy=% (pagination: %, final: %)', sortingField, v_orderByPagination, v_orderByFinal;

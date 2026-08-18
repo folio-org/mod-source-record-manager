@@ -2225,6 +2225,90 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   }
 
   @Test
+  public void shouldReturnAllEntriesWhenSortingByHoldingsStatusWithMultipleHoldingsAndItems(TestContext context) {
+    // Regression test: when a source record has multiple holdings AND multiple items, sorting by
+    // holdings_action_status used to apply LIMIT to the cartesian-product rows (holdings × items)
+    // instead of to source records, causing other records to be silently dropped.
+    JobExecution jobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String[] sourceRecordIds = generateRandomUUIDs(3);
+    String[] instanceIds = generateRandomUUIDs(3);
+    String[] holdingsIds = generateRandomUUIDs(2);
+    String[] itemIds = generateRandomUUIDs(2);
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      // S1 (order=0): 2 holdings × 2 items = 4 cartesian-product rows in old SQL
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[0], instanceIds[0], null, "title0", 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[0], instanceIds[0], "i001", null, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], holdingsIds[0], "ho001", null, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceIds[0], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], holdingsIds[1], "ho002", null, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceIds[0], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], itemIds[0], "it001", null, 0, CREATE, ITEM, COMPLETED, null, null, instanceIds[0], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], itemIds[1], "it002", null, 0, CREATE, ITEM, COMPLETED, null, null, instanceIds[0], holdingsIds[1], null))
+      // S2 (order=1): no holdings/items
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[1], instanceIds[1], null, "title1", 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[1], instanceIds[1], "i002", null, 1, CREATE, INSTANCE, COMPLETED, null, null))
+      // S3 (order=2): no holdings/items
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[2], instanceIds[2], null, "title2", 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[2], instanceIds[2], "i003", null, 2, CREATE, INSTANCE, COMPLETED, null, null));
+
+    // limit=3 equals the number of source records; with the old bug, LIMIT operated on cartesian-
+    // product rows so S2 and S3 would be missing from the response.
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam(SORT_BY_PARAM, "holdings_action_status")
+        .queryParam(SORT_ORDER_PARAM, ASC.name())
+        .queryParam("limit", "3")
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(3))
+        .body("totalRecords", is(3))
+        .body("entries[0].relatedHoldingsInfo.size()", is(2))
+        .body("entries[0].relatedItemInfo.size()", is(2))));
+  }
+
+  @Test
+  public void shouldReturnAllEntriesWhenSortingByItemStatusWithMultipleHoldingsAndItems(TestContext context) {
+    // Regression test: same cartesian-product pagination bug as above but triggered via item_action_status sort.
+    JobExecution jobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
+    String[] sourceRecordIds = generateRandomUUIDs(3);
+    String[] instanceIds = generateRandomUUIDs(3);
+    String[] holdingsIds = generateRandomUUIDs(2);
+    String[] itemIds = generateRandomUUIDs(2);
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      // S1 (order=0): 2 holdings × 2 items = 4 cartesian-product rows in old SQL
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[0], instanceIds[0], null, "title0", 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[0], instanceIds[0], "i001", null, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], holdingsIds[0], "ho001", null, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceIds[0], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], holdingsIds[1], "ho002", null, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceIds[0], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], itemIds[0], "it001", null, 0, CREATE, ITEM, COMPLETED, null, null, instanceIds[0], holdingsIds[0], null))
+      .compose(v -> createJournalRecordAllFields(jobExecution.getId(), sourceRecordIds[0], itemIds[1], "it002", null, 0, CREATE, ITEM, COMPLETED, null, null, instanceIds[0], holdingsIds[1], null))
+      // S2 (order=1): no holdings/items
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[1], instanceIds[1], null, "title1", 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[1], instanceIds[1], "i002", null, 1, CREATE, INSTANCE, COMPLETED, null, null))
+      // S3 (order=2): no holdings/items
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[2], instanceIds[2], null, "title2", 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(jobExecution.getId(), sourceRecordIds[2], instanceIds[2], "i003", null, 2, CREATE, INSTANCE, COMPLETED, null, null));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam(SORT_BY_PARAM, "item_action_status")
+        .queryParam(SORT_ORDER_PARAM, ASC.name())
+        .queryParam("limit", "3")
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(3))
+        .body("totalRecords", is(3))
+        .body("entries[0].relatedHoldingsInfo.size()", is(2))
+        .body("entries[0].relatedItemInfo.size()", is(2))));
+  }
+
+  @Test
   public void shouldReturnCentralTenantIdForMarcRecordAndInstanceIfItIsSavedInJournalRecordRecordProcessingLogDTOCollection(TestContext context) {
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().getFirst();
     String sourceRecordId = UUID.randomUUID().toString();
