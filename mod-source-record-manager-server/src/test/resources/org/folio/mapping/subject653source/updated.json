@@ -1,0 +1,352 @@
+{
+  "653": [
+    {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Source not specified"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Source not specified"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Source not specified"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Source not specified"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

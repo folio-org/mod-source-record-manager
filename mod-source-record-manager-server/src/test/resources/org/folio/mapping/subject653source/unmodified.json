@@ -1,0 +1,237 @@
+{
+  "653": [
+    {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Library of Congress Subject Headings"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Répertoire de vedettes-matière"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uncontrolled"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "2"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id_by_code"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
