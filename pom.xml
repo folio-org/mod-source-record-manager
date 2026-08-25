@@ -26,7 +26,7 @@
 
     <raml-module-builder.version>36.0.1</raml-module-builder.version>
     <vertx.version>5.1.6</vertx.version>
-    <spring.version>7.0.8</spring.version>
+    <spring.version>7.0.9</spring.version>
     <log4j.version>2.26.1</log4j.version>
 
     <junit.version>6.1.3</junit.version>

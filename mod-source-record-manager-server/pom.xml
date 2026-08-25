@@ -33,7 +33,7 @@
     <jsonassert.version>1.5.3</jsonassert.version>
     <mockito.version>5.23.0</mockito.version>
     <testcontainers.version>2.0.5</testcontainers.version>
-    <byte-buddy.version>1.18.11</byte-buddy.version>
+    <byte-buddy.version>1.18.12</byte-buddy.version>
     <assertj.version>3.27.7</assertj.version>
 
     <aspectj-maven-plugin.version>1.14.1</aspectj-maven-plugin.version>
