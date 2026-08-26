@@ -15462,6 +15462,49 @@
               ]
             }
           ]
+        },
+        {
+          "target": "subjects.sourceId",
+          "description": "Subject source",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Source not specified"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -15634,7 +15677,7 @@
                 {
                   "type": "set_subject_source_id",
                   "parameter": {
-                    "name": "Library of Congress Subject Headings"
+                    "name": "Source not specified"
                   }
                 }
               ]
@@ -15812,7 +15855,7 @@
                 {
                   "type": "set_subject_source_id",
                   "parameter": {
-                    "name": "Library of Congress Children's and Young Adults' Subject Headings"
+                    "name": "Source not specified"
                   }
                 }
               ]
@@ -15990,7 +16033,7 @@
                 {
                   "type": "set_subject_source_id",
                   "parameter": {
-                    "name": "Medical Subject Headings"
+                    "name": "Source not specified"
                   }
                 }
               ]
@@ -16168,7 +16211,7 @@
                 {
                   "type": "set_subject_source_id",
                   "parameter": {
-                    "name": "National Agricultural Library subject authority file"
+                    "name": "Source not specified"
                   }
                 }
               ]
@@ -16524,7 +16567,7 @@
                 {
                   "type": "set_subject_source_id",
                   "parameter": {
-                    "name": "Canadian Subject Headings"
+                    "name": "Source not specified"
                   }
                 }
               ]
@@ -16702,7 +16745,7 @@
                 {
                   "type": "set_subject_source_id",
                   "parameter": {
-                    "name": "Répertoire de vedettes-matière"
+                    "name": "Source not specified"
                   }
                 }
               ]
@@ -16848,14 +16891,40 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "2"
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id_by_code"
+                  "type": "set_subject_source_id",
+                  "parameter": {
+                    "name": "Source not specified"
+                  }
                 }
               ]
             }
