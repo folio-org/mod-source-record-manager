@@ -25,7 +25,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <raml-module-builder.version>36.0.1</raml-module-builder.version>
-    <vertx.version>5.1.6</vertx.version>
+    <vertx.version>5.1.7</vertx.version>
     <spring.version>7.0.9</spring.version>
     <log4j.version>2.26.1</log4j.version>
 
@@ -35,7 +35,7 @@
 
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
     <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
-    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
     <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
     <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
     <copy-rename-maven-plugin.version>1.0.1</copy-rename-maven-plugin.version>
