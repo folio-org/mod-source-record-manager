@@ -25,13 +25,13 @@
     <aspectj.version>1.9.25.1</aspectj.version>
     <lombok.version>1.18.48</lombok.version>
     <kafkaclients.version>4.3.1</kafkaclients.version>
-    <caffeine.version>3.2.4</caffeine.version>
+    <caffeine.version>3.3.0</caffeine.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
     <staedi.version>1.26.3</staedi.version>
     <marc4j.version>2.9.8</marc4j.version>
 
     <jsonassert.version>1.5.3</jsonassert.version>
-    <mockito.version>5.23.0</mockito.version>
+    <mockito.version>5.24.0</mockito.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <byte-buddy.version>1.18.14</byte-buddy.version>
     <assertj.version>3.27.7</assertj.version>
