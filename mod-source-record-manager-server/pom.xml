@@ -26,8 +26,8 @@
     <lombok.version>1.18.48</lombok.version>
     <kafkaclients.version>4.3.1</kafkaclients.version>
     <caffeine.version>3.3.0</caffeine.version>
-    <commons-lang3.version>3.20.0</commons-lang3.version>
-    <staedi.version>1.26.3</staedi.version>
+    <commons-lang3.version>3.21.0</commons-lang3.version>
+    <staedi.version>1.26.4</staedi.version>
     <marc4j.version>2.9.8</marc4j.version>
 
     <jsonassert.version>1.5.3</jsonassert.version>
