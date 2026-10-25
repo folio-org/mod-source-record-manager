@@ -25,12 +25,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <raml-module-builder.version>36.0.1</raml-module-builder.version>
-    <vertx.version>5.2.1</vertx.version>
-    <spring.version>7.0.9</spring.version>
+    <vertx.version>5.2.2</vertx.version>
+    <spring.version>7.0.10</spring.version>
     <log4j.version>2.26.1</log4j.version>
 
     <junit.version>6.1.3</junit.version>
-    <rest-assured.version>6.1.0</rest-assured.version>
+    <rest-assured.version>6.2.0</rest-assured.version>
     <wiremock.version>3.13.2</wiremock.version>
 
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
