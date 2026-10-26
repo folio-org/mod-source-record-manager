@@ -22,7 +22,7 @@
     <mod-source-record-storage-client.version>6.1.0-SNAPSHOT</mod-source-record-storage-client.version>
     <mod-di-converter-storage-client.version>2.6.0-SNAPSHOT</mod-di-converter-storage-client.version>
 
-    <aspectj.version>1.9.25.1</aspectj.version>
+    <aspectj.version>1.9.26</aspectj.version>
     <lombok.version>1.18.48</lombok.version>
     <kafkaclients.version>4.4.0</kafkaclients.version>
     <caffeine.version>3.3.1</caffeine.version>
