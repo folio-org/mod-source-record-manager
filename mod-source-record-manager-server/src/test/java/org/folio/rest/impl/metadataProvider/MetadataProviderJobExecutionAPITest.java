@@ -17,7 +17,9 @@ import org.folio.rest.impl.changeManager.ChangeManagerAPITest;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.IncomingRecord;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
@@ -2466,7 +2468,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldNotReturnUsersForCompositeParentJobExecutionsIfChildrenMarkedAsDeleted() {
 
     List<JobExecution> jobExecutions = constructAndPostCompositeInitJobExecutionRqDto("test-name", 1);
-//    Update status for job executions
+    // Update status for job executions
     jobExecutions.forEach(jobExecution -> {
       jobExecution.setStatus(COMMITTED);
       putJobExecution(jobExecution);
@@ -2494,5 +2496,60 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionUsersInfo.size()", is(0))
       .body("totalRecords", is(0));
+  }
+
+  // C367935: Sorting "No File name" records on data import logs
+  @Test
+  public void shouldSortNoFileNameRecordsAlphabeticallyWhenSortingByFileName() {
+    // Create file-based job executions with names starting at different letters (A, F, Z)
+    for (String fileName : List.of("A_file.mrc", "File2.mrc", "Z_File.mrc")) {
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(new InitJobExecutionsRqDto()
+          .withFiles(List.of(new File().withName(fileName)))
+          .withUserId(okapiUserIdHeader)
+          .withSourceType(InitJobExecutionsRqDto.SourceType.FILES)).toString())
+        .when().post(JOB_EXECUTION_PATH);
+    }
+
+    // Create ONLINE (single record import) job execution — service sets fileName = "No file name"
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(new InitJobExecutionsRqDto()
+        .withUserId(okapiUserIdHeader)
+        .withSourceType(InitJobExecutionsRqDto.SourceType.ONLINE)).toString())
+      .when().post(JOB_EXECUTION_PATH);
+
+    // Ascending sort: "No file name" must appear in N's, not at the end
+    List<JobExecutionDto> ascList = RestAssured.given()
+      .spec(spec)
+      .queryParam("sortBy", "file_name,asc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(4))
+      .extract().response().body().as(JobExecutionDtoCollection.class)
+      .getJobExecutions();
+
+    assertThat(ascList.get(0).getFileName(), is("A_file.mrc"));
+    assertThat(ascList.get(1).getFileName(), is("File2.mrc"));
+    assertThat(ascList.get(2).getFileName(), is("No file name"));
+    assertThat(ascList.get(3).getFileName(), is("Z_File.mrc"));
+
+    // Descending sort: "No file name" must appear in N's, not at the beginning
+    List<JobExecutionDto> descList = RestAssured.given()
+      .spec(spec)
+      .queryParam("sortBy", "file_name,desc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(4))
+      .extract().response().body().as(JobExecutionDtoCollection.class)
+      .getJobExecutions();
+
+    assertThat(descList.get(0).getFileName(), is("Z_File.mrc"));
+    assertThat(descList.get(1).getFileName(), is("No file name"));
+    assertThat(descList.get(2).getFileName(), is("File2.mrc"));
+    assertThat(descList.get(3).getFileName(), is("A_file.mrc"));
   }
 }
