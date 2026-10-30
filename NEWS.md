@@ -15,6 +15,7 @@
 * Update subject source mapping for 653 MARC field ([MODSOURMAN-1418](https://folio-org.atlassian.net/browse/MODSOURMAN-1418))
 
 ### Tech Dept
+* Create Integration test - Sorting No File name records on data import logs ([MODSOURMAN-1467](https://folio-org.atlassian.net/browse/MODSOURMAN-1467))
 
 ### Dependencies
 * Bump `LIB_NAME` from `OLD_VERSION` to `NEW_VERSION`
