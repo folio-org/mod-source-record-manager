@@ -34,7 +34,7 @@
     <wiremock.version>3.13.2</wiremock.version>
 
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
-    <versions-maven-plugin.version>2.25.1</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.25.2</versions-maven-plugin.version>
     <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
     <exec-maven-plugin.version>3.7.0</exec-maven-plugin.version>
     <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
