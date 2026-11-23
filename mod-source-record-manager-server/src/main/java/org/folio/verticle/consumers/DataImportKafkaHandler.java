@@ -15,6 +15,7 @@ import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
+import org.folio.services.exceptions.DeduplicationLookupException;
 import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -71,7 +72,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, byte[]
           } else {
             log.warn("handle:: Error with database during collecting of deduplication info for handlerId: {} eventId: {} jobExecutionId: {} recordId: {}",
               DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), jobExecutionId, recordId, e);
-            result.fail(e);
+            result.fail(new DeduplicationLookupException(e.getMessage(), e));
           }
         });
       return result.future();

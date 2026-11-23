@@ -656,7 +656,13 @@ public class MappingParametersProvider {
                             initializeParameters(
                                     new MappingParameters().withInitializedState(false),
                                     key.getConnectionParams())
-                                .onComplete(ar -> future.complete(ar.result())));
+                                .onComplete(ar -> {
+                                  if (ar.succeeded()) {
+                                    future.complete(ar.result());
+                                  } else {
+                                    future.completeExceptionally(ar.cause());
+                                  }
+                                }));
                     return future;
                   });
     }

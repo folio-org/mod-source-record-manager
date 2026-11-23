@@ -65,7 +65,10 @@ import org.folio.MappingProfile;
 import org.folio.services.util.ProfileSnapshotUtil;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.services.entity.ConsortiumConfiguration;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
+import org.folio.services.exceptions.RawChunkRecordsParsingException;
+import org.folio.services.exceptions.RecordsPublishingException;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -203,9 +206,40 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).onFailure(th -> {
         log.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, jobExecutionId: {}",
          jobExecution.getId(), th);
-        promise.fail(th);
+        if (isUnreportedParsingFailure(th)) {
+          markSourceChunkAsError(sourceChunkId, jobExecution.getId(), params.getTenantId())
+            .onComplete(ar -> promise.fail(th));
+        } else {
+          promise.fail(th);
+        }
       });
     return promise.future();
+  }
+
+  /**
+   * Failures that are already reflected in the import log by the chunk error handler as per-record DI_ERROR events
+   * (invalid job profile, records parsing, records publishing) or that are duplicates are excluded.
+   * Any other failure must move the source chunk to ERROR, otherwise the job never reaches a terminal state
+   * (the error handler sends no DI_ERROR for the last chunk, and a generic DI_ERROR carries no record to count).
+   */
+  private boolean isUnreportedParsingFailure(Throwable th) {
+    return !(th instanceof InvalidJobProfileForFileException)
+      && !(th instanceof RawChunkRecordsParsingException)
+      && !(th instanceof RecordsPublishingException)
+      && !(th instanceof DuplicateEventException);
+  }
+
+  private Future<Void> markSourceChunkAsError(String sourceChunkId, String jobExecutionId, String tenantId) {
+    return jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
+      .compose(optional -> optional
+        .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), tenantId))
+        .orElseThrow(() -> new NotFoundException(String.format(
+          "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found, jobExecutionId: %s",
+          sourceChunkId, jobExecutionId))))
+      .<Void>mapEmpty()
+      .onFailure(e -> log.warn("markSourceChunkAsError:: Failed to mark source chunk {} as ERROR, jobExecutionId: {}",
+        sourceChunkId, jobExecutionId, e))
+      .recover(e -> Future.succeededFuture());
   }
 
   private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, ConnectionParams params, List<Record> parsedRecords) {
@@ -296,13 +330,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
             .onFailure(e -> log.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution with id '{}' and snapshot status",
               jobExecution.getId(), e));
-          jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
-            .compose(optional -> optional
-              .map(sourceChunk -> jobExecutionSourceChunkDao
-                .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-              .orElseThrow(() -> new NotFoundException(String.format(
-                "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found, jobExecutionId: %s",
-                sourceChunkId, jobExecution.getId()))))
+          markSourceChunkAsError(sourceChunkId, jobExecution.getId(), params.getTenantId())
             .onComplete(ar -> promise.fail(postAr.cause()));
         } else {
           promise.complete(parsedRecords);

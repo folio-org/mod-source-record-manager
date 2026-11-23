@@ -46,7 +46,17 @@ public final class EventHandlingUtil {
    */
   public static Future<Boolean> sendEventToKafka(String tenantId, String eventPayload, String eventType,
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
-    Event event = createEvent(eventPayload, eventType, tenantId);
+    return sendEventToKafka(createEvent(eventPayload, eventType, tenantId), kafkaHeaders, kafkaConfig, key);
+  }
+
+  /**
+   * Sends an already built event (keeping its id and metadata) to kafka, e.g. to redeliver an event.
+   */
+  public static Future<Boolean> sendEventToKafka(Event event, List<KafkaHeader> kafkaHeaders,
+                                                 KafkaConfig kafkaConfig, String key) {
+    String eventType = event.getEventType();
+    String eventPayload = event.getEventPayload();
+    String tenantId = event.getEventMetadata().getTenantId();
     String topicName = createTopicName(eventType, tenantId, kafkaConfig);
     KafkaProducerRecord<String, String> record = createProducerRecord(event, key, topicName, kafkaHeaders);
 

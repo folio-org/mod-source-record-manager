@@ -1,6 +1,7 @@
 package org.folio.verticle;
 
 import org.folio.kafka.AsyncRecordHandler;
+import org.folio.kafka.ProcessRecordErrorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -27,6 +28,10 @@ public class DataImportConsumersVerticle extends AbstractConsumersVerticle<Strin
   @Qualifier("DataImportKafkaHandler")
   private AsyncRecordHandler<String, byte[]> dataImportKafkaHandler;
 
+  @Autowired
+  @Qualifier("DataImportErrorHandler")
+  private ProcessRecordErrorHandler<String, byte[]> errorHandler;
+
   @Override
   public List<String> getEvents() {
     return Arrays.asList(DI_COMPLETED.value(), DI_ERROR.value());
@@ -35,6 +40,11 @@ public class DataImportConsumersVerticle extends AbstractConsumersVerticle<Strin
   @Override
   public AsyncRecordHandler<String, byte[]> getHandler() {
     return this.dataImportKafkaHandler;
+  }
+
+  @Override
+  public ProcessRecordErrorHandler<String, byte[]> getErrorHandler() {
+    return this.errorHandler;
   }
 
   @Override

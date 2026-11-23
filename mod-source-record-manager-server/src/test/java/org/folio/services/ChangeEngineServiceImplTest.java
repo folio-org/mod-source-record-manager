@@ -766,6 +766,24 @@ public class ChangeEngineServiceImplTest {
     verifyNoInteractions(fieldModificationService);
   }
 
+  @Test
+  public void shouldMarkSourceChunkAsErrorWhenMappingMetadataSnapshotFailsUnexpectedly() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_VALID);
+    JobExecution jobExecution = getTestJobExecution();
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
+    when(mappingMetadataService.getMappingMetadataDto(anyString(), any(ConnectionParams.class)))
+      .thenReturn(Future.failedFuture(new IllegalStateException("settings unavailable")));
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenAnswer(inv -> Future.succeededFuture(Optional.of(new JobExecutionSourceChunk().withProcessedAmount(0))));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    assertThat(serviceFuture.failed(), equalTo(true));
+    verify(jobExecutionSourceChunkDao, times(1)).update(
+      argThat(chunk -> chunk.getState() == JobExecutionSourceChunk.State.ERROR), any());
+  }
+
   private void mockServicesForParseRawRecordsChunkForJobExecution() {
     when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
     when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));

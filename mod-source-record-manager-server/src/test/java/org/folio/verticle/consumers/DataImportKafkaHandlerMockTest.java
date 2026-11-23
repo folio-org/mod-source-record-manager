@@ -15,6 +15,7 @@ import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
+import org.folio.services.exceptions.DeduplicationLookupException;
 import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.junit.Assert;
 import org.junit.Test;
@@ -178,7 +179,8 @@ public class DataImportKafkaHandlerMockTest {
 
     // then
     Assert.assertTrue(future.failed());
-    Assert.assertTrue(future.cause() instanceof SQLException);
+    Assert.assertTrue(future.cause() instanceof DeduplicationLookupException);
+    Assert.assertTrue(future.cause().getCause() instanceof SQLException);
     Assert.assertTrue(future.isComplete());
     verify(eventHandlingService, never()).handle(anyString(), any(ConnectionParams.class));
   }

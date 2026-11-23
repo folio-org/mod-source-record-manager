@@ -325,6 +325,13 @@ public class MappingParametersProviderTest {
     });
   }
 
+  @Test
+  public void shouldFailWhenSettingsRequestFails(TestContext context) {
+    WireMock.stubFor(get(IDENTIFIER_TYPES_URL).willReturn(WireMock.serverError().withBody("Timeout")));
+
+    mappingParametersProvider.get("1", okapiConnectionParams).onComplete(context.asyncAssertFailure());
+  }
+
   /**
    * Test that multiple requests to get the same item concurrently do not attempt to load mapping parameters concurrently.
    * only one load should occur. All requests for the same cache key should return the same cache value.
