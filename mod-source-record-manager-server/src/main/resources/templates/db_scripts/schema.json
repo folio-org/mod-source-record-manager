@@ -298,11 +298,6 @@
     },
     {
       "run": "after",
-      "snippetPath": "create_insert_journal_records_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.10.0"
-    },
-    {
-      "run": "after",
       "snippet": "DROP TABLE IF EXISTS source_records_state;",
       "fromModuleVersion": "mod-source-record-manager-4.0.0"
     },
@@ -334,6 +329,11 @@
     {
       "run": "after",
       "snippetPath": "create_get_job_execution_summary_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-4.1.0"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP FUNCTION IF EXISTS insert_journal_records(jsonb[]);",
       "fromModuleVersion": "mod-source-record-manager-4.1.0"
     }
   ]

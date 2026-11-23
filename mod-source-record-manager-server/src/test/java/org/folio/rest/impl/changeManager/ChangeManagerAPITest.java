@@ -1362,7 +1362,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessChunkIfRequestForMappingParametersFails(TestContext testContext) {
+  public void shouldFailChunkAndSetJobExecutionErrorStatusIfRequestForMappingParametersFails(TestContext testContext) {
     // given
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1401,6 +1401,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(serverError()));
     WireMock.stubFor(get(TENANT_TIME_ZONE_SETTINGS_URL).willReturn(serverError()));
 
+    rawRecordsDto.getRecordsMetadata().setLast(true);
+
     Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
@@ -1422,7 +1424,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     async.complete();
 
     // then
@@ -1433,7 +1435,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
+      .body("status", is(JobExecution.Status.ERROR.name()))
       .body("runBy.firstName", is("DIKU"))
       .body("progress.total", is(rawRecordsDto.getRecordsMetadata().getTotal()))
       .body("startedDate", notNullValue(Date.class)).log().all();

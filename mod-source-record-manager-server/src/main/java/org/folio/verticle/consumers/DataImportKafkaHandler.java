@@ -72,7 +72,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, byte[]
           } else {
             log.warn("handle:: Error with database during collecting of deduplication info for handlerId: {} eventId: {} jobExecutionId: {} recordId: {}",
               DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), jobExecutionId, recordId, e);
-            result.fail(new DeduplicationLookupException(e.getMessage(), e));
+            result.fail(new DeduplicationLookupException(e));
           }
         });
       return result.future();

@@ -5,6 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.rest.persist.Conn;
 import org.folio.rest.persist.PostgresClient;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.function.Function;
 
 /**
@@ -28,5 +30,19 @@ public final class DbUtil {
                                                    Function<Conn, Future<T>> action) {
     return postgresClient.withTrans(action)
       .onFailure(e -> log.warn("executeInTransaction:: Error executing action in transaction", e));
+  }
+
+  /**
+   * Converts a date read from a jsonb column. Depending on the serializer that wrote the row, a date is stored
+   * either as epoch millis or as an ISO-8601 string.
+   *
+   * @param value jsonb value: a {@link Number} of epoch millis or an ISO-8601 instant string
+   * @return the date
+   */
+  public static Date toDate(Object value) {
+    if (value instanceof Number number) {
+      return new Date(number.longValue());
+    }
+    return Date.from(Instant.parse(String.valueOf(value)));
   }
 }

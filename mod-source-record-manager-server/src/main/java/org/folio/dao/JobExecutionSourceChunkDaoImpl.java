@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import javax.ws.rs.NotFoundException;
 
+import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State;
@@ -100,7 +101,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
         .withJobExecutionId(row.getUUID(JOB_EXECUTION_ID_FIELD).toString())
         .withChunkSize(jsonb.getInteger(CHUNK_SIZE_JSONB_FIELD))
         .withState(State.fromValue(jsonb.getString(STATE_JSONB_FIELD)))
-        .withCreatedDate(new Date(jsonb.getLong(CREATED_DATE_JSONB_FIELD)))
+        .withCreatedDate(DbUtil.toDate(jsonb.getValue(CREATED_DATE_JSONB_FIELD)))
         .withLast(jsonb.getBoolean(LAST_JSONB_FIELD));
       result.add(chunk);
     });

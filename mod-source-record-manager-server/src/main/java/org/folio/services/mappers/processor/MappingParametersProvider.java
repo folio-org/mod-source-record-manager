@@ -649,22 +649,14 @@ public class MappingParametersProvider {
               .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
               .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
               .buildAsync(
-                  (key, executor) -> {
-                    CompletableFuture<MappingParameters> future = new CompletableFuture<>();
-                    executor.execute(
-                        () ->
-                            initializeParameters(
-                                    new MappingParameters().withInitializedState(false),
-                                    key.getConnectionParams())
-                                .onComplete(ar -> {
-                                  if (ar.succeeded()) {
-                                    future.complete(ar.result());
-                                  } else {
-                                    future.completeExceptionally(ar.cause());
-                                  }
-                                }));
-                    return future;
-                  });
+                  (key, executor) ->
+                      CompletableFuture.supplyAsync(
+                              () ->
+                                  initializeParameters(
+                                      new MappingParameters().withInitializedState(false),
+                                      key.getConnectionParams()),
+                              executor)
+                          .thenCompose(Future::toCompletionStage));
     }
 
     /**

@@ -1,94 +1,114 @@
 package org.folio.verticle.consumers.errorhandlers;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.folio.verticle.consumers.errorhandlers.DiEventRecordBuilder.EVENT_ID;
+import static org.folio.verticle.consumers.errorhandlers.DiEventRecordBuilder.aDiEventRecord;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
-import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
-import java.nio.charset.StandardCharsets;
+import io.vertx.kafka.client.producer.KafkaHeader;
 import java.sql.SQLException;
 import java.util.List;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.exception.DuplicateEventException;
-import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.exceptions.DeduplicationLookupException;
 import org.folio.services.util.EventHandlingUtil;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class DataImportErrorHandlerTest {
 
   private final KafkaConfig kafkaConfig = KafkaConfig.builder().build();
-  private final Vertx vertx = Mockito.mock(Vertx.class);
-  private final DataImportErrorHandler handler = new DataImportErrorHandler(vertx, kafkaConfig);
+  private final Vertx vertx = mock(Vertx.class);
+  private final DataImportErrorHandler handler = new DataImportErrorHandler(vertx, kafkaConfig, new RedeliveryPolicy());
 
   @Before
   public void runTimersImmediately() {
-    Mockito.when(vertx.setTimer(Mockito.anyLong(), any())).thenAnswer(inv -> {
-      inv.<Handler<Long>>getArgument(1).handle(1L);
+    when(vertx.setTimer(anyLong(), any())).thenAnswer(invocation -> {
+      invocation.<Handler<Long>>getArgument(1).handle(1L);
       return 1L;
     });
   }
 
   @Test
-  public void shouldRepublishEventWhenDeduplicationLookupFailed() {
+  public void shouldRepublishOriginalEvent_whenDeduplicationLookupFailed() {
+    // given
+    var record = aDiEventRecord().withHeader("recordId", "r1").build();
     try (MockedStatic<EventHandlingUtil> util = Mockito.mockStatic(EventHandlingUtil.class)) {
-      util.when(
-          () -> EventHandlingUtil.sendEventToKafka(any(Event.class), any(List.class), any(KafkaConfig.class), any()))
+      util.when(() -> EventHandlingUtil.sendEventToKafka(any(Event.class), any(List.class), any(KafkaConfig.class), any()))
         .thenReturn(Future.succeededFuture(true));
-      handler.handle(new DeduplicationLookupException("timeout", new SQLException()), record(null));
+      var eventCaptor = ArgumentCaptor.forClass(Event.class);
+      var headersCaptor = ArgumentCaptor.<List<KafkaHeader>>captor();
 
-      util.verify(() -> EventHandlingUtil.sendEventToKafka(
-        argThat((Event e) -> "c9d09a5e-73ba-11ec-90d6-0242ac120003".equals(e.getId())),
-        any(List.class), eq(kafkaConfig), any()), times(1));
+      // when
+      handler.handle(new DeduplicationLookupException(new SQLException("timeout")), record);
+
+      // then
+      util.verify(() -> EventHandlingUtil.sendEventToKafka(eventCaptor.capture(), headersCaptor.capture(),
+        any(KafkaConfig.class), any()));
+      assertThat(eventCaptor.getValue().getId()).isEqualTo(EVENT_ID);
+      assertThat(headersCaptor.getValue())
+        .anyMatch(header -> RedeliveryPolicy.RETRY_COUNT_HEADER.equals(header.key()) && "1".equals(header.value().toString()));
     }
   }
 
   @Test
-  public void shouldNotRepublishEventWhenRetriesExhausted() {
+  public void shouldScheduleRepublishWithBackoff_whenDeduplicationLookupFailed() {
+    // given
+    var record = aDiEventRecord().withHeader(RedeliveryPolicy.RETRY_COUNT_HEADER, "2").build();
     try (MockedStatic<EventHandlingUtil> util = Mockito.mockStatic(EventHandlingUtil.class)) {
-      handler.handle(new DeduplicationLookupException("timeout", new SQLException()),
-        record(String.valueOf(DataImportErrorHandler.MAX_RETRIES)));
+      util.when(() -> EventHandlingUtil.sendEventToKafka(any(Event.class), any(List.class), any(KafkaConfig.class), any()))
+        .thenReturn(Future.succeededFuture(true));
 
-      util.verify(() -> EventHandlingUtil.sendEventToKafka(any(Event.class), any(List.class),
-        any(KafkaConfig.class), any()), never());
+      // when
+      handler.handle(new DeduplicationLookupException(new SQLException("timeout")), record);
+
+      // then
+      verify(vertx).setTimer(eq(4000L), any());
     }
   }
 
   @Test
-  public void shouldNotRepublishEventWhenFailureIsNotDeduplicationLookup() {
+  public void shouldNotRepublishEvent_whenRetriesExhausted() {
+    // given
+    var record = aDiEventRecord()
+      .withHeader(RedeliveryPolicy.RETRY_COUNT_HEADER, String.valueOf(RedeliveryPolicy.MAX_RETRIES))
+      .build();
     try (MockedStatic<EventHandlingUtil> util = Mockito.mockStatic(EventHandlingUtil.class)) {
-      handler.handle(new DuplicateEventException("duplicate"), record(null));
 
-      util.verify(() -> EventHandlingUtil.sendEventToKafka(any(Event.class), any(List.class),
-        any(KafkaConfig.class), any()), never());
+      // when
+      handler.handle(new DeduplicationLookupException(new SQLException("timeout")), record);
+
+      // then
+      verify(vertx, never()).setTimer(anyLong(), any());
+      util.verifyNoInteractions();
     }
   }
 
-  private KafkaConsumerRecordImpl<String, byte[]> record(String retryCount) {
-    Event event = new Event().withId("c9d09a5e-73ba-11ec-90d6-0242ac120003")
-      .withEventType(DI_ERROR.value()).withEventPayload("{}")
-      .withEventMetadata(new org.folio.rest.jaxrs.model.EventMetadata().withTenantId("diku"));
-    ConsumerRecord<String, byte[]> consumerRecord =
-      new ConsumerRecord<>("topic", 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
-    consumerRecord.headers().add(new RecordHeader(XOkapiHeaders.TENANT, "diku".getBytes()));
-    consumerRecord.headers().add(new RecordHeader("recordId", "r1".getBytes()));
-    if (retryCount != null) {
-      consumerRecord.headers().add(new RecordHeader(DataImportErrorHandler.RETRY_COUNT_HEADER, retryCount.getBytes()));
+  @Test
+  public void shouldNotRepublishEvent_whenFailureIsNotDeduplicationLookup() {
+    // given
+    var record = aDiEventRecord().build();
+    try (MockedStatic<EventHandlingUtil> util = Mockito.mockStatic(EventHandlingUtil.class)) {
+
+      // when
+      handler.handle(new DuplicateEventException("duplicate"), record);
+
+      // then
+      verify(vertx, never()).setTimer(anyLong(), any());
+      util.verifyNoInteractions();
     }
-    return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
 }

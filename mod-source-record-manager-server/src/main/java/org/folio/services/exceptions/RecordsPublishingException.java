@@ -8,7 +8,7 @@ import java.util.List;
  * Exception that accumulates records that published to Kafka with errors. This exception used in error handlers to
  * send DI_ERROR for each failed record.
  */
-public class RecordsPublishingException extends RuntimeException {
+public class RecordsPublishingException extends RuntimeException implements ReportedToImportLog {
   private final List<Record> failedRecords;
 
   public RecordsPublishingException(String message, List<Record> failedRecords) {

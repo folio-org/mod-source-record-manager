@@ -6,7 +6,7 @@ package org.folio.services.exceptions;
  */
 public class DeduplicationLookupException extends RuntimeException {
 
-  public DeduplicationLookupException(String message, Throwable cause) {
-    super(message, cause);
+  public DeduplicationLookupException(Throwable cause) {
+    super(cause.getMessage(), cause);
   }
 }

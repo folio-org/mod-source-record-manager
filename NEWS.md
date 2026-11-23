@@ -13,9 +13,11 @@
 * Fix "invalid input syntax for type integer" error in get_job_log_entries for invoices with alphanumeric vendor invoice numbers ([MODSOURMAN-1346](https://folio-org.atlassian.net/browse/MODSOURMAN-1346))
 * Fix log entries sorting by items/holdings ([MODSOURMAN-1453](https://folio-org.atlassian.net/browse/MODSOURMAN-1453))
 * Update subject source mapping for 653 MARC field ([MODSOURMAN-1418](https://folio-org.atlassian.net/browse/MODSOURMAN-1418))
+* Fix data import jobs stuck in progress after DB connection timeouts ([MODSOURMAN-1465](https://folio-org.atlassian.net/browse/MODSOURMAN-1465))
 
 ### Tech Dept
 * Create Integration test - Sorting No File name records on data import logs ([MODSOURMAN-1467](https://folio-org.atlassian.net/browse/MODSOURMAN-1467))
+* Drop unused `insert_journal_records` DB function
 
 ### Dependencies
 * Bump `LIB_NAME` from `OLD_VERSION` to `NEW_VERSION`
@@ -37,7 +39,7 @@
 * [MODSOURMAN-1365](https://folio-org.atlassian.net/browse/MODSOURMAN-1365) Update bib mapping rule for Cumulative Index / Finding Aids notes
 * [MODSOURMAN-1260](https://folio-org.atlassian.net/browse/MODSOURMAN-1260) The 'The 004 tag of the Holdings doesn't have a link to the Bibliographic record' error message is not displayed on JSON data after importing file
 * [MODSOURMAN-1366](https://folio-org.atlassian.net/browse/MODSOURMAN-1366) Unable to update MARC authority record if the match point is 999 ff $i
-* [MODSOURMAN-1371](https://folio-org.atlassian.net/browse/MODSOURMAN-1371) Remove quick-marc events handling logic
+* [MODSOURMAN-1371](https://folio-org.atlassian.net/browse/MODSOURMAN-1371) Remove qNEWsuick-marc events handling logic
 * [MODSOURMAN-1399](https://folio-org.atlassian.net/browse/MODSOURMAN-1399) Properly handle the failed result of the request for snapshot creation
 * [MODSOURMAN-1340](https://folio-org.atlassian.net/browse/MODSOURMAN-1340) Upgrade module to Vert.x 5.0
 * [MODSOURMAN-1401](https://folio-org.atlassian.net/browse/MODSOURMAN-1401) Shift from name-based to code-based authority identifier type resolution
@@ -102,7 +104,7 @@
 * [MODSOURMAN-1030](https://issues.folio.org/browse/MODSOURMAN-1030) The number of updated records is not correct displayed in the 'SRS Marc' column in the 'Log summary' table
 * [MODSOURMAN-976](https://issues.folio.org/browse/MODSOURMAN-976) Incorrect error counts
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
-* [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper behavior in multiples for holdings when update action on match and create on non-match
+* [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper beNEWshavior in multiples for holdings when update action on match and create on non-match
 * [MODSOURMAN-1091](https://issues.folio.org/browse/MODSOURMAN-1091) The '1' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
 * [MODSOURMAN-1108](https://issues.folio.org/browse/MODSOURMAN-1108) MARC authority record is not created when use Job profile with match profile and action only on no-match branch (MODSOURMAN-1110)
 * [MODSOURMAN-1106](https://issues.folio.org/browse/MODSOURMAN-1106) The status of Instance is '-' in the Import log after uploading file. The numbers of updated SRS and Instance are not displayed in the Summary table. (MODSOURMAN-1114)

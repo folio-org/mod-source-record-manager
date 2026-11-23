@@ -190,12 +190,12 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
     RecordsPublishingService recordsPublishingService = new RecordsPublishingServiceImpl(jobExecutionService,
       new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList());
+    var keyGenerator = new DistributionKeyGenerator(10);
     ChangeEngineService changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig, fieldModificationService,
-      incomingRecordService, consortiumDataCache, vertx);
+      incomingRecordService, new MarcHoldingsVerifier(consortiumDataCache, kafkaConfig, keyGenerator, 100), keyGenerator,
+      new JobExecutionStatusCache(), vertx);
     ReflectionTestUtils.setField(changeEngineService, "thresholdChunkSize", 100);
-    ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
-    ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     ReflectionTestUtils.setField(recordsPublishingService, "maxDistributionNum", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
     recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService);

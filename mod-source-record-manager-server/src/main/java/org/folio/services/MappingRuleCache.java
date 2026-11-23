@@ -35,18 +35,11 @@ public class MappingRuleCache {
 
   private CompletableFuture<Optional<JsonObject>> loadMappingRules(MappingRuleCacheKey key, Executor executor,
                                                                    MappingRuleDao mappingRuleDao) {
-    CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-    executor.execute(() -> mappingRuleDao.get(key.getRecordType(), key.getTenantId())
-      .map(optional -> optional.isPresent() ? optional : Optional.of(new JsonObject()))
-      .onComplete(ar -> {
-        if (ar.failed()) {
-          log.warn("loadMappingRules:: Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
-          future.completeExceptionally(ar.cause());
-          return;
-        }
-        future.complete(ar.result());
-      }));
-    return future;
+    return CompletableFuture.supplyAsync(() -> mappingRuleDao.get(key.getRecordType(), key.getTenantId())
+        .map(optional -> optional.isPresent() ? optional : Optional.of(new JsonObject()))
+        .onFailure(e -> log.warn("loadMappingRules:: Failed to load mapping rules for tenant '{}' from data base",
+          key.getTenantId(), e)), executor)
+      .thenCompose(Future::toCompletionStage);
   }
 
   /**

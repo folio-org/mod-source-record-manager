@@ -44,6 +44,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), acceptInstanceId, params))
       .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
+        .onFailure(e -> log.warn("processRawRecordsChunk:: Failed to update status of jobExecution {} after chunk errors", jobExecutionId, e))
         .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
     return promise.future();
   }

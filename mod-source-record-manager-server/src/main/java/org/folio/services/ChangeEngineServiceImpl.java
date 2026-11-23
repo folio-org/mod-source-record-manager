@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -11,9 +10,6 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_B
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
-import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
@@ -25,50 +21,37 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldTo
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.journal.JournalUtil.getJournalMessageProducer;
+import static org.folio.services.util.EventHandlingUtil.JOB_EXECUTION_ID_HEADER;
+import static org.folio.services.util.EventHandlingUtil.USER_ID_HEADER;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
-import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
-import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.CREATE_ACTION;
-import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.FOLIO_RECORD;
-import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ORDER_TYPE;
 
-import com.google.common.collect.Lists;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageProducer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import javax.ws.rs.NotFoundException;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.folio.MappingProfile;
-import org.folio.services.util.ProfileSnapshotUtil;
-import org.folio.okapi.common.XOkapiHeaders;
-import org.folio.services.entity.ConsortiumConfiguration;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
-import org.folio.services.exceptions.RawChunkRecordsParsingException;
-import org.folio.services.exceptions.RecordsPublishingException;
+import org.folio.services.exceptions.ReportedToImportLog;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -78,20 +61,13 @@ import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.dataimport.util.marc.RecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.rest.client.SourceStorageBatchClient;
-import org.folio.rest.jaxrs.model.ActionProfile;
-import org.folio.rest.jaxrs.model.ActionProfile.Action;
-import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
-import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
-import org.folio.rest.jaxrs.model.MatchProfile;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecord;
@@ -105,9 +81,7 @@ import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
-import org.folio.services.util.RecordConversionUtil;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
-import org.folio.verticle.consumers.util.JobExecutionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -116,17 +90,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
-  public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
-  public static final String RECORD_ID_HEADER = "recordId";
-  public static final String USER_ID_HEADER = "userId";
-
   private static final String MESSAGE_KEY = "message";
   private static final String TAG_001 = "001";
   private static final String TAG_004 = "004";
   private static final String MARC_FORMAT = "MARC_";
-  private static final AtomicInteger indexer = new AtomicInteger();
-  private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
-    "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
   private static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
@@ -144,18 +111,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final KafkaConfig kafkaConfig;
   private final FieldModificationService fieldModificationService;
   private final IncomingRecordService incomingRecordService;
-  private final ConsortiumDataCache consortiumDataCache;
+  private final MarcHoldingsVerifier marcHoldingsVerifier;
+  private final DistributionKeyGenerator distributionKeyGenerator;
+  private final JobExecutionStatusCache jobExecutionStatusCache;
   private final MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
   private final ConcurrentHashMap<String, Future<Boolean>> ensuringInProgress = new ConcurrentHashMap<>();
 
   @Value("${chunk.processing.threshold.chunk.size:100}")
   private int thresholdChunkSize;
-
-  @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
-  private int maxDistributionNum;
-
-  @Value("${marc.holdings.batch.size:100}")
-  private int batchSize;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
@@ -167,7 +130,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired KafkaConfig kafkaConfig,
                                  @Autowired FieldModificationService fieldModificationService,
                                  @Autowired IncomingRecordService incomingRecordService,
-                                 @Autowired ConsortiumDataCache consortiumDataCache,
+                                 @Autowired MarcHoldingsVerifier marcHoldingsVerifier,
+                                 @Autowired DistributionKeyGenerator distributionKeyGenerator,
+                                 @Autowired JobExecutionStatusCache jobExecutionStatusCache,
                                  @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
@@ -179,7 +144,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.kafkaConfig = kafkaConfig;
     this.fieldModificationService = fieldModificationService;
     this.incomingRecordService = incomingRecordService;
-    this.consortiumDataCache = consortiumDataCache;
+    this.marcHoldingsVerifier = marcHoldingsVerifier;
+    this.distributionKeyGenerator = distributionKeyGenerator;
+    this.jobExecutionStatusCache = jobExecutionStatusCache;
     this.journalRecordProducer = getJournalMessageProducer(vertx);
   }
 
@@ -197,7 +164,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         return parsedRecords;
       })
       .compose(parsedRecords -> validateJobProfile(jobExecution, parsedRecords).map(parsedRecords))
-      .compose(parsedRecords -> filterParsedRecords(jobExecution, params, parsedRecords))
+      .compose(parsedRecords -> marcHoldingsVerifier.filterValidRecords(jobExecution, params, parsedRecords))
       .compose(filteredParsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), filteredParsedRecords, params)
         .map(filteredParsedRecords))
       .onSuccess(parsedRecords -> {
@@ -206,7 +173,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).onFailure(th -> {
         log.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, jobExecutionId: {}",
          jobExecution.getId(), th);
-        if (isUnreportedParsingFailure(th)) {
+        if (shouldMarkChunkAsError(th)) {
           markSourceChunkAsError(sourceChunkId, jobExecution.getId(), params.getTenantId())
             .onComplete(ar -> promise.fail(th));
         } else {
@@ -217,37 +184,33 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Failures that are already reflected in the import log by the chunk error handler as per-record DI_ERROR events
-   * (invalid job profile, records parsing, records publishing) or that are duplicates are excluded.
-   * Any other failure must move the source chunk to ERROR, otherwise the job never reaches a terminal state
-   * (the error handler sends no DI_ERROR for the last chunk, and a generic DI_ERROR carries no record to count).
+   * Failures reported to the import log by the chunk error handler (see {@link ReportedToImportLog}) and duplicates
+   * are excluded. Any other failure must move the source chunk to ERROR, otherwise the job never reaches a terminal
+   * state (the error handler sends no DI_ERROR for the last chunk, and a generic DI_ERROR carries no record to count).
    */
-  private boolean isUnreportedParsingFailure(Throwable th) {
-    return !(th instanceof InvalidJobProfileForFileException)
-      && !(th instanceof RawChunkRecordsParsingException)
-      && !(th instanceof RecordsPublishingException)
-      && !(th instanceof DuplicateEventException);
+  private boolean shouldMarkChunkAsError(Throwable th) {
+    return !(th instanceof ReportedToImportLog || th instanceof DuplicateEventException);
   }
 
   private Future<Void> markSourceChunkAsError(String sourceChunkId, String jobExecutionId, String tenantId) {
-    return jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
-      .compose(optional -> optional
-        .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), tenantId))
-        .orElseThrow(() -> new NotFoundException(String.format(
-          "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found, jobExecutionId: %s",
-          sourceChunkId, jobExecutionId))))
-      .<Void>mapEmpty()
-      .onFailure(e -> log.warn("markSourceChunkAsError:: Failed to mark source chunk {} as ERROR, jobExecutionId: {}",
-        sourceChunkId, jobExecutionId, e))
-      .recover(e -> Future.succeededFuture());
+    return updateSourceChunk(sourceChunkId, tenantId, "set state ERROR for", jobExecutionId,
+      chunk -> chunk.withState(JobExecutionSourceChunk.State.ERROR))
+      .recover(e -> {
+        log.warn("markSourceChunkAsError:: Failed to mark source chunk {} as ERROR, jobExecutionId: {}",
+          sourceChunkId, jobExecutionId, e);
+        return Future.succeededFuture();
+      });
   }
 
-  private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, ConnectionParams params, List<Record> parsedRecords) {
-    Promise<List<Record>> promiseFilteredRecords = Promise.promise();
-
-    List<Future<List<String>>> listFuture = executeInBatches(parsedRecords, batch -> getInvalidMarcBibIdsForConsortium(batch, params));
-    filterMarcHoldingsBy004Field(parsedRecords, listFuture, params, jobExecution, promiseFilteredRecords);
-    return promiseFilteredRecords.future();
+  private Future<Void> updateSourceChunk(String sourceChunkId, String tenantId, String action, String jobExecutionId,
+                                         UnaryOperator<JobExecutionSourceChunk> change) {
+    return jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
+      .compose(optional -> optional
+        .map(chunk -> jobExecutionSourceChunkDao.update(change.apply(chunk), tenantId))
+        .orElseThrow(() -> new NotFoundException(format(
+          "Couldn't %s jobExecutionSourceChunk, it was not found: id %s, jobExecutionId: %s",
+          action, sourceChunkId, jobExecutionId))))
+      .mapEmpty();
   }
 
   private Future<Void> validateJobProfile(JobExecution jobExecution, List<Record> records) {
@@ -257,47 +220,55 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         records, String.format(JOB_PROFILE_HAS_NO_CHILD_PROFILES_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName())));
     }
 
-    return isJobProfileCompatibleWithRecordsType(jobProfileSnapshot, records)
-      ? Future.succeededFuture()
-      : Future.failedFuture(new InvalidJobProfileForFileException(records,
+    if (isJobProfileCompatibleWithRecordsType(jobProfileSnapshot, records)) {
+      return Future.succeededFuture();
+    }
+    jobExecutionStatusCache.markAsError(jobExecution.getId());
+    return Future.failedFuture(new InvalidJobProfileForFileException(records,
       prepareWrongJobProfileErrorMessage(jobExecution, records)));
   }
 
   private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, ConnectionParams params,
                               String sourceChunkId, boolean acceptInstanceId, Promise<List<Record>> promise) {
-
+    var action = getAction(parsedRecords, jobExecution);
     log.debug("processRecords:: Starting to process parsed records for jobExecutionId: {}, sourceChunkId: {}, action determined by job profile: {}",
-      jobExecution.getId(), sourceChunkId, getAction(parsedRecords, jobExecution));
+      jobExecution.getId(), sourceChunkId, action);
 
-    switch (getAction(parsedRecords, jobExecution)) {
+    if (action == ActionType.SAVE_RECORD) {
+      saveRecords(jobExecution, sourceChunkId, params, parsedRecords, promise);
+      return;
+    }
+    publishForAction(action, parsedRecords, jobExecution, params, acceptInstanceId)
+      .onSuccess(ar -> promise.complete(parsedRecords))
+      .onFailure(promise::fail);
+  }
+
+  private Future<Boolean> publishForAction(ActionType action, List<Record> parsedRecords, JobExecution jobExecution,
+                                           ConnectionParams params, boolean acceptInstanceId) {
+    return switch (action) {
       case UPDATE_RECORD -> {
         hrIdFieldService.move001valueTo035Field(parsedRecords);
-        updateRecords(parsedRecords, jobExecution, params)
-          .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
+        yield updateRecords(parsedRecords, jobExecution, params);
       }
-      case DELETE_RECORD -> deleteRecords(parsedRecords, jobExecution, params)
-        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
-      case CREATE_ORDER -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED)
-        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
-      case SEND_ERROR -> sendEvents(parsedRecords, jobExecution, params, DI_ERROR)
-        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
-      case SEND_MARC_BIB -> sendEventWithContext(parsedRecords, jobExecution, params, Map.of(ACCEPT_INSTANCE_ID_KEY, Boolean.toString(acceptInstanceId)))
-        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
-      case SEND_EDIFACT -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_EDIFACT_RECORD_PARSED)
-        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
-      default -> saveRecords(jobExecution, sourceChunkId, params, parsedRecords, promise);
-    }
+      case DELETE_RECORD -> deleteRecords(parsedRecords, jobExecution, params);
+      case CREATE_ORDER -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED);
+      case SEND_ERROR -> sendEvents(parsedRecords, jobExecution, params, DI_ERROR);
+      case SEND_MARC_BIB -> sendEventWithContext(parsedRecords, jobExecution, params,
+        Map.of(ACCEPT_INSTANCE_ID_KEY, Boolean.toString(acceptInstanceId)));
+      case SEND_EDIFACT -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_EDIFACT_RECORD_PARSED);
+      case SAVE_RECORD -> throw new IllegalStateException("SAVE_RECORD is handled by saveRecords");
+    };
   }
 
   private ActionType getAction(List<Record> parsedRecords, JobExecution jobExecution) {
-    if (deleteMarcActionExists(jobExecution)) {
+    if (JobProfileSnapshotInspector.hasDeleteMarcAuthorityAction(jobExecution)) {
       return ActionType.DELETE_RECORD;
     }
-    if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)
-      || isCreateOrUpdateItemOrHoldingsActionExists(jobExecution, parsedRecords) || isMarcAuthorityMatchProfile(jobExecution)) {
+    if (JobProfileSnapshotInspector.hasUpdateMarcAction(jobExecution) || JobProfileSnapshotInspector.hasUpdateInstanceAction(jobExecution)
+      || JobProfileSnapshotInspector.hasCreateOrUpdateItemOrHoldingsAction(jobExecution, parsedRecords) || JobProfileSnapshotInspector.hasMarcAuthorityMatchProfile(jobExecution)) {
       return ActionType.UPDATE_RECORD;
     }
-    if (createOrderActionExists(jobExecution)) {
+    if (JobProfileSnapshotInspector.hasCreateOrderAction(jobExecution)) {
       return ActionType.CREATE_ORDER;
     }
     if (parsedRecords.isEmpty()) {
@@ -344,7 +315,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private Future<Boolean> sendEventWithContext(List<Record> records, JobExecution jobExecution, ConnectionParams params, Map<String, String> eventContext) {
-    log.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}, event context: {}", DI_INCOMING_MARC_BIB_RECORD_PARSED, jobExecution.getId(), eventContext);
+    log.info("sendEventWithContext:: Sending events with type: {}, jobExecutionId: {}, event context: {}", DI_INCOMING_MARC_BIB_RECORD_PARSED, jobExecution.getId(), eventContext);
     return recordsPublishingService.sendEventsWithRecords(records, jobExecution.getId(), params, DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventContext);
   }
 
@@ -357,29 +328,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .toList();
       journalRecordProducer.write(batchableJournalRecords);
     }
-  }
-
-  private boolean createOrderActionExists(JobExecution jobExecution) {
-    if (jobExecution.getJobProfileSnapshotWrapper() != null) {
-      List<ProfileSnapshotWrapper> actionProfiles = jobExecution.getJobProfileSnapshotWrapper().getChildSnapshotWrappers()
-        .stream().filter(wrapper -> wrapper.getContentType() == ACTION_PROFILE).toList();
-
-      if (!actionProfiles.isEmpty() && ifOrderCreateActionProfileExists(actionProfiles)) {
-        log.debug("createOrderActionExists:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private static boolean ifOrderCreateActionProfileExists(List<ProfileSnapshotWrapper> profiles) {
-    for (ProfileSnapshotWrapper profile : profiles) {
-      Map<String, String> content = DatabindCodec.mapper().convertValue(profile.getContent(), HashMap.class);
-      if (content.get(FOLIO_RECORD).equals(ORDER_TYPE) && content.get(ACTION_FIELD).equals(CREATE_ACTION)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -463,142 +411,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return throwable instanceof NotFoundException notFoundEx ? notFoundEx : null;
   }
 
-  private boolean updateMarcActionExists(JobExecution jobExecution) {
-    return containsMarcActionProfile(
-      jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY, FolioRecord.MARC_HOLDINGS),
-      Action.UPDATE);
-  }
-
-  private boolean updateInstanceActionExists(JobExecution jobExecution) {
-    return containsMarcActionProfile(
-      jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.INSTANCE),
-      Action.UPDATE);
-  }
-
-  private boolean isCreateOrUpdateItemOrHoldingsActionExists(JobExecution jobExecution, List<Record> parsedRecords) {
-    var jobProfileSnapshotWrapper = jobExecution.getJobProfileSnapshotWrapper();
-    var itemAndHoldingsList = List.of(FolioRecord.ITEM, FolioRecord.HOLDINGS);
-    return (containsMarcActionProfile(jobProfileSnapshotWrapper, itemAndHoldingsList, Action.CREATE) ||
-      containsMarcActionProfile(jobProfileSnapshotWrapper, itemAndHoldingsList, Action.UPDATE)) &&
-      !containsMarcActionProfile(jobProfileSnapshotWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE) &&
-      !CollectionUtils.isEmpty(parsedRecords) &&
-      parsedRecords.getFirst().getRecordType() == MARC_BIB;
-  }
-
-  private boolean deleteMarcActionExists(JobExecution jobExecution) {
-    return containsMarcActionProfile(
-      jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.MARC_AUTHORITY),
-      Action.DELETE);
-  }
-
-  private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
-    return containsCreateInstanceActionWithoutPrecedingDelete999Field(jobExecution.getJobProfileSnapshotWrapper());
-  }
-
-  private boolean containsCreateInstanceActionWithoutPrecedingDelete999Field(ProfileSnapshotWrapper profileSnapshot) {
-    List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
-    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ACTION_PROFILE
-        && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
-        if (childWrapper.getReactTo() != NON_MATCH) {
-          boolean hasPrecedingModifyMarcBib = childWrappers.stream()
-            .anyMatch(wrapper -> wrapper.getContentType() == ACTION_PROFILE
-              && actionProfileMatches(wrapper, List.of(FolioRecord.MARC_BIBLIOGRAPHIC), Action.MODIFY)
-              && wrapper.getOrder() != null && childWrapper.getOrder() != null
-              && wrapper.getOrder() < childWrapper.getOrder()
-              && ProfileSnapshotUtil.containsDelete999FieldMappingDetail(wrapper));
-
-          if (!hasPrecedingModifyMarcBib) {
-            return true;
-          }
-        }
-      } else if (containsCreateInstanceActionWithoutPrecedingDelete999Field(childWrapper)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
-    return containsMarcActionProfile(
-      jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.AUTHORITY),
-      Action.CREATE);
-  }
-
-  private boolean isCreateMarcHoldingsActionExists(JobExecution jobExecution) {
-    return containsCreateActionProfileWithMarcHoldings(
-      jobExecution.getJobProfileSnapshotWrapper());
-  }
-
-  private boolean isMarcAuthorityMatchProfile(JobExecution jobExecution) {
-    return containsMatchProfile(jobExecution.getJobProfileSnapshotWrapper());
-  }
-
-  private boolean containsMatchProfile(ProfileSnapshotWrapper profileSnapshot) {
-    var childWrappers = profileSnapshot.getChildSnapshotWrappers();
-    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == MATCH_PROFILE
-        && marcAuthorityMatchProfileMatches(childWrapper)) {
-        return true;
-      } else if (containsMatchProfile(childWrapper)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean marcAuthorityMatchProfileMatches(ProfileSnapshotWrapper matchProfileWrapper) {
-    MatchProfile matchProfile = new JsonObject((Map) matchProfileWrapper.getContent()).mapTo(MatchProfile.class);
-    return matchProfile.getExistingRecordType() == EntityType.MARC_AUTHORITY && matchProfile.getIncomingRecordType() == EntityType.MARC_AUTHORITY;
-  }
-
-  private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
-                                            List<FolioRecord> entityTypes, Action action) {
-    List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
-    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ACTION_PROFILE
-        && actionProfileMatches(childWrapper, entityTypes, action)) {
-        return true;
-      } else if (containsMarcActionProfile(childWrapper, entityTypes, action)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean containsCreateActionProfileWithMarcHoldings(ProfileSnapshotWrapper profileSnapshot) {
-    List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
-    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ACTION_PROFILE
-        && actionProfileMatches(childWrapper, List.of(FolioRecord.HOLDINGS), Action.CREATE)
-        && isMarcHoldingsExists(childWrapper)) {
-        return true;
-      } else if (containsCreateActionProfileWithMarcHoldings(childWrapper)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean actionProfileMatches(ProfileSnapshotWrapper actionProfileWrapper,
-                                       List<FolioRecord> records, Action action) {
-    ActionProfile actionProfile = new JsonObject((Map) actionProfileWrapper.getContent()).mapTo(ActionProfile.class);
-    return (records.contains(actionProfile.getFolioRecord())) && actionProfile.getAction() == action;
-  }
-
-  private boolean isMarcHoldingsExists(ProfileSnapshotWrapper actionProfileWrapper) {
-    List<ProfileSnapshotWrapper> childWrappers = actionProfileWrapper.getChildSnapshotWrappers();
-    if (childWrappers != null && !childWrappers.isEmpty() && childWrappers.getFirst() != null) {
-      MappingProfile mappingProfile = new JsonObject((Map) childWrappers.getFirst().getContent()).mapTo(MappingProfile.class);
-      return mappingProfile.getExistingRecordType() == EntityType.HOLDINGS && mappingProfile.getIncomingRecordType() == EntityType.MARC_HOLDINGS;
-    }
-    return false;
-  }
-
   /**
    * Parse list of source records
    *
@@ -624,13 +436,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
           log.info("parseRecords:: Parsed {} records out of {}", counter.intValue(), rawRecords.size());
-          jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
-            .compose(optional -> optional
-              .map(sourceChunk -> jobExecutionSourceChunkDao
-                .update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
-              .orElseThrow(() -> new NotFoundException(format(
-                "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found",
-                sourceChunkId))));
+          updateSourceChunk(sourceChunkId, tenantId, "update progress of", jobExecution.getId(),
+            chunk -> chunk.withProcessedAmount(chunk.getProcessedAmount() + counter.intValue()));
         }
       }).toList();
 
@@ -688,11 +495,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
       if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S, INDICATOR_F, INDICATOR_F))
         || StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I, INDICATOR_F, INDICATOR_F)))) {
-        if (isCreateInstanceActionExists(jobExecution)) {
+        if (JobProfileSnapshotInspector.hasCreateInstanceActionWithoutPrecedingDelete999Field(jobExecution)) {
           return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
-        } else if (isCreateMarcHoldingsActionExists(jobExecution)) {
+        } else if (JobProfileSnapshotInspector.hasCreateMarcHoldingsAction(jobExecution)) {
           return constructParsedResultWithError(parsedResult, HOLDINGS_CREATION_999_ERROR_MESSAGE);
-        } else if (isCreateAuthorityActionExists(jobExecution)) {
+        } else if (JobProfileSnapshotInspector.hasCreateAuthorityAction(jobExecution)) {
           return constructParsedResultWithError(parsedResult, AUTHORITY_CREATION_999_ERROR_MESSAGE);
         }
       }
@@ -707,168 +514,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     result.setErrors(errorObject);
     result.setParsedRecord(parsedResult.getParsedRecord());
     return result;
-  }
-
-  private List<Future<List<String>>> executeInBatches(List<Record> recordList,
-                                        Function<List<String>, Future<List<String>>> batchOperation) {
-    // filter list on MARC_HOLDINGS
-    var marcHoldingsIdsToVerify = recordList.stream()
-      .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
-      .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
-      .filter(StringUtils::isNotBlank)
-      .toList();
-    // split on batches and create list of Futures
-    List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
-    List<Future<List<String>>> futureList = new ArrayList<>();
-    for (List<String> batch : batches) {
-      futureList.add(batchOperation.apply(batch));
-    }
-    return futureList;
-  }
-
-  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future<List<String>>> batchList, ConnectionParams okapiParams,
-                                            JobExecution jobExecution, Promise<List<Record>> promise) {
-    Future.all(batchList)
-      .onComplete(as -> {
-        if (IterableUtils.matchesAll(records, record -> record.getRecordType() == MARC_HOLDING)) {
-          var invalidMarcBibIds = batchList
-            .stream()
-            .map(Future<List<String>>::result)
-            .flatMap(Collection::stream)
-            .toList();
-          log.info("filterMarcHoldingsBy004Field:: MARC_BIB invalid list ids: {}", invalidMarcBibIds);
-          var validMarcBibRecords = records.stream()
-            .filter(record -> {
-              var controlFieldValue = getControlFieldValue(record, TAG_004);
-              return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
-            }).toList();
-          log.info("filterMarcHoldingsBy004Field:: Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
-            records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
-          promise.complete(validMarcBibRecords);
-        } else {
-          promise.complete(records);
-        }
-      });
-  }
-
-  private Future<List<String>> getInvalidMarcBibIdsForConsortium(List<String> marcBibIds,
-                                                                 ConnectionParams okapiParams) {
-    if (CollectionUtils.isEmpty(marcBibIds)) {
-      return Future.succeededFuture(Collections.emptyList());
-    }
-    return verifyMarcHoldings004Field(marcBibIds, okapiParams)
-      .compose(invalidIdsInMember -> {
-        if (invalidIdsInMember.isEmpty()) {
-          return Future.succeededFuture(Collections.emptyList());
-        } else {
-          return consortiumDataCache.getConsortiumData(okapiParams)
-            .compose(consortiumConfiguration ->
-              getCentralTenantInvalidIds(okapiParams, invalidIdsInMember, consortiumConfiguration));
-        }
-      });
-  }
-
-  private Future<List<String>> getCentralTenantInvalidIds(ConnectionParams okapiParams,
-                                                          List<String> invalidIdsInMember,
-                                                          Optional<ConsortiumConfiguration> consortiumConfiguration) {
-    if (consortiumConfiguration.isPresent()) {
-      var headers = prepareCentralTenantConnectionParams(okapiParams, consortiumConfiguration.get());
-      var params = new ConnectionParams(headers);
-      return verifyMarcHoldings004Field(invalidIdsInMember, params);
-    }
-    return Future.succeededFuture(invalidIdsInMember);
-  }
-
-  private Map<String, String> prepareCentralTenantConnectionParams(ConnectionParams okapiParams,
-                                                                   ConsortiumConfiguration consortiumConfiguration) {
-    var headers = new HashMap<String, String>();
-    okapiParams.getHeaders().forEach(headers::put);
-    headers.keySet().stream()
-      .filter(key -> key.equalsIgnoreCase(XOkapiHeaders.TENANT))
-      .findFirst()
-      .ifPresent(key -> headers.put(key, consortiumConfiguration.centralTenantId()));
-    return headers;
-  }
-
-  private Future<List<String>> verifyMarcHoldings004Field(List<String> marcBibIds, ConnectionParams okapiParams) {
-    Promise<List<String>> promise = Promise.promise();
-    var sourceStorageBatchClient = getSourceStorageBatchClient(okapiParams);
-    try {
-      sourceStorageBatchClient.postSourceStorageBatchVerifiedRecords(marcBibIds, asyncResult -> {
-        log.info("verifyMarcHoldings004Field:: Verify list of marc bib ids: {} ", marcBibIds);
-        List<String> invalidMarcBibIds = new ArrayList<>();
-        if (asyncResult.succeeded() && asyncResult.result().statusCode() == 200) {
-          var body = asyncResult.result().body();
-          log.info("verifyMarcHoldings004Field:: Response from SRS with invalid MARC Bib ids: {}", body);
-          var object = new JsonObject(body);
-          var ids = object.getJsonArray("invalidMarcBibIds");
-          invalidMarcBibIds = ids.getList();
-          log.info("verifyMarcHoldings004Field:: List of marc bib ids: {}", invalidMarcBibIds);
-        } else {
-          log.info("verifyMarcHoldings004Field:: The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(),
-            asyncResult.result().statusCode());
-        }
-        promise.complete(invalidMarcBibIds);
-      });
-    } catch (Exception e) {
-      log.warn("verifyMarcHoldings004Field:: Error during call post request to SRS", e);
-      promise.complete(Collections.emptyList());
-    }
-    return promise.future();
-  }
-
-  private boolean isValidMarcHoldings(JobExecution jobExecution, ConnectionParams okapiParams,
-                                      List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
-    if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
-      // avoid populating error if there is already populated via 999ff-field error.
-      if (record.getErrorRecord() != null && record.getErrorRecord().getDescription().contains("999ff")) {
-        return true;
-      }
-      populateError(record, jobExecution, okapiParams);
-      return false;
-    }
-    return true;
-  }
-
-  private void populateError(Record record, JobExecution jobExecution, ConnectionParams okapiParams) {
-    var eventPayload = getDataImportPayload(record, jobExecution, okapiParams);
-    eventPayload.getContext().put(RECORD_ID_HEADER, record.getId());
-    var key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
-    log.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
-    record.setParsedRecord(null);
-    record.setErrorRecord(new ErrorRecord()
-      .withContent(record.getRawRecord().getContent())
-      .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
-    );
-    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMap(okapiParams.getHeaders());
-    kafkaHeaders.add(new KafkaHeaderImpl(RECORD_ID_HEADER, record.getId()));
-
-    sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), kafkaHeaders, kafkaConfig, key)
-      .onFailure(
-        th -> log.warn("populateError:: Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
-  }
-
-  private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution,
-                                                      ConnectionParams okapiParams) {
-    EntityType sourceRecordKey = RecordConversionUtil.getEntityType(record);
-    return new DataImportEventPayload()
-      .withEventType(DI_ERROR.value())
-      .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
-      .withJobExecutionId(record.getSnapshotId())
-      .withOkapiUrl(okapiParams.getConnectionUrl())
-      .withTenant(okapiParams.getTenantId())
-      .withToken(okapiParams.getToken())
-      .withContext(new HashMap<>() {{
-        put(sourceRecordKey.value(), Json.encode(record));
-        put("ERROR", HOLDINGS_004_TAG_ERROR_MESSAGE);
-      }});
-  }
-
-  private SourceStorageBatchClient getSourceStorageBatchClient(ConnectionParams okapiParams) {
-    var token = okapiParams.getToken();
-    var okapiUrl = okapiParams.getConnectionUrl();
-    var tenantId = okapiParams.getTenantId();
-    return new SourceStorageBatchClient(okapiUrl, tenantId, token);
   }
 
   private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
@@ -893,37 +538,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord) {
     if (isBlank(getControlFieldValue(record, TAG_004))) {
-      log.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
-      record.setParsedRecord(null);
-      record.setErrorRecord(new ErrorRecord()
-        .withContent(rawRecord)
-        .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
-      );
+      marcHoldingsVerifier.markMissing004Link(record, rawRecord);
     }
   }
 
   private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
                                                   ConnectionParams okapiParams) {
-    if (shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper())) {
+    if (JobProfileSnapshotInspector.shouldRemoveSubfield9(jobExecution.getJobProfileSnapshotWrapper())) {
       return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
     }
 
     return Future.succeededFuture(folioRecords);
-  }
-
-  private boolean shouldRemoveSubfield9FromRecordFieldsForProfile(ProfileSnapshotWrapper profileSnapshot) {
-    for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
-      if (childWrapper.getContentType() == ACTION_PROFILE) {
-        ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
-        if (TRUE.equals(actionProfile.getRemove9Subfields())
-          || shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
-          return true;
-        }
-      } else if (shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId,
@@ -958,32 +583,33 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param records list of records
    */
   private void fillParsedRecordsWithAdditionalFields(List<Record> records) {
-    if (!CollectionUtils.isEmpty(records)) {
-      Record.RecordType recordType = records.getFirst().getRecordType();
-      if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
-        for (Record record : records) {
-          if (record.getMatchedId() != null) {
-            addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
-          }
-        }
-      } else if (MARC_AUTHORITY.equals(recordType)) {
-        for (Record record : records) {
-          if (record.getParsedRecord() != null) {
-            if (record.getMatchedId() != null) {
-              addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
-            }
-            final String authorityId = setAuthorityIdIfAbsentForRecord(record);
-            Optional.ofNullable(getControlFieldValue(record, TAG_001))
-              .map(String::trim)
-              .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId).withAuthorityHrid(hrId)),
-                () -> {
-                  record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId));
-                  log.warn("fillParsedRecordsWithAdditionalFields:: record with id: {} does not contain the hrId field", record.getId());
-                });
-          }
-        }
-      }
+    if (CollectionUtils.isEmpty(records)) {
+      return;
     }
+    Record.RecordType recordType = records.getFirst().getRecordType();
+    if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
+      records.forEach(this::addMatchedIdToMarcRecord);
+    } else if (MARC_AUTHORITY.equals(recordType)) {
+      records.stream().filter(record -> record.getParsedRecord() != null).forEach(this::fillAuthorityRecord);
+    }
+  }
+
+  private void addMatchedIdToMarcRecord(Record record) {
+    if (record.getMatchedId() != null) {
+      addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+    }
+  }
+
+  private void fillAuthorityRecord(Record record) {
+    addMatchedIdToMarcRecord(record);
+    final String authorityId = setAuthorityIdIfAbsentForRecord(record);
+    Optional.ofNullable(getControlFieldValue(record, TAG_001))
+      .map(String::trim)
+      .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId).withAuthorityHrid(hrId)),
+        () -> {
+          record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(authorityId));
+          log.warn("fillParsedRecordsWithAdditionalFields:: record with id: {} does not contain the hrId field", record.getId());
+        });
   }
 
   private String setAuthorityIdIfAbsentForRecord(Record record) {
@@ -1019,7 +645,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
     kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
 
-    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+    String key = distributionKeyGenerator.next();
 
     return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_RECORDS_CHUNK_PARSED.value(),
       kafkaHeaders, kafkaConfig, key)
@@ -1027,7 +653,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private String prepareWrongJobProfileErrorMessage(JobExecution jobExecution, List<Record> records) {
-    JobExecutionUtils.cache.put(jobExecution.getId(), JobExecution.Status.ERROR);
     return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.getFirst().getRecordType());
   }
 }
