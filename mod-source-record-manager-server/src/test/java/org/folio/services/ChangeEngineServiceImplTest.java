@@ -774,7 +774,7 @@ public class ChangeEngineServiceImplTest {
   }
 
   @Test
-  public void shouldMarkSourceChunkAsErrorWhenMappingMetadataSnapshotFailsUnexpectedly() {
+  public void shouldNotMarkSourceChunkAsError_whenMappingMetadataSnapshotFails() {
     RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_VALID);
     JobExecution jobExecution = getTestJobExecution();
     when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
@@ -786,8 +786,9 @@ public class ChangeEngineServiceImplTest {
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
 
+    // the failure is left to the caller: the Kafka error handler reports it per record, the REST flow marks the chunk
     assertThat(serviceFuture.failed(), equalTo(true));
-    verify(jobExecutionSourceChunkDao, times(1)).update(
+    verify(jobExecutionSourceChunkDao, never()).update(
       argThat(chunk -> chunk.getState() == JobExecutionSourceChunk.State.ERROR), any());
   }
 

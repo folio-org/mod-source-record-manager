@@ -1401,8 +1401,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(serverError()));
     WireMock.stubFor(get(TENANT_TIME_ZONE_SETTINGS_URL).willReturn(serverError()));
 
-    rawRecordsDto.getRecordsMetadata().setLast(true);
-
     Async async = testContext.async();
     RestAssured.given()
       .spec(spec)

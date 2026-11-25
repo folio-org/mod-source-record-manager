@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
@@ -51,7 +50,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.UnaryOperator;
 import javax.ws.rs.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,7 +62,6 @@ import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.dataimport.util.marc.RecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.ExternalIdsHolder;
@@ -84,7 +81,6 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
-import org.folio.services.exceptions.ReportedToImportLog;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalUtil;
 import org.folio.services.parsers.ParsedResult;
@@ -188,12 +184,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).onFailure(th -> {
         log.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, jobExecutionId: {}",
           jobExecution.getId(), th);
-        if (shouldMarkChunkAsError(th)) {
-          markSourceChunkAsError(sourceChunkId, jobExecution.getId(), params.getTenantId())
-            .onComplete(ar -> promise.fail(th));
-        } else {
-          promise.fail(th);
-        }
+        promise.fail(th);
       });
     return promise.future();
   }
@@ -246,36 +237,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
         return record;
       }).toList();
-  }
-
-  /**
-   * Failures reported to the import log by the chunk error handler (see {@link ReportedToImportLog}) and duplicates
-   * are excluded. Any other failure must move the source chunk to ERROR, otherwise the job never reaches a terminal
-   * state (the error handler sends no DI_ERROR for the last chunk, and a generic DI_ERROR carries no record to count).
-   */
-  private boolean shouldMarkChunkAsError(Throwable th) {
-    return !(th instanceof ReportedToImportLog || th instanceof DuplicateEventException);
-  }
-
-  private Future<Void> markSourceChunkAsError(String sourceChunkId, String jobExecutionId, String tenantId) {
-    return updateSourceChunk(sourceChunkId, tenantId, "set state ERROR for", jobExecutionId,
-      chunk -> chunk.withState(JobExecutionSourceChunk.State.ERROR))
-      .recover(e -> {
-        log.warn("markSourceChunkAsError:: Failed to mark source chunk {} as ERROR, jobExecutionId: {}",
-          sourceChunkId, jobExecutionId, e);
-        return Future.succeededFuture();
-      });
-  }
-
-  private Future<Void> updateSourceChunk(String sourceChunkId, String tenantId, String action, String jobExecutionId,
-                                         UnaryOperator<JobExecutionSourceChunk> change) {
-    return jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
-      .compose(optional -> optional
-        .map(chunk -> jobExecutionSourceChunkDao.update(change.apply(chunk), tenantId))
-        .orElseThrow(() -> new NotFoundException(format(
-          "Couldn't %s jobExecutionSourceChunk, it was not found: id %s, jobExecutionId: %s",
-          action, sourceChunkId, jobExecutionId))))
-      .mapEmpty();
   }
 
   private Future<Void> validateJobProfile(JobExecution jobExecution, List<Record> records) {
@@ -367,7 +328,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .onFailure(e -> log.warn(
               "parseRawRecordsChunkForJobExecution:: Error during update jobExecution with id '{}' and snapshot status",
               jobExecution.getId(), e));
-          markSourceChunkAsError(sourceChunkId, jobExecution.getId(), params.getTenantId())
+          SourceChunkStateUpdater.markAsError(jobExecutionSourceChunkDao, sourceChunkId, jobExecution.getId(), params.getTenantId())
             .onComplete(ar -> promise.fail(postAr.cause()));
         } else {
           promise.complete(parsedRecords);
@@ -519,7 +480,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
           log.info("parseRecords:: Parsed {} records out of {}", counter.intValue(), rawRecords.size());
-          updateSourceChunk(sourceChunkId, tenantId, "update progress of", jobExecution.getId(),
+          SourceChunkStateUpdater.update(jobExecutionSourceChunkDao, sourceChunkId, tenantId, "update progress of", jobExecution.getId(),
             chunk -> chunk.withProcessedAmount(chunk.getProcessedAmount() + counter.intValue()));
         }
       }).toList();

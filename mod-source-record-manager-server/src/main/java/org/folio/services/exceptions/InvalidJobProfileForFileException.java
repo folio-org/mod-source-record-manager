@@ -8,7 +8,7 @@ import java.util.List;
  * This exception is thrown when an incompatible job profile is selected for an uploaded file.
  * The exception contains records from an incoming chunk of file.
  */
-public class InvalidJobProfileForFileException extends Exception implements ReportedToImportLog {
+public class InvalidJobProfileForFileException extends Exception {
 
   private final List<Record> records;
 
