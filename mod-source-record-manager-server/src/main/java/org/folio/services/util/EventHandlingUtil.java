@@ -30,6 +30,7 @@ public final class EventHandlingUtil {
   public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   public static final String RECORD_ID_HEADER = "recordId";
   public static final String CHUNK_ID_HEADER = "chunkId";
+  public static final String USER_ID_HEADER = "userId";
 
   private EventHandlingUtil() {
   }
@@ -46,8 +47,16 @@ public final class EventHandlingUtil {
    */
   public static Future<Boolean> sendEventToKafka(String tenantId, String eventPayload, String eventType,
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
-    Event event = createEvent(eventPayload, eventType, tenantId);
-    String topicName = createTopicName(eventType, tenantId, kafkaConfig);
+    return sendEventToKafka(createEvent(eventPayload, eventType, tenantId), kafkaHeaders, kafkaConfig, key);
+  }
+
+  /**
+   * Sends an already built event (keeping its id and metadata) to kafka, e.g. to redeliver an event.
+   */
+  public static Future<Boolean> sendEventToKafka(Event event, List<KafkaHeader> kafkaHeaders,
+                                                 KafkaConfig kafkaConfig, String key) {
+    String eventType = event.getEventType();
+    String topicName = createTopicName(eventType, event.getEventMetadata().getTenantId(), kafkaConfig);
     KafkaProducerRecord<String, String> record = createProducerRecord(event, key, topicName, kafkaHeaders);
 
     String chunkId = extractHeader(kafkaHeaders, CHUNK_ID_HEADER);
@@ -60,10 +69,10 @@ public final class EventHandlingUtil {
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
     return producer.send(record)
-      .eventually((Supplier<Future<Void>>) producer::close)
+      .eventually(producer::close)
       .map(true)
       .onSuccess(x -> logSendingSucceeded(eventType, jobExecutionId, chunkId, recordId))
-      .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
+      .recover(err -> handleKafkaPublishingErrors(event.getEventPayload(), producerName, eventType, err));
   }
 
   private static void logSendingSucceeded(String eventType, String jobExecutionId, String chunkId, String recordId) {

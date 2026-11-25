@@ -90,7 +90,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
       handleIncompatibleJobProfileError(exception, jobExecutionId, okapiParams);
     } else if (throwable instanceof RawChunkRecordsParsingException) {
       RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
-      parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
+      parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, chunkId, exception.getRawRecordsDto())
         .onComplete(ar -> {
           List<Record> parsedRecords = ar.result();
           if (CollectionUtils.isNotEmpty(parsedRecords)) {

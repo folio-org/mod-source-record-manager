@@ -13,9 +13,11 @@
 * Fix "invalid input syntax for type integer" error in get_job_log_entries for invoices with alphanumeric vendor invoice numbers ([MODSOURMAN-1346](https://folio-org.atlassian.net/browse/MODSOURMAN-1346))
 * Fix log entries sorting by items/holdings ([MODSOURMAN-1453](https://folio-org.atlassian.net/browse/MODSOURMAN-1453))
 * Update subject source mapping for 653 MARC field ([MODSOURMAN-1418](https://folio-org.atlassian.net/browse/MODSOURMAN-1418))
+* Fix data import jobs stuck in progress after DB connection timeouts ([MODSOURMAN-1465](https://folio-org.atlassian.net/browse/MODSOURMAN-1465))
 
 ### Tech Dept
 * Create Integration test - Sorting No File name records on data import logs ([MODSOURMAN-1467](https://folio-org.atlassian.net/browse/MODSOURMAN-1467))
+* Drop unused `insert_journal_records` and `processing_contains_error_chunks` DB functions
 
 ### Dependencies
 * Bump `LIB_NAME` from `OLD_VERSION` to `NEW_VERSION`

@@ -13,7 +13,7 @@ import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
 import static org.folio.rest.jaxrs.model.ReactToType.MATCH;
 import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
-import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
+import static org.folio.services.util.EventHandlingUtil.RECORD_ID_HEADER;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.CREATE_ACTION;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.FOLIO_RECORD;
@@ -82,7 +82,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -140,14 +139,22 @@ public class ChangeEngineServiceImplTest {
 
   private final ConnectionParams okapiConnectionParams = new ConnectionParams(Map.of(XOkapiHeaders.TENANT, "diku"));
 
-  @InjectMocks
+  @Mock
+  private ConsortiumDataCache consortiumDataCache;
+  @Mock
+  private JobExecutionStatusCache jobExecutionStatusCache;
+
   private ChangeEngineServiceImpl service;
 
   @Before
   public void setUp() {
+    var keyGenerator = new DistributionKeyGenerator(10);
+    service = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
+      hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig,
+      fieldModificationService, incomingRecordService,
+      new MarcHoldingsVerifier(consortiumDataCache, kafkaConfig, keyGenerator, 100), keyGenerator,
+      jobExecutionStatusCache, vertx);
     ReflectionTestUtils.setField(service, "thresholdChunkSize", 100);
-    ReflectionTestUtils.setField(service, "maxDistributionNum", 10);
-    ReflectionTestUtils.setField(service, "batchSize", 100);
     ReflectionTestUtils.setField(service, "journalRecordProducer", messageProducer);
 
     when(mappingMetadataService.getMappingMetadataDto(anyString(), any(ConnectionParams.class)))
@@ -764,6 +771,25 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual.getFirst().getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
     assertThat(actual.getFirst().getErrorRecord(), nullValue());
     verifyNoInteractions(fieldModificationService);
+  }
+
+  @Test
+  public void shouldNotMarkSourceChunkAsError_whenMappingMetadataSnapshotFails() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_VALID);
+    JobExecution jobExecution = getTestJobExecution();
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
+    when(mappingMetadataService.getMappingMetadataDto(anyString(), any(ConnectionParams.class)))
+      .thenReturn(Future.failedFuture(new IllegalStateException("settings unavailable")));
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenAnswer(inv -> Future.succeededFuture(Optional.of(new JobExecutionSourceChunk().withProcessedAmount(0))));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    // the failure is left to the caller: the Kafka error handler reports it per record, the REST flow marks the chunk
+    assertThat(serviceFuture.failed(), equalTo(true));
+    verify(jobExecutionSourceChunkDao, never()).update(
+      argThat(chunk -> chunk.getState() == JobExecutionSourceChunk.State.ERROR), any());
   }
 
   private void mockServicesForParseRawRecordsChunkForJobExecution() {

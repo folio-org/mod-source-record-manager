@@ -12,6 +12,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Collections.emptyList;
 import static org.folio.KafkaUtil.getKafkaHostAndPort;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,6 +37,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.List;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.verticle.consumers.util.JobExecutionUtils;
 import java.util.UUID;
 import org.folio.Record;
 import org.folio.TestUtil;
@@ -148,6 +153,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
+  private RecordsPublishingService recordsPublishingService;
   private ConnectionParams params;
   private MappingMetadataService mappingMetadataService;
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
@@ -192,14 +198,14 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao, CACHE_EXPIRATION_TIME, CACHE_MAX_SIZE);
 
-    RecordsPublishingService recordsPublishingService = new RecordsPublishingServiceImpl(jobExecutionService,
-      new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList());
+    recordsPublishingService = Mockito.spy(new RecordsPublishingServiceImpl(jobExecutionService,
+      new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList()));
+    var keyGenerator = new DistributionKeyGenerator(10);
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, new JobProfileSnapshotValidationServiceImpl(), kafkaConfig,
-      fieldModificationService, incomingRecordService, consortiumDataCache, vertx);
+      fieldModificationService, incomingRecordService, new MarcHoldingsVerifier(consortiumDataCache, kafkaConfig, keyGenerator, 100), keyGenerator,
+      new JobExecutionStatusCache(), vertx);
     ReflectionTestUtils.setField(changeEngineService, "thresholdChunkSize", 100);
-    ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
-    ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     ReflectionTestUtils.setField(recordsPublishingService, "maxDistributionNum", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
 
@@ -316,6 +322,148 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       verify(1, postRequestedFor(urlPathEqualTo(SNAPSHOT_SERVICE_URL)));
       async.complete();
     });
+  }
+
+  @Test
+  public void shouldMarkJobAndChunkAsError_whenRestChunkPublishingFails(TestContext context) {
+    // given: the job lookup done before publishing times out (DB outage)
+    doReturn(Future.failedFuture(new IllegalStateException("Timeout when trying to connect to DB")))
+      .when(recordsPublishingService).sendEventsWithRecords(any(), anyString(), any(), anyString(), any());
+    RawRecordsDto recordChunk = restChunk(false, rawRecordsDto.getInitialRecords());
+
+    // when
+    Future<JobExecution> future = initJobWithProfile()
+      .compose(job -> chunkProcessingService.processChunk(recordChunk, job.getId(), false, params)
+        .transform(ar -> {
+          context.assertTrue(ar.failed(), "the REST request must fail");
+          return currentJob(job.getId());
+        }));
+
+    // then
+    future.onComplete(context.asyncAssertSuccess(job -> {
+      context.assertEquals(JobExecution.Status.ERROR, job.getStatus());
+      context.assertEquals(JobExecution.ErrorStatus.RECORD_UPDATE_ERROR, job.getErrorStatus());
+      jobExecutionSourceChunkDao.getById(recordChunk.getId(), TENANT_ID)
+        .onComplete(context.asyncAssertSuccess(chunk ->
+          context.assertEquals(JobExecutionSourceChunk.State.ERROR, chunk.orElseThrow().getState())));
+    }));
+  }
+
+  @Test
+  public void shouldNotOverwriteCancelledJob_whenRestChunkFails(TestContext context) {
+    // given
+    RawRecordsDto recordChunk = restChunk(false, rawRecordsDto.getInitialRecords());
+
+    // when: processing fails because the job was cancelled by the user
+    Future<JobExecution> future = initJobWithProfile()
+      .compose(job -> jobExecutionService.updateJobExecutionStatus(job.getId(),
+        new StatusDto().withStatus(StatusDto.Status.CANCELLED), params))
+      .compose(job -> chunkProcessingService.processChunk(recordChunk, job.getId(), false, params)
+        .transform(ar -> {
+          context.assertTrue(ar.failed(), "processing of a cancelled job must fail");
+          return currentJob(job.getId());
+        }));
+
+    // then
+    future.onComplete(context.asyncAssertSuccess(job ->
+      context.assertEquals(JobExecution.Status.CANCELLED, job.getStatus())));
+  }
+
+  @Test
+  public void shouldNotMarkJobAsError_whenRestEmptyLastChunkFails(TestContext context) {
+    // given: the record chunk was accepted, and saving the empty final chunk fails
+    RawRecordsDto recordChunk = restChunk(false, rawRecordsDto.getInitialRecords());
+    RawRecordsDto finishChunk = restChunk(true, Collections.emptyList());
+    doReturn(Future.failedFuture(new IllegalStateException("Timeout when trying to connect to DB")))
+      .when(jobExecutionSourceChunkDao).save(argThat(chunk -> finishChunk.getId().equals(chunk.getId())), anyString());
+
+    // when
+    Future<JobExecution> future = initJobWithProfile()
+      .compose(job -> chunkProcessingService.processChunk(recordChunk, job.getId(), false, params).map(job))
+      .compose(job -> chunkProcessingService.processChunk(finishChunk, job.getId(), false, params)
+        .transform(ar -> {
+          context.assertTrue(ar.failed(), "saving the final chunk must fail");
+          return currentJob(job.getId());
+        }));
+
+    // then: the record is on its way, the job finishes by progress
+    future.onComplete(context.asyncAssertSuccess(job ->
+      context.assertEquals(JobExecution.Status.PARSING_IN_PROGRESS, job.getStatus())));
+  }
+
+  private Future<JobExecution> initJobWithProfile() {
+    return jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(rs -> jobExecutionService.setJobProfileToJobExecution(rs.getParentJobExecutionId(), jobProfileInfo, params));
+  }
+
+  private RawRecordsDto restChunk(boolean last, List<InitialRecord> records) {
+    return new RawRecordsDto()
+      .withId(UUID.randomUUID().toString())
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(last)
+        .withCounter(records.size())
+        .withTotal(1)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(records);
+  }
+
+  /**
+   * mod-data-import ends a job with an empty last chunk, and chunks are spread across partitions, so the last chunk
+   * can be stored before earlier chunks are processed. A failed chunk must not end the job early in the Kafka flow:
+   * otherwise the consumers skip every later chunk (see JobExecutionUtils#isNeedToSkip).
+   */
+  @Test
+  public void shouldKeepJobInProgressAndProcessLaterChunks_whenKafkaChunkFailsAfterLastChunkStored(TestContext context) {
+    // given
+    when(mappingParametersProvider.get(anyString(), any(ConnectionParams.class)))
+      .thenReturn(Future.failedFuture(new IllegalStateException("settings unavailable")),
+        Future.succeededFuture(new MappingParameters()));
+    RawRecordsDto lastChunk = kafkaChunk(true, Collections.emptyList());
+    RawRecordsDto failingChunk = kafkaChunk(false, rawRecordsDto.getInitialRecords());
+    RawRecordsDto laterChunk = kafkaChunk(false, rawRecordsDto.getInitialRecords());
+
+    // when
+    Future<JobExecution> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(rs -> jobExecutionService.setJobProfileToJobExecution(rs.getParentJobExecutionId(), jobProfileInfo, params))
+      .compose(job -> processKafkaChunk(lastChunk, job.getId()))
+      .compose(job -> processKafkaChunk(failingChunk, job.getId()).transform(ar -> {
+        context.assertTrue(ar.failed(), "chunk processing must fail while mapping parameters are unavailable");
+        return currentJob(job.getId());
+      }))
+      .compose(job -> {
+        context.assertFalse(JobExecutionUtils.isNeedToSkip(job), "later chunks must not be skipped");
+        return processKafkaChunk(laterChunk, job.getId());
+      });
+
+    // then
+    future.onComplete(context.asyncAssertSuccess(job -> {
+      context.assertNotEquals(JobExecution.Status.ERROR, job.getStatus());
+      context.assertNotEquals(job.getProgress().getTotal(), job.getProgress().getCurrent());
+      jobExecutionSourceChunkDao.getById(failingChunk.getId(), TENANT_ID)
+        .onComplete(context.asyncAssertSuccess(chunk ->
+          context.assertNotEquals(JobExecutionSourceChunk.State.ERROR, chunk.orElseThrow().getState())));
+    }));
+  }
+
+  private Future<JobExecution> processKafkaChunk(RawRecordsDto chunk, String jobExecutionId) {
+    return currentJob(jobExecutionId)
+      .compose(job -> chunkProcessingService.processChunk(chunk, job, params))
+      .compose(processed -> currentJob(jobExecutionId));
+  }
+
+  private Future<JobExecution> currentJob(String jobExecutionId) {
+    return jobExecutionService.getJobExecutionById(jobExecutionId, TENANT_ID).map(Optional::orElseThrow);
+  }
+
+  private RawRecordsDto kafkaChunk(boolean last, List<InitialRecord> records) {
+    return new RawRecordsDto()
+      .withId(UUID.randomUUID().toString())
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(last)
+        .withCounter(records.size())
+        .withTotal(2)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(records);
   }
 
   @Test

@@ -2,11 +2,13 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.dataimport.util.ConnectionParams;
+import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.List;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
 
 public interface ChangeEngineService {
 
@@ -24,4 +26,10 @@ public interface ChangeEngineService {
                                                            JobExecution jobExecution, String sourceChunkId,
                                                            boolean acceptInstanceId,
                                                            ConnectionParams params);
+
+  List<Record> getParsedRecordsFromInitialRecords(List<InitialRecord> rawRecords,
+                                                  RecordsMetadata.ContentType recordContentType,
+                                                  JobExecution jobExecution,
+                                                  boolean acceptInstanceId,
+                                                  String sourceChunkId);
 }

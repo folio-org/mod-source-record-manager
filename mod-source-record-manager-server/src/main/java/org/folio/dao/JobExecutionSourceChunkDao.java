@@ -3,7 +3,6 @@ package org.folio.dao;
 import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -20,17 +19,6 @@ public interface JobExecutionSourceChunkDao {
    * @return future
    */
   Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId);
-
-  /**
-   * Searches for {@link JobExecutionSourceChunk} in database by {@code query}
-   *
-   * @param jobExecutionId  job execution id
-   * @param isLast is last chunk
-   * @param offset starting index in a list of results
-   * @param limit  limit of records for pagination
-   * @return future with list of {@link JobExecutionSourceChunk}
-   */
-  Future<List<JobExecutionSourceChunk>> get(String jobExecutionId, boolean isLast, int offset, int limit, String tenantId);
 
   /**
    * Searches JobExecutionSourceChunk by id
@@ -65,16 +53,6 @@ public interface JobExecutionSourceChunkDao {
    * @return - returns a boolean value, which indicates whether processing is completed
    */
   Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId);
-
-  /**
-   * Checks if there are any errors among chunks related to job execution
-   * Error chunks have ERROR status.
-   *
-   * @param jobExecutionId - UUID of related JobExecution
-   * @param tenantId       - tenantId
-   * @return - returns a boolean value, which indicates whether there were any errors during processing
-   */
-  Future<Boolean> containsErrorChunks(String jobExecutionId, String tenantId);
 
   /**
    * Deletes all JobExecutionSourceChunks associated with specified jobExecution

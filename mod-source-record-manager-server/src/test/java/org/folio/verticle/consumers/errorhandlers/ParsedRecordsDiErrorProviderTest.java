@@ -29,13 +29,13 @@ import java.util.UUID;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class ParsedRecordsDiErrorProviderTest {
   private static final String JOB_EXECUTION_ID = UUID.randomUUID().toString();
+  private static final String CHUNK_ID = "c1c1c1c1-0000-4000-8000-000000000001";
   private static final String TENANT_ID = "diku";
   private static final String TOKEN = "token";
 
@@ -63,9 +63,9 @@ public class ParsedRecordsDiErrorProviderTest {
       .withInitialRecords(Lists.newArrayList(new InitialRecord()))
       .withRecordsMetadata(new RecordsMetadata().withContentType(RecordsMetadata.ContentType.MARC_JSON));
     when(changeEngineService.getParsedRecordsFromInitialRecords(eq(rawRecordsDto.getInitialRecords()),
-      eq(rawRecordsDto.getRecordsMetadata().getContentType()), eq(jobExecution), eq(false), anyString()))
+      eq(rawRecordsDto.getRecordsMetadata().getContentType()), eq(jobExecution), eq(false), eq(CHUNK_ID)))
         .thenReturn(Lists.newArrayList(new Record().withParsedRecord(new ParsedRecord())));
-    Future<List<Record>> parserRecordsFuture = diErrorProvider.getParsedRecordsFromInitialRecords(getOkapiParams(), JOB_EXECUTION_ID, rawRecordsDto);
+    Future<List<Record>> parserRecordsFuture = diErrorProvider.getParsedRecordsFromInitialRecords(getOkapiParams(), JOB_EXECUTION_ID, CHUNK_ID, rawRecordsDto);
     parserRecordsFuture.onComplete(ar -> {
       List<Record> parsedRecords = ar.result();
       assertEquals(1, parsedRecords.size());
@@ -79,7 +79,7 @@ public class ParsedRecordsDiErrorProviderTest {
 
     when(jobExecutionService.getJobExecutionById(JOB_EXECUTION_ID, TENANT_ID))
       .thenReturn(Future.succeededFuture(Optional.empty()));
-    Future<List<Record>> parserRecordsFuture = diErrorProvider.getParsedRecordsFromInitialRecords(getOkapiParams(), JOB_EXECUTION_ID, new RawRecordsDto());
+    Future<List<Record>> parserRecordsFuture = diErrorProvider.getParsedRecordsFromInitialRecords(getOkapiParams(), JOB_EXECUTION_ID, CHUNK_ID, new RawRecordsDto());
     parserRecordsFuture.onComplete(ar -> {
       List<Record> parsedRecords = ar.result();
       assertTrue(parsedRecords.isEmpty());
